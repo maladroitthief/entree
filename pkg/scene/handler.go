@@ -43,10 +43,9 @@ func (s *handler) SetScreenSize(w, h int) {
 
 	s.screenWidth = w
 	s.screenHeight = h
-
-	return
 }
 
+// Update handles the scene changes as well as the input changes
 func (h *handler) Update(input Input) error {
 	if h.transitionCount == 0 {
 		return h.current.Update(&gameState{
@@ -65,6 +64,7 @@ func (h *handler) Update(input Input) error {
 	return nil
 }
 
+// Draw places the image in the scene
 func (h *handler) Draw(r *ebiten.Image) {
 	if h.transitionCount == 0 {
 		h.current.Draw(r)
@@ -85,6 +85,7 @@ func (h *handler) Draw(r *ebiten.Image) {
 	r.DrawImage(transitionTo, op)
 }
 
+// GoTo handles scene changes
 func (h *handler) GoTo(scene Scene) {
 	if h.current == nil {
 		h.current = scene

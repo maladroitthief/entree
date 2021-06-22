@@ -34,7 +34,7 @@ func New() (Game, error) {
 	return &g, nil
 }
 
-// Draw passes the rendering responsibility to the scene manager
+// Draw wraps the scene managers draw function
 func (g *game) Draw(screen *ebiten.Image) {
 	g.sh.Draw(screen)
 }
@@ -44,12 +44,12 @@ func (g *game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return outsideWidth, outsideHeight
 }
 
-// Update handles the input updates as well as the scene manager updates
+// Update handles all game updates. Works as our game loop
 func (g *game) Update() error {
-	// update input
+	// Update input
 	g.input.Update()
 
-	// update sceneManager
+	// Update scene manager
 	err := g.sh.Update(g.input)
 	if err != nil {
 		return err
