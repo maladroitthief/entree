@@ -4,10 +4,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type virtualGamepadButton int
+type action int
 
 const (
-	Ok virtualGamepadButton = iota
+	Ok action = iota
 	Quit
 
 	// Directional inputs
@@ -17,9 +17,25 @@ const (
 	Right
 )
 
+var actions = []action{
+  Ok,
+  Quit,
+  Up,
+  Down,
+  Left,
+  Right,
+}
+
 type Input struct {
 	gamepadIDs     []ebiten.GamepadID
-	keyboardConfig keyboardConfig
+	keyboardConfig *keyboardConfig
+}
+
+func NewInput() *Input {
+  i := &Input{}
+  i.keyboardConfig = NewKeyboardConfig()
+
+  return i
 }
 
 func (i *Input) Update() {

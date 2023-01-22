@@ -8,18 +8,25 @@ import (
 )
 
 type keyboardConfig struct {
-	current      []virtualGamepadButton
-	buttons      map[virtualGamepadButton]ebiten.Key
-	mouseButtons map[virtualGamepadButton]ebiten.MouseButton
+	current      []action
+	keys         map[action]ebiten.Key
+	mouseButtons map[action]ebiten.MouseButton
 }
 
 var (
-	ErrUnknownButton = errors.New("the button does not exist")
+	ErrUnknownKey         = errors.New("the key does not exist")
 	ErrUnknownMouseButton = errors.New("the mouse button does not exist")
 )
 
-func DefaultKey(b virtualGamepadButton) (ebiten.Key, error) {
-	switch b {
+func NewKeyboardConfig() *keyboardConfig {
+  kbc := &keyboardConfig{}
+  kbc.Initialize()
+
+  return kbc
+}
+
+func DefaultKey(a action) (ebiten.Key, error) {
+	switch a {
 	case Ok:
 		return ebiten.KeySpace, nil
 	case Quit:
@@ -34,11 +41,11 @@ func DefaultKey(b virtualGamepadButton) (ebiten.Key, error) {
 		return ebiten.KeyD, nil
 	}
 
-	return ebiten.KeyA, ErrUnknownButton
+	return ebiten.KeyA, ErrUnknownKey
 }
 
-func DefaultMouseButton(b virtualGamepadButton) (ebiten.MouseButton, error) {
-	switch b {
+func DefaultMouseButton(a action) (ebiten.MouseButton, error) {
+	switch a {
 	case Ok:
 		return ebiten.MouseButtonLeft, nil
 	}
@@ -46,24 +53,64 @@ func DefaultMouseButton(b virtualGamepadButton) (ebiten.MouseButton, error) {
 	return ebiten.MouseButtonLeft, ErrUnknownMouseButton
 }
 
-func (c *keyboardConfig) initialize() {
-	if c.buttons == nil {
-		c.buttons = map[virtualGamepadButton]ebiten.Key{}
+func (c *keyboardConfig) Initialize() {
+	if c.keys == nil {
+		c.keys = map[action]ebiten.Key{}
+		c.ResetAllKeys()
 	}
 
 	if c.mouseButtons == nil {
-		c.mouseButtons = map[virtualGamepadButton]ebiten.MouseButton{}
+		c.mouseButtons = map[action]ebiten.MouseButton{}
+		c.ResetAllMouseButtons()
 	}
 }
 
-func (c *keyboardConfig) Reset() {
-	c.buttons = nil
+func (c *keyboardConfig) ResetAllKeys() {
+	for _, a := range actions {
+		k, err := DefaultKey(a)
+
+		if err != nil {
+			continue
+		}
+
+		c.SetKey(a, k)
+	}
 }
 
-func (c *keyboardConfig) IsButtonPressed(b virtualGamepadButton) bool {
-	c.initialize()
+func (c *keyboardConfig) SetKey(a action, k ebiten.Key) {
+	c.keys[a] = k
 
-	k, ok := c.buttons[b]
+	_, ok := c.mouseButtons[a]
+	if ok {
+		delete(c.mouseButtons, a)
+	}
+}
+
+func (c *keyboardConfig) ResetAllMouseButtons() {
+	for _, a := range actions {
+		mb, err := DefaultMouseButton(a)
+
+		if err != nil {
+			continue
+		}
+
+		c.SetMouseButton(a, mb)
+	}
+}
+
+func (c *keyboardConfig) SetMouseButton(a action, mb ebiten.MouseButton) {
+	c.mouseButtons[a] = mb
+
+	_, ok := c.keys[a]
+	if ok {
+		delete(c.keys, a)
+	}
+}
+
+func (c *keyboardConfig) IsPressed(b action) bool {
+	c.Initialize()
+
+	k, ok := c.keys[b]
 	if ok {
 		return ebiten.IsKeyPressed(k)
 	}
@@ -73,25 +120,25 @@ func (c *keyboardConfig) IsButtonPressed(b virtualGamepadButton) bool {
 		return ebiten.IsMouseButtonPressed(mb)
 	}
 
-  dk, err := DefaultKey(b)
-  if err == nil {
-    c.buttons[b] = dk
-    return ebiten.IsKeyPressed(dk)
-  }
+	dk, err := DefaultKey(b)
+	if err == nil {
+		c.keys[b] = dk
+		return ebiten.IsKeyPressed(dk)
+	}
 
-  dmb, err := DefaultMouseButton(b)
-  if err == nil {
-    c.mouseButtons[b] = dmb
+	dmb, err := DefaultMouseButton(b)
+	if err == nil {
+		c.mouseButtons[b] = dmb
 		return ebiten.IsMouseButtonPressed(dmb)
-  }
+	}
 
 	return false
 }
 
-func (c *keyboardConfig) IsButtonJustPressed(b virtualGamepadButton) bool {
-	c.initialize()
+func (c *keyboardConfig) IsJustPressed(b action) bool {
+	c.Initialize()
 
-	k, ok := c.buttons[b]
+	k, ok := c.keys[b]
 	if ok {
 		return inpututil.IsKeyJustPressed(k)
 	}
@@ -101,17 +148,17 @@ func (c *keyboardConfig) IsButtonJustPressed(b virtualGamepadButton) bool {
 		return inpututil.IsMouseButtonJustPressed(mb)
 	}
 
-  dk, err := DefaultKey(b)
-  if err == nil {
-    c.buttons[b] = dk
+	dk, err := DefaultKey(b)
+	if err == nil {
+		c.keys[b] = dk
 		return inpututil.IsKeyJustPressed(dk)
-  }
+	}
 
-  dmb, err := DefaultMouseButton(b)
-  if err == nil {
-    c.mouseButtons[b] = dmb
+	dmb, err := DefaultMouseButton(b)
+	if err == nil {
+		c.mouseButtons[b] = dmb
 		return inpututil.IsMouseButtonJustPressed(dmb)
-  }
+	}
 
 	return false
 }

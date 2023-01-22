@@ -5,14 +5,16 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/pkg/engine/core/game"
-	"github.com/maladroitthief/entree/pkg/ui/window"
 )
 
 func main() {
-	wm := window.NewWindowManager("Entree", 800, 600)
-	wm.Update()
+  g := game.NewGame()
+  // Content initialization
+  // UI initialization
+  // Keybinding
+  // Push MainMenuScreen
 
-	if err := ebiten.RunGame(&game.Game{}); err != nil {
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }

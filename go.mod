@@ -2,7 +2,7 @@ module github.com/maladroitthief/entree
 
 go 1.19
 
-require github.com/hajimehoshi/ebiten/v2 v2.4.13
+require github.com/hajimehoshi/ebiten/v2 v2.4.16
 
 require (
 	github.com/ebitengine/purego v0.1.1 // indirect
