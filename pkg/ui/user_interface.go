@@ -6,26 +6,31 @@ import (
 )
 
 type UserInterface struct {
-	input *input.Input
-	sm    *scene.SceneManager
+	input        *input.Input
+	sceneManager *scene.SceneManager
 }
 
 func NewUserInterface() *UserInterface {
-	ui := &UserInterface{}
+  ui := &UserInterface{}
 
-	ui.input = input.NewInput()
-	ui.sm = scene.NewSceneManager()
-
-	return ui
+  return ui
 }
 
 func (ui *UserInterface) Update() error {
-	if ui.sm == nil {
-		ui.sm = scene.NewSceneManager()
+	if ui.sceneManager == nil {
+		ui.sceneManager = scene.NewSceneManager()
 	}
 
 	ui.input.Update()
-	err := ui.sm.Update(ui.input)
+	err := ui.sceneManager.Update(ui.input)
 
 	return err
+}
+
+func (ui *UserInterface) SetInput(i *input.Input) {
+	ui.input = i
+}
+
+func (ui *UserInterface) SetSceneManager(sm *scene.SceneManager) {
+	ui.sceneManager = sm
 }

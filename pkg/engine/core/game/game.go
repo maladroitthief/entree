@@ -16,10 +16,13 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	g := &Game{}
-	g.ui = ui.NewUserInterface()
+  g := &Game{}
 
-	return g
+  return g
+}
+
+func (g *Game) SetUserInterface(userInterface *ui.UserInterface) {
+  g.ui = userInterface
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

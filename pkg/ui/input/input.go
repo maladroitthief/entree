@@ -1,9 +1,5 @@
 package input
 
-import (
-	"github.com/hajimehoshi/ebiten/v2"
-)
-
 type action int
 
 const (
@@ -18,26 +14,46 @@ const (
 )
 
 var actions = []action{
-  Ok,
-  Quit,
-  Up,
-  Down,
-  Left,
-  Right,
+	Ok,
+	Quit,
+	Up,
+	Down,
+	Left,
+	Right,
 }
 
 type Input struct {
-	gamepadIDs     []ebiten.GamepadID
 	keyboardConfig *keyboardConfig
+  actionStates map[action]int
 }
 
 func NewInput() *Input {
-  i := &Input{}
-  i.keyboardConfig = NewKeyboardConfig()
+	i := &Input{}
+	i.keyboardConfig = NewKeyboardConfig()
 
-  return i
+	return i
 }
 
 func (i *Input) Update() {
-  return
+  if i.actionStates == nil {
+		i.actionStates = map[action]int{}
+	}
+  
+  for _, a := range actions {
+		if !i.keyboardConfig.IsPressed(a) {
+			i.actionStates[a] = 0
+			continue
+		}
+
+		i.actionStates[a]++
+	}
 }
+
+func (i *Input) actionState(a action) int {
+	if i.actionStates == nil {
+		return 0
+	}
+
+	return i.actionStates[a]
+}
+
