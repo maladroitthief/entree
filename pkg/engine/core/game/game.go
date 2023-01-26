@@ -3,7 +3,8 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/maladroitthief/entree/pkg/ui"
+	"github.com/maladroitthief/entree/pkg/ui/input"
+	"github.com/maladroitthief/entree/pkg/ui/scene"
 )
 
 const (
@@ -12,17 +13,22 @@ const (
 )
 
 type Game struct {
-	ui *ui.UserInterface
+	input        *input.Input
+	sceneManager *scene.SceneManager
 }
 
 func NewGame() *Game {
-  g := &Game{}
+	g := &Game{}
 
-  return g
+	return g
 }
 
-func (g *Game) SetUserInterface(userInterface *ui.UserInterface) {
-  g.ui = userInterface
+func (g *Game) SetInput(i *input.Input) {
+	g.input = i
+}
+
+func (g *Game) SetSceneManager(sm *scene.SceneManager) {
+	g.sceneManager = sm
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -30,7 +36,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func (g *Game) Update() error {
-	err := g.ui.Update()
+	g.input.Update()
+	err := g.sceneManager.Update()
 
 	if err != nil {
 		return err

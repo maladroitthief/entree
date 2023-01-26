@@ -17,6 +17,8 @@ var (
 )
 
 type SceneManager struct {
+	input *input.Input
+
 	current         Scene
 	next            Scene
 	transitionCount int
@@ -28,9 +30,13 @@ func NewSceneManager() *SceneManager {
 	return sm
 }
 
-func (s *SceneManager) Update(input *input.Input) error {
+func (s *SceneManager) SetInput(i *input.Input) {
+	s.input = i
+}
+
+func (s *SceneManager) Update() error {
 	if s.transitionCount <= 0 {
-    return nil
+		return nil
 		//return s.current.Update(
 		//	&GameState{
 		//		SceneManager: s,

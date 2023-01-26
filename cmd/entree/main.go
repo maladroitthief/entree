@@ -5,7 +5,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/pkg/engine/core/game"
-	"github.com/maladroitthief/entree/pkg/ui"
 	"github.com/maladroitthief/entree/pkg/ui/input"
 	"github.com/maladroitthief/entree/pkg/ui/scene"
 )
@@ -13,17 +12,16 @@ import (
 func main() {
 	// Content initialization
 
-  // UserInterface Setup
+	// UserInterface Setup
 	i := input.NewInput()
+
 	sm := scene.NewSceneManager()
-	ui := ui.NewUserInterface()
-	ui.SetSceneManager(sm)
-  ui.SetInput(i)
+  sm.SetInput(i)
 
 	// Push MainMenuScreen
-
 	g := game.NewGame()
-	g.SetUserInterface(ui)
+	g.SetSceneManager(sm)
+	g.SetInput(i)
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
