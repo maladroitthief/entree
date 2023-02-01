@@ -2,19 +2,15 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/maladroitthief/entree/pkg/ui/input"
 	"github.com/maladroitthief/entree/pkg/ui/scene"
-)
-
-const (
-	ScreenWidth  = 256
-	ScreenHeight = 240
+	"github.com/maladroitthief/entree/pkg/ui/window"
 )
 
 type Game struct {
-	input        *input.Input
-	sceneManager *scene.SceneManager
+	input         *input.Input
+	sceneManager  *scene.SceneManager
+	windowManager *window.WindowManager
 }
 
 func NewGame() *Game {
@@ -31,8 +27,12 @@ func (g *Game) SetSceneManager(sm *scene.SceneManager) {
 	g.sceneManager = sm
 }
 
+func (g *Game) SetWindowManager(wm *window.WindowManager) {
+	g.windowManager = wm
+}
+
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return ScreenWidth, ScreenHeight
+	return g.windowManager.GetWidth(), g.windowManager.GetHeight()
 }
 
 func (g *Game) Update() error {
@@ -46,6 +46,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Hello, World!")
+func (g *Game) Draw(r *ebiten.Image) {
+	g.sceneManager.Draw(r)
 }

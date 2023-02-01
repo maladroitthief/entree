@@ -24,7 +24,7 @@ var actions = []action{
 
 type Input struct {
 	keyboardConfig *keyboardConfig
-  actionStates map[action]int
+	actionStates   map[action]int
 }
 
 func NewInput() *Input {
@@ -35,17 +35,17 @@ func NewInput() *Input {
 }
 
 func (i *Input) Update() {
-  if i.actionStates == nil {
+	if i.actionStates == nil {
 		i.actionStates = map[action]int{}
 	}
-  
-  for _, a := range actions {
-		if !i.keyboardConfig.IsPressed(a) {
-			i.actionStates[a] = 0
+
+	for _, a := range actions {
+		if i.keyboardConfig.IsPressed(a) {
+			i.actionStates[a]++
 			continue
 		}
 
-		i.actionStates[a]++
+		i.actionStates[a] = 0
 	}
 }
 
@@ -57,3 +57,6 @@ func (i *Input) actionState(a action) int {
 	return i.actionStates[a]
 }
 
+func (i *Input) IsAnyAction() bool {
+	return i.keyboardConfig.IsAnyKey()
+}

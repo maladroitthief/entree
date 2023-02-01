@@ -3,25 +3,22 @@ package scene
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/pkg/ui/input"
+	"github.com/maladroitthief/entree/pkg/ui/window"
 )
 
 const (
 	transitionMaxCount = 20
-	ScreenWidth        = 256
-	ScreenHeight       = 240
-)
-
-var (
-	transitionFrom = ebiten.NewImage(ScreenWidth, ScreenHeight)
-	transitionTo   = ebiten.NewImage(ScreenWidth, ScreenHeight)
 )
 
 type SceneManager struct {
-	input *input.Input
+	input         *input.Input
+	wm *window.WindowManager
 
 	current         Scene
 	next            Scene
 	transitionCount int
+
+	debug bool
 }
 
 func NewSceneManager() *SceneManager {
@@ -30,19 +27,14 @@ func NewSceneManager() *SceneManager {
 	return sm
 }
 
-func (s *SceneManager) SetInput(i *input.Input) {
-	s.input = i
-}
-
 func (s *SceneManager) Update() error {
 	if s.transitionCount <= 0 {
-		return nil
-		//return s.current.Update(
-		//	&GameState{
-		//		SceneManager: s,
-		//		Input:        input,
-		//	},
-		//)
+		return s.current.Update(
+			&GameState{
+				SceneManager: s,
+				Input:        s.input,
+			},
+		)
 	}
 
 	s.transitionCount--
@@ -57,6 +49,9 @@ func (s *SceneManager) Update() error {
 }
 
 func (s *SceneManager) Draw(r *ebiten.Image) {
+  transitionFrom := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
+  transitionTo   := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
+
 	if s.transitionCount == 0 {
 		s.current.Draw(r)
 		return
@@ -83,4 +78,20 @@ func (s *SceneManager) GoTo(scene Scene) {
 		s.next = scene
 		s.transitionCount = transitionMaxCount
 	}
+}
+
+func (s *SceneManager) SetInput(i *input.Input) {
+	s.input = i
+}
+
+func (s *SceneManager) SetWindowManager(w *window.WindowManager) {
+	s.wm = w
+}
+
+func (s *SceneManager) SetDebug(b bool) {
+	s.debug = b
+}
+
+func (s *SceneManager) GetDebug() bool {
+	return s.debug
 }

@@ -19,10 +19,10 @@ var (
 )
 
 func NewKeyboardConfig() *keyboardConfig {
-  kbc := &keyboardConfig{}
-  kbc.Initialize()
+	kbc := &keyboardConfig{}
+	kbc.Initialize()
 
-  return kbc
+	return kbc
 }
 
 func DefaultKey(a action) (ebiten.Key, error) {
@@ -158,6 +158,16 @@ func (c *keyboardConfig) IsJustPressed(b action) bool {
 	if err == nil {
 		c.mouseButtons[b] = dmb
 		return inpututil.IsMouseButtonJustPressed(dmb)
+	}
+
+	return false
+}
+
+func (c *keyboardConfig) IsAnyKey() bool {
+	pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
+
+	if len(pressedKeys) > 0 {
+		return true
 	}
 
 	return false
