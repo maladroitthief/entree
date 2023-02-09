@@ -1,30 +1,45 @@
 package input
 
-type action int
+type virtualAction int
 
 const (
-	Ok action = iota
-	Quit
+	Accept virtualAction = iota
+  Cancel
 
-	// Directional inputs
 	Up
 	Down
 	Left
 	Right
+
+  Attack
+  Dodge
+  Interact
+  UseItem
+  UseConsumable
+
+  Map
+  Menu
 )
 
-var actions = []action{
-	Ok,
-	Quit,
+var virtualActions = []virtualAction{
+	Accept,
+  Cancel,
 	Up,
 	Down,
 	Left,
 	Right,
+  Attack,
+  Dodge,
+  Interact,
+  UseItem,
+  UseConsumable,
+  Map,
+  Menu,
 }
 
 type Input struct {
 	keyboardConfig *keyboardConfig
-	actionStates   map[action]int
+	actionStates   map[virtualAction]int
 }
 
 func NewInput() *Input {
@@ -36,10 +51,10 @@ func NewInput() *Input {
 
 func (i *Input) Update() {
 	if i.actionStates == nil {
-		i.actionStates = map[action]int{}
+		i.actionStates = map[virtualAction]int{}
 	}
 
-	for _, a := range actions {
+	for _, a := range virtualActions {
 		if i.keyboardConfig.IsPressed(a) {
 			i.actionStates[a]++
 			continue
@@ -49,7 +64,7 @@ func (i *Input) Update() {
 	}
 }
 
-func (i *Input) actionState(a action) int {
+func (i *Input) actionState(a virtualAction) int {
 	if i.actionStates == nil {
 		return 0
 	}
