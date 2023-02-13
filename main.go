@@ -10,7 +10,7 @@ import (
 )
 
 type Game struct {
-	input         *input.Input
+	input         input.InputHandler
 	sceneManager  *scene.SceneManager
 	windowManager *window.WindowManager
 }
@@ -18,7 +18,7 @@ type Game struct {
 func main() {
 	// Content initialization
 	// UserInterface Setup
-	i := input.NewInput()
+	i := input.NewInputHandler()
 
 	wm := window.NewWindowManager(1280, 720, "Entree")
 

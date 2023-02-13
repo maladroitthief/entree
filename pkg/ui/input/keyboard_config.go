@@ -8,9 +8,9 @@ import (
 )
 
 type keyboardConfig struct {
-	current      []virtualAction
-	keys         map[virtualAction]ebiten.Key
-	mouseButtons map[virtualAction]ebiten.MouseButton
+	current      []Input
+	keys         map[Input]ebiten.Key
+	mouseButtons map[Input]ebiten.MouseButton
 }
 
 var (
@@ -25,24 +25,28 @@ func NewKeyboardConfig() *keyboardConfig {
 	return kbc
 }
 
-func DefaultKey(a virtualAction) (ebiten.Key, error) {
-	switch a {
-	case Up:
+func DefaultKey(i Input) (ebiten.Key, error) {
+	switch i {
+	case Accept:
+		return ebiten.KeyEnter, nil
+	case Cancel:
+		return ebiten.KeyEscape, nil
+	case MoveUp:
 		return ebiten.KeyW, nil
-	case Down:
+	case MoveDown:
 		return ebiten.KeyS, nil
-	case Left:
+	case MoveLeft:
 		return ebiten.KeyA, nil
-	case Right:
+	case MoveRight:
 		return ebiten.KeyD, nil
 	}
 
 	return ebiten.KeyA, ErrUnknownKey
 }
 
-func DefaultMouseButton(a virtualAction) (ebiten.MouseButton, error) {
+func DefaultMouseButton(a Input) (ebiten.MouseButton, error) {
 	switch a {
-	case Attack:
+	case Accept:
 		return ebiten.MouseButtonLeft, nil
 	}
 
@@ -51,18 +55,18 @@ func DefaultMouseButton(a virtualAction) (ebiten.MouseButton, error) {
 
 func (c *keyboardConfig) Initialize() {
 	if c.keys == nil {
-		c.keys = map[virtualAction]ebiten.Key{}
+		c.keys = map[Input]ebiten.Key{}
 		c.ResetAllKeys()
 	}
 
 	if c.mouseButtons == nil {
-		c.mouseButtons = map[virtualAction]ebiten.MouseButton{}
+		c.mouseButtons = map[Input]ebiten.MouseButton{}
 		c.ResetAllMouseButtons()
 	}
 }
 
 func (c *keyboardConfig) ResetAllKeys() {
-	for _, a := range virtualActions {
+	for _, a := range Inputs() {
 		k, err := DefaultKey(a)
 
 		if err != nil {
@@ -73,86 +77,86 @@ func (c *keyboardConfig) ResetAllKeys() {
 	}
 }
 
-func (c *keyboardConfig) SetKey(a virtualAction, k ebiten.Key) {
-	c.keys[a] = k
+func (c *keyboardConfig) SetKey(i Input, k ebiten.Key) {
+	c.keys[i] = k
 
-	_, ok := c.mouseButtons[a]
+	_, ok := c.mouseButtons[i]
 	if ok {
-		delete(c.mouseButtons, a)
+		delete(c.mouseButtons, i)
 	}
 }
 
 func (c *keyboardConfig) ResetAllMouseButtons() {
-	for _, a := range virtualActions {
-		mb, err := DefaultMouseButton(a)
+	for _, i := range Inputs() {
+		mb, err := DefaultMouseButton(i)
 
 		if err != nil {
 			continue
 		}
 
-		c.SetMouseButton(a, mb)
+		c.SetMouseButton(i, mb)
 	}
 }
 
-func (c *keyboardConfig) SetMouseButton(a virtualAction, mb ebiten.MouseButton) {
-	c.mouseButtons[a] = mb
+func (c *keyboardConfig) SetMouseButton(i Input, mb ebiten.MouseButton) {
+	c.mouseButtons[i] = mb
 
-	_, ok := c.keys[a]
+	_, ok := c.keys[i]
 	if ok {
-		delete(c.keys, a)
+		delete(c.keys, i)
 	}
 }
 
-func (c *keyboardConfig) IsPressed(b virtualAction) bool {
+func (c *keyboardConfig) IsPressed(i Input) bool {
 	c.Initialize()
 
-	k, ok := c.keys[b]
+	k, ok := c.keys[i]
 	if ok {
 		return ebiten.IsKeyPressed(k)
 	}
 
-	mb, ok := c.mouseButtons[b]
+	mb, ok := c.mouseButtons[i]
 	if ok {
 		return ebiten.IsMouseButtonPressed(mb)
 	}
 
-	dk, err := DefaultKey(b)
+	dk, err := DefaultKey(i)
 	if err == nil {
-		c.keys[b] = dk
+		c.keys[i] = dk
 		return ebiten.IsKeyPressed(dk)
 	}
 
-	dmb, err := DefaultMouseButton(b)
+	dmb, err := DefaultMouseButton(i)
 	if err == nil {
-		c.mouseButtons[b] = dmb
+		c.mouseButtons[i] = dmb
 		return ebiten.IsMouseButtonPressed(dmb)
 	}
 
 	return false
 }
 
-func (c *keyboardConfig) IsJustPressed(b virtualAction) bool {
+func (c *keyboardConfig) IsJustPressed(i Input) bool {
 	c.Initialize()
 
-	k, ok := c.keys[b]
+	k, ok := c.keys[i]
 	if ok {
 		return inpututil.IsKeyJustPressed(k)
 	}
 
-	mb, ok := c.mouseButtons[b]
+	mb, ok := c.mouseButtons[i]
 	if ok {
 		return inpututil.IsMouseButtonJustPressed(mb)
 	}
 
-	dk, err := DefaultKey(b)
+	dk, err := DefaultKey(i)
 	if err == nil {
-		c.keys[b] = dk
+		c.keys[i] = dk
 		return inpututil.IsKeyJustPressed(dk)
 	}
 
-	dmb, err := DefaultMouseButton(b)
+	dmb, err := DefaultMouseButton(i)
 	if err == nil {
-		c.mouseButtons[b] = dmb
+		c.mouseButtons[i] = dmb
 		return inpututil.IsMouseButtonJustPressed(dmb)
 	}
 

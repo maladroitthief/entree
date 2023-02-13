@@ -11,8 +11,8 @@ const (
 )
 
 type SceneManager struct {
-	input         *input.Input
-	wm *window.WindowManager
+	input input.InputHandler
+	wm    *window.WindowManager
 
 	current         Scene
 	next            Scene
@@ -49,8 +49,8 @@ func (s *SceneManager) Update() error {
 }
 
 func (s *SceneManager) Draw(r *ebiten.Image) {
-  transitionFrom := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
-  transitionTo   := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
+	transitionFrom := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
+	transitionTo := ebiten.NewImage(s.wm.GetWidth(), s.wm.GetHeight())
 
 	if s.transitionCount == 0 {
 		s.current.Draw(r)
@@ -80,7 +80,7 @@ func (s *SceneManager) GoTo(scene Scene) {
 	}
 }
 
-func (s *SceneManager) SetInput(i *input.Input) {
+func (s *SceneManager) SetInput(i input.InputHandler) {
 	s.input = i
 }
 

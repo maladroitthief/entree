@@ -69,7 +69,7 @@ type TitleScene struct {
 }
 
 func (s *TitleScene) Update(state *GameState) error {
-	if state.Input.IsAnyAction() {
+	if state.Input.IsAny() {
 		state.SceneManager.GoTo(NewGameScene())
 	}
 
