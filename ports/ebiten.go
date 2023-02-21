@@ -3,6 +3,7 @@ package ports
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/app"
+	"github.com/maladroitthief/entree/app/command"
 )
 
 type EbitenGame struct {
@@ -14,7 +15,18 @@ func NewEbitenGame(app app.Application) EbitenGame {
 }
 
 func (e EbitenGame) Update() error {
-	return nil
+	// Grab cursor coordinates
+	cursorX, cursorY := ebiten.CursorPosition()
+
+	// Grab current keyboard inputs
+	inputs := []string{}
+	cmd := command.Update{
+		CursorX: cursorX,
+		CursorY: cursorY,
+		Inputs:  inputs,
+	}
+
+	return e.app.Commands.Update.Handle(cmd)
 }
 
 func (e EbitenGame) Draw(screen *ebiten.Image) {
