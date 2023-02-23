@@ -2,7 +2,6 @@ package query
 
 import (
 	"github.com/maladroitthief/entree/common/decorator"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,10 +21,6 @@ func NewUIEntityHandler(logger *logrus.Entry) decorator.QueryHandler[UIEntities,
 }
 
 func (h uiEntitiesHandler) Handle(q UIEntities) (e []Entity, err error) {
-	defer func() {
-		logs.LogCommand("Update", q, err)
-	}()
-
 	// TODO Update all the game shit here
 	return nil, nil
 }

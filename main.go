@@ -11,7 +11,12 @@ import (
 func main() {
 	app := service.NewApplication()
 
-	err := ebiten.RunGame(ports.NewEbitenGame(app))
+  game, err := ports.NewEbitenGame(app)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ebiten.RunGame(game)
 	if err != nil {
 		log.Fatal(err)
 	}

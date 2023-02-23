@@ -2,7 +2,6 @@ package query
 
 import (
 	"github.com/maladroitthief/entree/common/decorator"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,7 +11,7 @@ type WindowSettings struct {
 type WindowSettingsHandler decorator.QueryHandler[WindowSettings, Window]
 
 type windowSettingsHandler struct {
-  readModel WindowSettingsReadModel
+	readModel WindowSettingsReadModel
 }
 
 func NewWindowSettingsHandler(
@@ -25,17 +24,12 @@ func NewWindowSettingsHandler(
 }
 
 type WindowSettingsReadModel interface {
-
 }
 
 func (h windowSettingsHandler) Handle(q WindowSettings) (w Window, err error) {
-	defer func() {
-		logs.LogCommand("Update", q, err)
-	}()
-
 	w = Window{
-		Width:  1500,
-		Height: 1500,
+		Width:  1920,
+		Height: 1080,
 		Title:  "Entree",
 	}
 

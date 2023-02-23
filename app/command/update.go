@@ -2,7 +2,6 @@ package command
 
 import (
 	"github.com/maladroitthief/entree/common/decorator"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,10 +24,6 @@ func NewUpdateHandler(logger *logrus.Entry) decorator.CommandHandler[Update] {
 }
 
 func (h updateHandler) Handle(cmd Update) (err error) {
-	defer func() {
-		logs.LogCommand("Update", cmd, err)
-	}()
-
 	// TODO Update all the game shit here
 	return nil
 }
