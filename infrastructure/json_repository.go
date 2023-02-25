@@ -1,4 +1,4 @@
-package adapters
+package infrastructure
 
 type JsonRepository struct {
 	filePath string

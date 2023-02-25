@@ -1,21 +1,21 @@
-package ports
+package infrastructure
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/maladroitthief/entree/app"
-	"github.com/maladroitthief/entree/app/command"
-	"github.com/maladroitthief/entree/app/query"
+	"github.com/maladroitthief/entree/application"
+	"github.com/maladroitthief/entree/application/command"
+	"github.com/maladroitthief/entree/application/query"
 )
 
 type EbitenGame struct {
-	app app.Application
+	app application.Game
 
 	width  int
 	height int
 	title  string
 }
 
-func NewEbitenGame(app app.Application) (*EbitenGame, error) {
+func NewEbitenGame(app application.Game) (*EbitenGame, error) {
 	e := &EbitenGame{
 		app:    app,
 		width:  0,
@@ -39,7 +39,7 @@ func (e *EbitenGame) Update() (err error) {
 
 	// Grab current keyboard inputs
 	inputs := []string{}
-	cmd := command.Update{
+	cmd := command.UpdateGame{
 		CursorX: cursorX,
 		CursorY: cursorY,
 		Inputs:  inputs,

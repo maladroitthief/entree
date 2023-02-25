@@ -4,19 +4,19 @@ import (
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/maladroitthief/entree/ports"
-	"github.com/maladroitthief/entree/service"
+	"github.com/maladroitthief/entree/adapter"
+	"github.com/maladroitthief/entree/infrastructure"
 )
 
 func main() {
-	app := service.NewApplication()
+	game := adapter.NewGameService()
 
-  game, err := ports.NewEbitenGame(app)
+	ebitenGame, err := infrastructure.NewEbitenGame(game)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = ebiten.RunGame(game)
+	err = ebiten.RunGame(ebitenGame)
 	if err != nil {
 		log.Fatal(err)
 	}
