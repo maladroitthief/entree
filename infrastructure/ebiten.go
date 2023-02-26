@@ -8,14 +8,14 @@ import (
 )
 
 type EbitenGame struct {
-	app application.Game
+	app application.GameService
 
 	width  int
 	height int
 	title  string
 }
 
-func NewEbitenGame(app application.Game) (*EbitenGame, error) {
+func NewEbitenGame(app application.GameService) (*EbitenGame, error) {
 	e := &EbitenGame{
 		app:    app,
 		width:  0,

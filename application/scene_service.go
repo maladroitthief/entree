@@ -2,20 +2,16 @@ package application
 
 import (
 	"github.com/maladroitthief/entree/application/command"
-	"github.com/maladroitthief/entree/entity/scene"
 )
 
-type Scene struct {
-	current         scene.Scene
-	next            scene.Scene
-	transitionCount int
-
+type SceneService struct {
 	Commands SceneCommands
 	Queries  SceneQueries
 }
 
 type SceneCommands struct {
-	Update command.UpdateSceneHandler
+	Update    command.UpdateSceneHandler
+	GoToScene command.GoToSceneHandler
 }
 
 type SceneQueries struct {

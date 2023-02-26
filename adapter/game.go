@@ -7,19 +7,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewGameService() application.Game {
-	// Service Setup
-	// TODO Scene Service
-	sceneApp := NewSceneService()
-
-	return newGameService(sceneApp)
-}
-
-func newGameService(scene *application.Scene) application.Game {
+func NewGameService() application.GameService {
 	// Uniform logging setup
 	logger := logrus.NewEntry(logrus.StandardLogger())
 
-	return application.Game{
+	// Service Setup
+	// TODO Scene Service
+	sceneService := NewSceneService(logger)
+
+	return newGameService(logger, sceneService)
+}
+
+func newGameService(
+	logger *logrus.Entry,
+	scene *application.SceneService,
+) application.GameService {
+
+	return application.GameService{
 		Commands: application.GameCommands{
 			Update: command.NewUpdateGameHandler(logger, scene),
 		},

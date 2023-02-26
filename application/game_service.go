@@ -5,7 +5,7 @@ import (
 	"github.com/maladroitthief/entree/application/query"
 )
 
-type Game struct {
+type GameService struct {
 	Commands GameCommands
 	Queries  GameQueries
 }
