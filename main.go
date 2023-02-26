@@ -6,10 +6,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/adapter"
 	"github.com/maladroitthief/entree/infrastructure"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	game := adapter.NewGameService()
+	logger := logrus.NewEntry(logrus.StandardLogger())
+	sceneRepository := infrastructure.NewSceneMemoryRepository()
+	sceneService := adapter.NewSceneService(logger, sceneRepository)
+	game := adapter.NewGameService(logger, sceneService)
 
 	ebitenGame, err := infrastructure.NewEbitenGame(game)
 	if err != nil {
