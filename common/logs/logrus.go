@@ -2,11 +2,12 @@ package logs
 
 import "github.com/sirupsen/logrus"
 
-func Init() {
-	SetFormatter(logrus.StandardLogger())
+type LogrusLogger struct {
+	logger *logrus.Logger
 }
 
-func SetFormatter(logger *logrus.Logger) {
+func NewLogrusLogger() Logger {
+	logger := logrus.StandardLogger()
 	logger.SetFormatter(&logrus.JSONFormatter{
 		FieldMap: logrus.FieldMap{
 			logrus.FieldKeyTime:  "time",
@@ -14,4 +15,20 @@ func SetFormatter(logger *logrus.Logger) {
 			logrus.FieldKeyMsg:   "message",
 		},
 	})
+
+	return &LogrusLogger{logger}
+}
+
+func (l *LogrusLogger) Info(message string) {
+  l.logger.Info(message)
+}
+
+func (l *LogrusLogger) Error(methodName string, args interface{}, err error) {
+	log := l.logger.WithField("args", args)
+  log.WithError(err).Error(methodName + " failed")
+}
+
+func (l *LogrusLogger) Fatal(methodName string, args interface{}, err error) {
+	log := l.logger.WithField("args", args)
+  log.WithError(err).Fatal(methodName + " failed")
 }

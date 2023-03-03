@@ -12,9 +12,6 @@ func NewJsonRepository(filePath string) JsonRepository {
 	return s
 }
 
-type SettingsModel struct {
-  Test string `json:"Test"`
-}
 
 func (s JsonRepository) SaveSettings() {
   
