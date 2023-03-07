@@ -2,37 +2,38 @@ package application
 
 import (
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/domain/game"
 	"github.com/maladroitthief/entree/domain/settings"
 )
 
 type GameService struct {
-	repo         settings.Repository
+	gameRepo     game.Repository
+	settingsRepo settings.Repository
 	log          logs.Logger
-	sceneService *SceneService
 }
 
 func NewGameService(
 	logger logs.Logger,
-	repo settings.Repository,
-	scene *SceneService,
+	gameRepo game.Repository,
+	settingsRepo settings.Repository,
 ) *GameService {
 
 	if logger == nil {
 		panic("nil game logger")
 	}
 
-	if repo == nil {
+	if gameRepo == nil {
 		panic("nil game repo")
 	}
 
-	if scene == nil {
-		panic("nil scene service")
+	if settingsRepo == nil {
+		panic("nil settings repo")
 	}
 
 	return &GameService{
-		repo:         repo,
+		gameRepo:     gameRepo,
+		settingsRepo: settingsRepo,
 		log:          logger,
-		sceneService: scene,
 	}
 }
 
@@ -43,7 +44,7 @@ func (svc *GameService) Update() error {
 }
 
 func (svc *GameService) GetWindowSettings() (settings.Window, error) {
-	s, err := svc.repo.GetSettings()
+	s, err := svc.settingsRepo.GetSettings()
 	if err != nil {
 		return settings.Window{}, err
 	}

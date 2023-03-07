@@ -7,8 +7,9 @@ import (
 )
 
 type GameAdapter struct {
-	log     logs.Logger
-	gameSvc *application.GameService
+	log      logs.Logger
+	gameSvc  *application.GameService
+	sceneSvc *application.SceneService
 }
 
 type UpdateGame struct {
@@ -17,16 +18,29 @@ type UpdateGame struct {
 	Inputs  []string
 }
 
-func NewGameAdapter(log logs.Logger, gameSvc *application.GameService) *GameAdapter {
+func NewGameAdapter(
+	log logs.Logger,
+	gameSvc *application.GameService,
+	sceneSvc *application.SceneService,
+) *GameAdapter {
 	ga := GameAdapter{
 		log:     log,
 		gameSvc: gameSvc,
+		sceneSvc: sceneSvc,
+	}
+
+	if gameSvc == nil {
+		panic("nil game service")
+	}
+
+	if sceneSvc == nil {
+		panic("nil scene service")
 	}
 
 	return &ga
 }
 
-func (ga *GameAdapter) Update(cmd UpdateGame) error {
+func (ga *GameAdapter) Update(args UpdateGame) error {
 
 	return nil
 }

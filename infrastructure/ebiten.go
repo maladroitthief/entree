@@ -6,16 +6,16 @@ import (
 )
 
 type EbitenGame struct {
-	ga *adapter.GameAdapter
+	gameAdpt *adapter.GameAdapter
 
 	width  int
 	height int
 	title  string
 }
 
-func NewEbitenGame(ga *adapter.GameAdapter) (*EbitenGame, error) {
+func NewEbitenGame(gameAdpt *adapter.GameAdapter) (*EbitenGame, error) {
 	e := &EbitenGame{
-		ga:     ga,
+		gameAdpt:     gameAdpt,
 		width:  0,
 		height: 0,
 		title:  "",
@@ -38,14 +38,14 @@ func (e *EbitenGame) Update() (err error) {
 
 	// TODO: grab current keyboard inputs
 	inputs := []string{}
-	cmd := adapter.UpdateGame{
+	args := adapter.UpdateGame{
 		CursorX: cursorX,
 		CursorY: cursorY,
 		Inputs:  inputs,
 	}
 
 	// update the main game
-	return e.ga.Update(cmd)
+	return e.gameAdpt.Update(args)
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
@@ -53,11 +53,11 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 }
 
 func (e *EbitenGame) Layout(width, height int) (screenWidth, screenHeight int) {
-	return e.ga.Layout(width, height)
+	return e.gameAdpt.Layout(width, height)
 }
 
 func (e *EbitenGame) WindowHandler() error {
-	windowSettings, err := e.ga.GetWindowSettings()
+	windowSettings, err := e.gameAdpt.GetWindowSettings()
 	if err != nil {
 		return err
 	}

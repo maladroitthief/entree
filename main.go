@@ -11,19 +11,22 @@ import (
 func main() {
 	log := logs.NewLogrusLogger()
 
-	sceneRepository := infrastructure.NewSceneMemoryRepository()
-	sceneService := application.NewSceneService(log, sceneRepository)
+  // Scene Service
+	sceneRepo := infrastructure.NewSceneMemoryRepository()
+	sceneSvc := application.NewSceneService(log, sceneRepo)
 
-	settingsRepository := infrastructure.NewSettingsJsonRepository("settings.json")
-	gameService := application.NewGameService(
+  // Game Service
+	gameRepo := infrastructure.NewGameMemoryRepository()
+	settingsRepo := infrastructure.NewSettingsJsonRepository("settings.json")
+	gameSvc := application.NewGameService(
 		log,
-		settingsRepository,
-		sceneService,
+		gameRepo,
+		settingsRepo,
 	)
 
-	gameAdapter := adapter.NewGameAdapter(log, gameService)
+	gameAdpt := adapter.NewGameAdapter(log, gameSvc, sceneSvc)
 
-	ebitenGame, err := infrastructure.NewEbitenGame(gameAdapter)
+	ebitenGame, err := infrastructure.NewEbitenGame(gameAdpt)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}
