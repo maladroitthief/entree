@@ -19,8 +19,7 @@ func main() {
 	)
 
   // Scene Service
-	sceneRepo := infrastructure.NewSceneMemoryRepository()
-	sceneSvc := application.NewSceneService(log, sceneRepo, settingsSvc)
+	sceneSvc := application.NewSceneService(log, settingsSvc)
 
 	// Game adapter
   gameAdpt := adapter.NewGameAdapter(log, sceneSvc, settingsSvc)

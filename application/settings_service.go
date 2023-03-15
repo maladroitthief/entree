@@ -9,8 +9,11 @@ type SettingsService struct {
 	repo settings.Repository
 	log  logs.Logger
 
-	inputStates   map[settings.Input]int
-	inputSettings *settings.InputSettings
+	currentKeys    []string
+	currentCursorX int
+	currentCursorY int
+	inputStates    map[settings.Input]int
+	inputSettings  *settings.InputSettings
 }
 
 func NewSettingsService(
@@ -45,6 +48,10 @@ func (svc *SettingsService) Update(args InputArgs) error {
 		svc.inputSettings = &is
 	}
 
+	svc.currentKeys = args.Inputs
+  svc.currentCursorX = args.CursorX
+  svc.currentCursorY = args.CursorY
+
 	for i, k := range svc.inputSettings.Keyboard {
 		for _, arg := range args.Inputs {
 			if k == arg {
@@ -66,4 +73,32 @@ func (svc *SettingsService) GetWindowSettings() (settings.WindowSettings, error)
 	}
 
 	return ws, nil
+}
+
+func (svc *SettingsService) IsAny() bool {
+	if len(svc.currentKeys) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (svc *SettingsService) IsPressed(i settings.Input) bool {
+  if svc.inputStates[i] >= 1 {
+    return true
+  }
+
+  return false
+}
+
+func (svc *SettingsService) IsJustPressed(i settings.Input) bool {
+  if svc.inputStates[i] == 1 {
+    return true
+  }
+
+  return false
+}
+
+func (svc *SettingsService) GetCursor() (x, y int) {
+  return svc.currentCursorX, svc.currentCursorY
 }
