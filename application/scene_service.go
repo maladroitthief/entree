@@ -8,9 +8,15 @@ import (
 type SceneService struct {
 	repo scene.Repository
 	log  logs.Logger
+
+	settingsSvc *SettingsService
 }
 
-func NewSceneService(logger logs.Logger, repo scene.Repository) *SceneService {
+func NewSceneService(
+	logger logs.Logger,
+	repo scene.Repository,
+	settingsSvc *SettingsService,
+) *SceneService {
 	if logger == nil {
 		panic("nil scene logger")
 	}
@@ -19,13 +25,24 @@ func NewSceneService(logger logs.Logger, repo scene.Repository) *SceneService {
 		panic("nil scene repo")
 	}
 
+	if settingsSvc == nil {
+		panic("nil settings service")
+	}
+
 	return &SceneService{
-		repo: repo,
-		log:  logger,
+		repo:        repo,
+		log:         logger,
+		settingsSvc: settingsSvc,
 	}
 }
 
-func (svc *SceneService) Update() error {
+func (svc *SceneService) Update(args InputArgs) error {
+	svc.log.Info("scene update", args)
+  err := svc.settingsSvc.Update(args)
+  if err != nil {
+    return err
+  }
+
 	if svc.repo.GetTransitionCount() <= 0 {
 		//return s.current.Update(
 		//	&GameState{

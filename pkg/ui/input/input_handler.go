@@ -3,13 +3,6 @@ package input
 import "github.com/maladroitthief/entree/pkg/engine/core"
 
 type InputHandler interface {
-	Update() []core.Action
-  HandleInput(core.Actor)
-
-	BindAction(Input, core.Action)
-	LoadConfig(path string)
-	ResetConfig()
-	IsAny() bool
 }
 
 type inputHandler struct {
@@ -42,9 +35,6 @@ func (ih *inputHandler) Update() []core.Action {
 	return nil
 }
 
-func (ih *inputHandler) HandleInput(a core.Actor) {
-
-}
 
 func (ih *inputHandler) BindAction(i Input, a core.Action) {
 	if ih.actionBindings == nil {
@@ -52,14 +42,6 @@ func (ih *inputHandler) BindAction(i Input, a core.Action) {
 	}
 
 	ih.actionBindings[i] = a
-}
-
-func (ih *inputHandler) LoadConfig(path string) {
-	return
-}
-
-func (ih *inputHandler) ResetConfig() {
-	return
 }
 
 func (ih *inputHandler) IsAny() bool {

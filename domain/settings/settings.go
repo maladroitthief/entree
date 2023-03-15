@@ -1,11 +1,13 @@
 package settings
 
 type Settings struct {
-  Window Window
+  WindowSettings WindowSettings
+  InputSettings InputSettings
 }
 
 func SettingsDefaults() Settings {
 	return Settings{
-    Window: WindowDefaults(),
+    WindowSettings: DefaultWindowSettings(),
+    InputSettings: DefaultInputSettings(),
   }
 }

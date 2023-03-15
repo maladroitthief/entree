@@ -19,8 +19,9 @@ func NewLogrusLogger() Logger {
 	return &LogrusLogger{logger}
 }
 
-func (l *LogrusLogger) Info(message string) {
-  l.logger.Info(message)
+func (l *LogrusLogger) Info(message string, args interface{}) {
+	log := l.logger.WithField("args", args)
+  log.Info(message)
 }
 
 func (l *LogrusLogger) Error(methodName string, args interface{}, err error) {

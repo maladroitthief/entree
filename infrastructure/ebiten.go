@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/maladroitthief/entree/adapter"
 )
 
@@ -15,10 +16,10 @@ type EbitenGame struct {
 
 func NewEbitenGame(gameAdpt *adapter.GameAdapter) (*EbitenGame, error) {
 	e := &EbitenGame{
-		gameAdpt:     gameAdpt,
-		width:  0,
-		height: 0,
-		title:  "",
+		gameAdpt: gameAdpt,
+		width:    0,
+		height:   0,
+		title:    "",
 	}
 
 	err := e.WindowHandler()
@@ -36,9 +37,14 @@ func (e *EbitenGame) Update() (err error) {
 	// grab cursor coordinates
 	cursorX, cursorY := ebiten.CursorPosition()
 
-	// TODO: grab current keyboard inputs
+	// grab current keyboard inputs
+	pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
 	inputs := []string{}
-	args := adapter.UpdateGame{
+  for _, k := range pressedKeys {
+    inputs = append(inputs, k.String())
+  }
+
+	args := adapter.UpdateArgs{
 		CursorX: cursorX,
 		CursorY: cursorY,
 		Inputs:  inputs,

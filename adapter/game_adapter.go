@@ -7,12 +7,12 @@ import (
 )
 
 type GameAdapter struct {
-	log      logs.Logger
-	gameSvc  *application.GameService
-	sceneSvc *application.SceneService
+	log         logs.Logger
+	sceneSvc    *application.SceneService
+	settingsSvc *application.SettingsService
 }
 
-type UpdateGame struct {
+type UpdateArgs struct {
 	CursorX int
 	CursorY int
 	Inputs  []string
@@ -20,33 +20,36 @@ type UpdateGame struct {
 
 func NewGameAdapter(
 	log logs.Logger,
-	gameSvc *application.GameService,
 	sceneSvc *application.SceneService,
+	settingsSvc *application.SettingsService,
 ) *GameAdapter {
 	ga := GameAdapter{
-		log:     log,
-		gameSvc: gameSvc,
-		sceneSvc: sceneSvc,
-	}
-
-	if gameSvc == nil {
-		panic("nil game service")
+		log:         log,
+		settingsSvc: settingsSvc,
+		sceneSvc:    sceneSvc,
 	}
 
 	if sceneSvc == nil {
 		panic("nil scene service")
 	}
 
+	if settingsSvc == nil {
+		panic("nil settings service")
+	}
+
 	return &ga
 }
 
-func (ga *GameAdapter) Update(args UpdateGame) error {
-
-	return nil
+func (ga *GameAdapter) Update(args UpdateArgs) error {
+	return ga.sceneSvc.Update(application.InputArgs{
+    CursorX: args.CursorX,
+    CursorY: args.CursorY,
+    Inputs: args.Inputs,
+  })
 }
 
 func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int) {
-	ws, err := ga.gameSvc.GetWindowSettings()
+	ws, err := ga.settingsSvc.GetWindowSettings()
 	if err != nil {
 		args := struct{ width, height int }{width, height}
 		ga.log.Fatal("Layout", args, err)
@@ -54,6 +57,6 @@ func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int)
 	return ws.Width, ws.Height
 }
 
-func (ga *GameAdapter) GetWindowSettings() (settings.Window, error) {
-	return ga.gameSvc.GetWindowSettings()
+func (ga *GameAdapter) GetWindowSettings() (settings.WindowSettings, error) {
+	return ga.settingsSvc.GetWindowSettings()
 }

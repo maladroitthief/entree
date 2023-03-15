@@ -8,21 +8,21 @@ var (
 	ErrWindowHeightZero = errors.New("window height cannot be zero")
 )
 
-type Window struct {
+type WindowSettings struct {
 	Width  int
 	Height int
 	Title  string
 }
 
-func WindowDefaults() Window {
-	return Window{
+func DefaultWindowSettings() WindowSettings {
+	return WindowSettings {
 		Width:  1920,
 		Height: 1080,
 		Title:  "Entree",
 	}
 }
 
-func (w *Window) Validate() error {
+func (w *WindowSettings) Validate() error {
 	if w.Title == "" {
     return ErrBlankTitle
 	}
