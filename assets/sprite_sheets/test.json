@@ -1,0 +1,24 @@
+{
+	"Name": "test",
+	"Path": "assets/sprite_sheets/test.png",
+	"Rows": 1,
+	"Columns": 3,
+	"SpriteSize": 32,
+	"Sprites": [
+    {
+      "Name": "idle_down",
+      "Row": 1,
+      "Column": 1
+    },
+    {
+      "Name": "idle_left",
+      "Row": 1,
+      "Column": 2
+    },
+    {
+      "Name": "idle_up",
+      "Row": 1,
+      "Column": 3
+    }
+  ]
+}

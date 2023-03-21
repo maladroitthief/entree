@@ -1,7 +1,10 @@
 package infrastructure
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/maladroitthief/entree/adapter"
 )
@@ -40,9 +43,9 @@ func (e *EbitenGame) Update() (err error) {
 	// grab current keyboard inputs
 	pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
 	inputs := []string{}
-  for _, k := range pressedKeys {
-    inputs = append(inputs, k.String())
-  }
+	for _, k := range pressedKeys {
+		inputs = append(inputs, k.String())
+	}
 
 	args := adapter.UpdateArgs{
 		CursorX: cursorX,
@@ -55,7 +58,13 @@ func (e *EbitenGame) Update() (err error) {
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
-	return
+	msg := fmt.Sprintf(`
+    TPS: %0.2f
+    FPS: %0.2f`,
+		ebiten.ActualTPS(),
+		ebiten.ActualFPS(),
+	)
+	ebitenutil.DebugPrint(screen, msg)
 }
 
 func (e *EbitenGame) Layout(width, height int) (screenWidth, screenHeight int) {

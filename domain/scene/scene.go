@@ -11,6 +11,10 @@ const (
 
 type Scene interface {
 	Update(*GameState) error
+//  DrawBackground() []*Sprite
+//  DrawMiddleground() []*Sprite
+//  DrawForeground() []*Sprite
+//  DrawInterface() []*Sprite
 }
 
 type GameState struct {

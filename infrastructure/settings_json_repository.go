@@ -66,7 +66,6 @@ func (r *SettingsJsonRepository) SetSettings(s settings.Settings) error {
 	return ioutil.WriteFile(r.filePath, jsonContent, 0644)
 }
 
-
 func (r *SettingsJsonRepository) unmarshalSettings(m SettingsModel) settings.Settings {
 	return settings.Settings{
 		WindowSettings: r.unmarshalWindowSettings(m.Window),
