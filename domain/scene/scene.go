@@ -2,6 +2,7 @@ package scene
 
 import (
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/settings"
 )
 
@@ -11,10 +12,7 @@ const (
 
 type Scene interface {
 	Update(*GameState) error
-//  DrawBackground() []*Sprite
-//  DrawMiddleground() []*Sprite
-//  DrawForeground() []*Sprite
-//  DrawInterface() []*Sprite
+	Draw() []*canvas.Entity
 }
 
 type GameState struct {

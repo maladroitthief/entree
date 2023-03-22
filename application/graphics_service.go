@@ -53,9 +53,9 @@ func (svc *GraphicsService) GetSprite(
 	spriteName string,
 ) (image.Rectangle, error) {
 	ss, ok := svc.sheets[sheetName]
-	if ok != true {
+	if !ok {
 		return image.Rectangle{}, ErrSheetNotFound
 	}
 
-	return ss.Draw(spriteName)
+	return ss.DrawRectangle(spriteName)
 }

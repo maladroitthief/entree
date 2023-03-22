@@ -27,7 +27,7 @@ type spriteSheet struct {
 
 type SpriteSheet interface {
 	AddSprite(s Sprite) error
-	Draw(name string) (image.Rectangle, error)
+	DrawRectangle(name string) (image.Rectangle, error)
   GetName() string
 }
 
@@ -89,7 +89,7 @@ func (ss *spriteSheet) GetName() string {
   return ss.Name
 }
 
-func (ss *spriteSheet) Draw(name string) (image.Rectangle, error) {
+func (ss *spriteSheet) DrawRectangle(name string) (image.Rectangle, error) {
 	s, ok := ss.Sprites[name]
 	if ok != true {
 		return image.Rectangle{}, ErrSpriteNotFound

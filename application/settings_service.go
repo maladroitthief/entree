@@ -49,8 +49,8 @@ func (svc *SettingsService) Update(args InputArgs) error {
 	}
 
 	svc.currentKeys = args.Inputs
-  svc.currentCursorX = args.CursorX
-  svc.currentCursorY = args.CursorY
+	svc.currentCursorX = args.CursorX
+	svc.currentCursorY = args.CursorY
 
 	for i, k := range svc.inputSettings.Keyboard {
 		for _, arg := range args.Inputs {
@@ -76,29 +76,17 @@ func (svc *SettingsService) GetWindowSettings() (settings.WindowSettings, error)
 }
 
 func (svc *SettingsService) IsAny() bool {
-	if len(svc.currentKeys) > 0 {
-		return true
-	}
-
-	return false
+	return len(svc.currentKeys) > 0
 }
 
 func (svc *SettingsService) IsPressed(i settings.Input) bool {
-  if svc.inputStates[i] >= 1 {
-    return true
-  }
-
-  return false
+	return svc.inputStates[i] >= 1
 }
 
 func (svc *SettingsService) IsJustPressed(i settings.Input) bool {
-  if svc.inputStates[i] == 1 {
-    return true
-  }
-
-  return false
+	return svc.inputStates[i] == 1
 }
 
 func (svc *SettingsService) GetCursor() (x, y int) {
-  return svc.currentCursorX, svc.currentCursorY
+	return svc.currentCursorX, svc.currentCursorY
 }

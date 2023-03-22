@@ -1,15 +1,16 @@
 package canvas
 
-import "github.com/maladroitthief/entree/domain/sprite"
+import "image"
 
 type Entity struct {
 	Width  int
 	Height int
 	X      int
 	Y      int
+	Sheet  string
 	State  string
 }
 
-func (e *Entity) Draw() *sprite.Sprite {
-	return nil
+func (e *Entity) CurrentSprite(gSvc GraphicsService) (image.Rectangle, error) {
+	return gSvc.GetSprite(e.Sheet, e.State)
 }

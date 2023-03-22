@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/scene"
 )
 
@@ -22,7 +23,7 @@ type SceneService struct {
 func NewSceneService(
 	logger logs.Logger,
 	settingsSvc *SettingsService,
-  graphicsSvc *GraphicsService,
+	graphicsSvc *GraphicsService,
 ) *SceneService {
 	if logger == nil {
 		panic("nil scene logger")
@@ -39,7 +40,7 @@ func NewSceneService(
 	return &SceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
-    graphicsSvc: graphicsSvc,
+		graphicsSvc: graphicsSvc,
 	}
 }
 
@@ -51,7 +52,11 @@ func (svc *SceneService) Update(args InputArgs) error {
 	}
 
 	if svc.currentScene == nil {
-		svc.GoTo(&scene.TitleScene{})
+		err = svc.GoTo(&scene.TitleScene{})
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if svc.transitionCount <= 0 {
@@ -74,6 +79,10 @@ func (svc *SceneService) Update(args InputArgs) error {
 	svc.nextScene = nil
 
 	return nil
+}
+
+func (svc *SceneService) Draw() []*canvas.Entity {
+	return svc.currentScene.Draw()
 }
 
 func (svc *SceneService) GoTo(s scene.Scene) error {
