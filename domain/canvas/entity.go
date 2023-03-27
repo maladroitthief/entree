@@ -9,8 +9,5 @@ type Entity struct {
 	Y      int
 	Sheet  string
 	State  string
-}
-
-func (e *Entity) CurrentSprite(gSvc GraphicsService) (image.Rectangle, error) {
-	return gSvc.GetSprite(e.Sheet, e.State)
+	Image  *image.Image
 }

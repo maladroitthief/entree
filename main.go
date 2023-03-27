@@ -1,19 +1,12 @@
 package main
 
 import (
-	"path/filepath"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/adapter"
 	"github.com/maladroitthief/entree/application"
+	"github.com/maladroitthief/entree/assets"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/infrastructure"
-)
-
-var (
-	spriteSheetPaths = []string{
-		filepath.Join("assets", "sprite_sheets", "test.json"),
-	}
 )
 
 func main() {
@@ -27,21 +20,19 @@ func main() {
 	)
 
 	// Graphics Service
-	spriteRepo := infrastructure.NewSpriteJsonRepository()
-	graphicsSvc := application.NewGraphicsService(log, spriteRepo)
-	for _, path := range spriteSheetPaths {
-		err := graphicsSvc.LoadSpriteSheet(path)
-		if err != nil {
-			log.Fatal("main", path, err)
-		}
+	graphicsSvc := application.NewGraphicsService(log)
+	testSheet, err := assets.TestSheet()
+	if err != nil {
+		log.Fatal("main", "test_sheet", err)
 	}
+	graphicsSvc.LoadSpriteSheet(testSheet)
 
 	// Scene Service
-	sceneSvc := application.NewSceneService(log, settingsSvc, graphicsSvc)
+	sceneSvc := application.NewSceneService(log, settingsSvc)
 
 	// Game adapter
-	gameAdpt := adapter.NewGameAdapter(log, sceneSvc, settingsSvc)
-	ebitenGame, err := infrastructure.NewEbitenGame(gameAdpt)
+	gameAdpt := adapter.NewGameAdapter(log, sceneSvc, graphicsSvc, settingsSvc)
+	ebitenGame, err := infrastructure.NewEbitenGame(log, gameAdpt)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}

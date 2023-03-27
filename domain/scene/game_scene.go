@@ -20,6 +20,6 @@ func (s *GameScene) Update(state *GameState) error {
 	return nil
 }
 
-func (s *GameScene) Draw() []*canvas.Entity {
+func (s *GameScene) GetEntities() []*canvas.Entity {
 	return nil
 }

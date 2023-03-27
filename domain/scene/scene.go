@@ -12,7 +12,7 @@ const (
 
 type Scene interface {
 	Update(*GameState) error
-	Draw() []*canvas.Entity
+	GetEntities() []*canvas.Entity
 }
 
 type GameState struct {

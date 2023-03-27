@@ -14,38 +14,24 @@ var (
 
 type GraphicsService struct {
 	log    logs.Logger
-	repo   sprite.Repository
 	sheets map[string]sprite.SpriteSheet
 }
 
 func NewGraphicsService(
 	logger logs.Logger,
-	repo sprite.Repository,
 ) *GraphicsService {
 	if logger == nil {
 		panic("nil graphics logger")
 	}
 
-	if repo == nil {
-		panic("nil graphics repo")
-	}
-
 	return &GraphicsService{
 		log:    logger,
-		repo:   repo,
 		sheets: make(map[string]sprite.SpriteSheet),
 	}
 }
 
-func (svc *GraphicsService) LoadSpriteSheet(path string) error {
-	ss, err := svc.repo.GetSpriteSheet(path)
-	if err != nil {
-		return err
-	}
-
+func (svc *GraphicsService) LoadSpriteSheet(ss sprite.SpriteSheet) {
 	svc.sheets[ss.GetName()] = ss
-
-	return nil
 }
 
 func (svc *GraphicsService) GetSprite(
@@ -57,5 +43,17 @@ func (svc *GraphicsService) GetSprite(
 		return image.Rectangle{}, ErrSheetNotFound
 	}
 
-	return ss.DrawRectangle(spriteName)
+	// TODO: potentially cache the loaded rectangles
+	return ss.SpriteRectangle(spriteName)
+}
+
+func (svc *GraphicsService) GetSpriteSheet(
+	sheetName string,
+) (sprite.SpriteSheet, error) {
+	ss, ok := svc.sheets[sheetName]
+	if !ok {
+		return ss, ErrSheetNotFound
+	}
+
+	return ss, nil
 }

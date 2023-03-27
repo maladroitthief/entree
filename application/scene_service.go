@@ -17,13 +17,11 @@ type SceneService struct {
 	transitionCount int
 
 	settingsSvc *SettingsService
-	graphicsSvc *GraphicsService
 }
 
 func NewSceneService(
 	logger logs.Logger,
 	settingsSvc *SettingsService,
-	graphicsSvc *GraphicsService,
 ) *SceneService {
 	if logger == nil {
 		panic("nil scene logger")
@@ -33,14 +31,9 @@ func NewSceneService(
 		panic("nil settings service")
 	}
 
-	if graphicsSvc == nil {
-		panic("nil graphics service")
-	}
-
 	return &SceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
-		graphicsSvc: graphicsSvc,
 	}
 }
 
@@ -81,8 +74,8 @@ func (svc *SceneService) Update(args InputArgs) error {
 	return nil
 }
 
-func (svc *SceneService) Draw() []*canvas.Entity {
-	return svc.currentScene.Draw()
+func (svc *SceneService) GetEntities() []*canvas.Entity {
+	return svc.currentScene.GetEntities()
 }
 
 func (svc *SceneService) GoTo(s scene.Scene) error {

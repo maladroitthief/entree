@@ -3,7 +3,6 @@ package sprite
 import (
 	"errors"
 	"image"
-	"os"
 )
 
 var (
@@ -18,7 +17,7 @@ var (
 
 type spriteSheet struct {
 	Name       string
-	Path       string
+	Image      image.Image
 	Rows       int
 	Columns    int
 	SpriteSize int
@@ -27,24 +26,18 @@ type spriteSheet struct {
 
 type SpriteSheet interface {
 	AddSprite(s Sprite) error
-	DrawRectangle(name string) (image.Rectangle, error)
-  GetName() string
+	SpriteRectangle(name string) (image.Rectangle, error)
+	GetName() string
+	GetImage() image.Image
 }
 
 func NewSpriteSheet(
 	name string,
-	path string,
+	image image.Image,
 	rows int,
 	columns int,
 	size int,
 ) (SpriteSheet, error) {
-	// Ensure the file opens
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
 	if name == "" {
 		return nil, ErrNameBlank
 	}
@@ -63,7 +56,7 @@ func NewSpriteSheet(
 
 	return &spriteSheet{
 		Name:       name,
-		Path:       path,
+		Image:      image,
 		Rows:       rows,
 		Columns:    columns,
 		SpriteSize: size,
@@ -86,12 +79,16 @@ func (ss *spriteSheet) AddSprite(s Sprite) error {
 }
 
 func (ss *spriteSheet) GetName() string {
-  return ss.Name
+	return ss.Name
 }
 
-func (ss *spriteSheet) DrawRectangle(name string) (image.Rectangle, error) {
+func (ss *spriteSheet) GetImage() image.Image {
+	return ss.Image
+}
+
+func (ss *spriteSheet) SpriteRectangle(name string) (image.Rectangle, error) {
 	s, ok := ss.Sprites[name]
-	if ok != true {
+	if !ok {
 		return image.Rectangle{}, ErrSpriteNotFound
 	}
 

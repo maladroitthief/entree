@@ -1,14 +1,19 @@
 package adapter
 
 import (
+	"image"
+
 	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/settings"
+	"github.com/maladroitthief/entree/domain/sprite"
 )
 
 type GameAdapter struct {
 	log         logs.Logger
 	sceneSvc    *application.SceneService
+	graphicsSvc *application.GraphicsService
 	settingsSvc *application.SettingsService
 }
 
@@ -21,16 +26,22 @@ type UpdateArgs struct {
 func NewGameAdapter(
 	log logs.Logger,
 	sceneSvc *application.SceneService,
+	graphicsSvc *application.GraphicsService,
 	settingsSvc *application.SettingsService,
 ) *GameAdapter {
 	ga := GameAdapter{
 		log:         log,
 		settingsSvc: settingsSvc,
 		sceneSvc:    sceneSvc,
+		graphicsSvc: graphicsSvc,
 	}
 
 	if sceneSvc == nil {
 		panic("nil scene service")
+	}
+
+	if graphicsSvc == nil {
+		panic("nil graphics service")
 	}
 
 	if settingsSvc == nil {
@@ -41,11 +52,37 @@ func NewGameAdapter(
 }
 
 func (ga *GameAdapter) Update(args UpdateArgs) error {
-	return ga.sceneSvc.Update(application.InputArgs{
-    CursorX: args.CursorX,
-    CursorY: args.CursorY,
-    Inputs: args.Inputs,
-  })
+	// Scene Update
+	err := ga.sceneSvc.Update(application.InputArgs{
+		CursorX: args.CursorX,
+		CursorY: args.CursorY,
+		Inputs:  args.Inputs,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ga *GameAdapter) GetEntities() []*canvas.Entity {
+	e := ga.sceneSvc.GetEntities()
+
+	return e
+}
+
+func (ga *GameAdapter) GetSpriteSheet(
+	sheet string,
+) (sprite.SpriteSheet, error) {
+	return ga.graphicsSvc.GetSpriteSheet(sheet)
+}
+
+func (ga *GameAdapter) GetSpriteRectangle(
+	sheet string,
+	sprite string,
+) (image.Rectangle, error) {
+	return ga.graphicsSvc.GetSprite(sheet, sprite)
 }
 
 func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int) {
