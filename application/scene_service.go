@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	transitionCountMax = 20
+	transitionCountMax = 5
 )
 
 type SceneService struct {

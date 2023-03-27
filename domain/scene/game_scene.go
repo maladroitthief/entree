@@ -12,6 +12,17 @@ func NewGameScene() *GameScene {
 		canvas: c,
 	}
 
+	test := &canvas.Entity{
+		Width:  32,
+		Height: 32,
+		X:      100,
+		Y:      100,
+		Sheet:  "test",
+		State:  "idle_down",
+	}
+
+	gs.canvas.AddEntity(test)
+
 	return gs
 }
 
@@ -21,5 +32,5 @@ func (s *GameScene) Update(state *GameState) error {
 }
 
 func (s *GameScene) GetEntities() []*canvas.Entity {
-	return nil
+	return s.canvas.Entities()
 }

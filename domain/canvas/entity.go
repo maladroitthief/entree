@@ -1,7 +1,5 @@
 package canvas
 
-import "image"
-
 type Entity struct {
 	Width  int
 	Height int
@@ -9,5 +7,4 @@ type Entity struct {
 	Y      int
 	Sheet  string
 	State  string
-	Image  *image.Image
 }
