@@ -20,7 +20,7 @@ type EbitenGame struct {
 	title         string
 	spriteOptions *ebiten.DrawImageOptions
 	spriteSheets  map[string]*ebiten.Image
-	sprites       map[*ebiten.Image]*ebiten.Image
+	sprites       map[string]*ebiten.Image
 }
 
 func NewEbitenGame(
@@ -35,7 +35,7 @@ func NewEbitenGame(
 		title:         "",
 		spriteOptions: &ebiten.DrawImageOptions{},
 		spriteSheets:  make(map[string]*ebiten.Image),
-		sprites:       make(map[*ebiten.Image]*ebiten.Image),
+		sprites:       make(map[string]*ebiten.Image),
 	}
 
 	err := e.WindowHandler()
@@ -73,6 +73,7 @@ func (e *EbitenGame) Update() (err error) {
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
+		e.log.Info("entity", entity)
 		err := e.DrawEntity(screen, entity)
 		if err != nil {
 			e.log.Error("Draw", entity, err)
@@ -82,19 +83,10 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 }
 
 func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (err error) {
-	// Load the sprite sheet
-	spriteSheet, ok := e.spriteSheets[entity.Sheet]
-	if !ok {
-		spriteSheet, err = e.LoadSpriteSheet(entity.Sheet)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Load the sprite
-	sprite, ok := e.sprites[spriteSheet]
+	sprite, ok := e.sprites[SpriteKey(entity.Sheet, entity.Sprite)]
 	if !ok {
-		sprite, err = e.LoadSprite(entity.Sheet, entity.State)
+		sprite, err = e.LoadSprite(entity.Sheet, entity.Sprite)
 		if err != nil {
 			return err
 		}
@@ -147,7 +139,7 @@ func (e *EbitenGame) LoadSprite(
 
 	// Create the ebiten image for the sprite and cache it
 	spriteImage = ebiten.NewImageFromImage(sprite)
-	e.sprites[spriteSheet] = spriteImage
+	e.sprites[SpriteKey(sheetName, spriteName)] = spriteImage
 
 	return spriteImage, nil
 }
@@ -186,4 +178,8 @@ func (e *EbitenGame) DrawDebug(screen *ebiten.Image) {
 		ebiten.ActualFPS(),
 	)
 	ebitenutil.DebugPrint(screen, msg)
+}
+
+func SpriteKey(sheet, sprite string) string {
+	return fmt.Sprintf("%s_%s", sheet, sprite)
 }

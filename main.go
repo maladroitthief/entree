@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/adapter"
 	"github.com/maladroitthief/entree/application"
-	"github.com/maladroitthief/entree/assets"
+	"github.com/maladroitthief/entree/assets/sheets"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/infrastructure"
 )
@@ -21,11 +21,11 @@ func main() {
 
 	// Graphics Service
 	graphicsSvc := application.NewGraphicsService(log)
-	testSheet, err := assets.TestSheet()
+	pilotSheet, err := sheets.PilotSheet()
 	if err != nil {
-		log.Fatal("main", "test_sheet", err)
+		log.Fatal("main", "pilot_sheet", err)
 	}
-	graphicsSvc.LoadSpriteSheet(testSheet)
+	graphicsSvc.LoadSpriteSheet(pilotSheet)
 
 	// Scene Service
 	sceneSvc := application.NewSceneService(log, settingsSvc)

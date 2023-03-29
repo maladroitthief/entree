@@ -1,6 +1,10 @@
 package scene
 
-import "github.com/maladroitthief/entree/domain/canvas"
+import (
+	"github.com/maladroitthief/entree/domain/action"
+	"github.com/maladroitthief/entree/domain/canvas"
+	"github.com/maladroitthief/entree/domain/canvas/player"
+)
 
 type GameScene struct {
 	canvas *canvas.Canvas
@@ -12,22 +16,17 @@ func NewGameScene() *GameScene {
 		canvas: c,
 	}
 
-	test := &canvas.Entity{
-		Width:  32,
-		Height: 32,
-		X:      100,
-		Y:      100,
-		Sheet:  "test",
-		State:  "idle_down",
-	}
-
-	gs.canvas.AddEntity(test)
+	pilot := player.NewPilot()
+	gs.canvas.AddEntity(pilot)
 
 	return gs
 }
 
 func (s *GameScene) Update(state *GameState) error {
-	state.Log.Info("Game Scene", nil)
+	for _, entity := range s.canvas.Entities() {
+		entity.Update([]action.Input{}, s.canvas)
+	}
+
 	return nil
 }
 
