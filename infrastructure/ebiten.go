@@ -93,6 +93,10 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (er
 
 	// Draw the sprite
 	e.spriteOptions.GeoM.Reset()
+  if entity.OrientationX == canvas.West {
+	  e.spriteOptions.GeoM.Scale(-1, 1)
+    e.spriteOptions.GeoM.Translate(float64(entity.Width), 0)
+  }
 	e.spriteOptions.GeoM.Translate(
 		float64(entity.Width)/2,
 		float64(entity.Height)/2,

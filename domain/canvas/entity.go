@@ -62,7 +62,10 @@ func (e *Entity) VariantUpdate() {
 	e.SpriteVariant = int(speed)%e.SpriteMaxVariants + 1
 }
 
-func (e *Entity) DeltaReset() {
+func (e *Entity) Reset() {
+  e.State = "idle"
+  e.OrientationX = Neutral
+  e.OrientationY = South
   e.DeltaX = 0
   e.DeltaY = 0
 }

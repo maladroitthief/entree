@@ -25,8 +25,8 @@ func NewPilot(
 	physics canvas.PhysicsComponent,
 ) *canvas.Entity {
 	return &canvas.Entity{
-		Width:             200,
-		Height:            200,
+		Width:             32,
+		Height:            32,
 		X:                 100,
 		Y:                 100,
 		DeltaX:            0,
@@ -58,7 +58,7 @@ func (g *pilotGraphics) Update(e *canvas.Entity) {
 	if e.OrientationY == canvas.South {
 		spriteName = append(spriteName, "front")
 	} else {
-		spriteName = append(spriteName, "front")
+		spriteName = append(spriteName, "back")
 	}
 
 	if e.OrientationX != canvas.Neutral {
