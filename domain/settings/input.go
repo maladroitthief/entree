@@ -27,10 +27,19 @@ const (
 
 var (
 	ErrUnboundKey = errors.New("key is unbound")
+  ErrNilKeyboard = errors.New("keyboard is nil")
 )
 
 type InputSettings struct {
 	Keyboard map[Input]string
+}
+
+func (i *InputSettings) Validate() error {
+	if i.Keyboard == nil {
+    return ErrNilKeyboard
+	}
+
+	return nil
 }
 
 func AllInputs() []Input {
@@ -63,22 +72,30 @@ func DefaultInputSettings() InputSettings {
 
 func DefaultKeyboard() map[Input]string {
 	return map[Input]string{
-		Accept:        "KeyEnter",
-		Cancel:        "KeyBackspace",
-		MoveUp:        "KeyW",
-		MoveDown:      "KeyS",
-		MoveLeft:      "KeyA",
-		MoveRight:     "KeyD",
+		Accept:        "Enter",
+		Cancel:        "Backspace",
+		MoveUp:        "W",
+		MoveDown:      "S",
+		MoveLeft:      "A",
+		MoveRight:     "D",
 		Attack:        "MouseButtonLeft",
-		AttackUp:      "KeyArrowUp",
-		AttackDown:    "KeyArrowDown",
-		AttackLeft:    "KeyArrowLeft",
-		AttackRight:   "KeyArrowRight",
-		Dodge:         "KeySpace",
-		Interact:      "KeyE",
+		AttackUp:      "ArrowUp",
+		AttackDown:    "ArrowDown",
+		AttackLeft:    "ArrowLeft",
+		AttackRight:   "ArrowRight",
+		Dodge:         "Space",
+		Interact:      "E",
 		UseItem:       "MouseButtonRight",
-		UseConsumable: "KeyQ",
-		Map:           "KeyM",
+		UseConsumable: "Q",
+		Map:           "M",
 		Menu:          "KeyEscape",
 	}
+}
+
+type InputService interface {
+  CurrentInputs() []Input
+  IsAny() bool
+  IsPressed(i Input) bool
+  IsJustPressed(i Input) bool
+  GetCursor() (x, y int)
 }

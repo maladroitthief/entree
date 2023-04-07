@@ -30,10 +30,20 @@ func (r *SettingsJsonRepository) unmarshalInputSettings(m InputModel) settings.I
 		Keyboard: m.Keyboard,
 	}
 
+	err := i.Validate()
+	if err != nil {
+		return settings.DefaultInputSettings()
+	}
+
 	return i
 }
 
 func (r *SettingsJsonRepository) marshalInputSettings(s settings.InputSettings) InputModel {
+	err := s.Validate()
+	if err != nil {
+		return r.marshalInputSettings(settings.DefaultInputSettings())
+	}
+
 	return InputModel{
 		Keyboard: s.Keyboard,
 	}

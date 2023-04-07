@@ -73,7 +73,6 @@ func (e *EbitenGame) Update() (err error) {
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
-		e.log.Info("entity", entity)
 		err := e.DrawEntity(screen, entity)
 		if err != nil {
 			e.log.Error("Draw", entity, err)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maladroitthief/entree/domain/action"
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
@@ -21,7 +20,10 @@ var (
 	}
 )
 
-func NewPilot() *canvas.Entity {
+func NewPilot(
+	input canvas.InputComponent,
+	physics canvas.PhysicsComponent,
+) *canvas.Entity {
 	return &canvas.Entity{
 		Width:             200,
 		Height:            200,
@@ -29,6 +31,10 @@ func NewPilot() *canvas.Entity {
 		Y:                 100,
 		DeltaX:            0,
 		DeltaY:            0,
+		Acceleration:      canvas.DefaultAcceleration,
+		Deceleration:      canvas.DefaultDeceleration,
+		MaxVelocity:       canvas.DefaultMaxVelocity,
+		Mass:              canvas.DefaultMass,
 		Sheet:             "pilot",
 		Sprite:            "idle_front_1",
 		SpriteSpeed:       5,
@@ -38,23 +44,10 @@ func NewPilot() *canvas.Entity {
 		StateCounter:      0,
 		OrientationX:      canvas.Neutral,
 		OrientationY:      canvas.South,
-		Input:             &pilotInput{},
-		Physics:           &pilotPhysics{},
+		Input:             input,
+		Physics:           physics,
 		Graphics:          &pilotGraphics{},
 	}
-}
-
-type pilotInput struct {
-}
-
-func (i *pilotInput) Update(e *canvas.Entity, a []action.Input) {
-}
-
-type pilotPhysics struct {
-}
-
-func (p *pilotPhysics) Update(e *canvas.Entity, c *canvas.Canvas) {
-	e.StateCounter++
 }
 
 type pilotGraphics struct {

@@ -8,7 +8,7 @@ type TitleScene struct {
 func (s *TitleScene) Update(state *GameState) error {
 	// state.Log.Info("Title Scene", nil)
 	if state.InputSvc.IsAny() {
-		return state.SceneSvc.GoTo(NewGameScene())
+		return state.SceneSvc.GoTo(NewGameScene(state))
 	}
 
 	return nil

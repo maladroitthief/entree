@@ -1,7 +1,5 @@
 package canvas
 
-import "github.com/maladroitthief/entree/domain/action"
-
 type OrientationX int
 type OrientationY int
 
@@ -11,10 +9,14 @@ const (
 	East
 	South OrientationY = iota
 	North
+	DefaultAcceleration = 1
+	DefaultDeceleration = 1
+	DefaultMaxVelocity  = 10
+	DefaultMass         = 5
 )
 
 type InputComponent interface {
-	Update(*Entity, []action.Input)
+	Update(*Entity)
 }
 
 type PhysicsComponent interface {
@@ -31,6 +33,10 @@ type Entity struct {
 	Y                 int
 	DeltaX            int
 	DeltaY            int
+	Acceleration      int
+	Deceleration      int
+	MaxVelocity       int
+	Mass              int
 	Sheet             string
 	Sprite            string
 	SpriteSpeed       float32
@@ -45,8 +51,8 @@ type Entity struct {
 	Graphics          GraphicsComponent
 }
 
-func (e *Entity) Update(actions []action.Input, c *Canvas) {
-	e.Input.Update(e, actions)
+func (e *Entity) Update(c *Canvas) {
+	e.Input.Update(e)
 	e.Physics.Update(e, c)
 	e.Graphics.Update(e)
 }
@@ -54,4 +60,9 @@ func (e *Entity) Update(actions []action.Input, c *Canvas) {
 func (e *Entity) VariantUpdate() {
 	speed := float32(e.StateCounter) / e.SpriteSpeed
 	e.SpriteVariant = int(speed)%e.SpriteMaxVariants + 1
+}
+
+func (e *Entity) DeltaReset() {
+  e.DeltaX = 0
+  e.DeltaY = 0
 }

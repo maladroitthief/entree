@@ -12,6 +12,7 @@ type SettingsService struct {
 	currentKeys    []string
 	currentCursorX int
 	currentCursorY int
+	currentInputs  []settings.Input
 	inputStates    map[settings.Input]int
 	inputSettings  *settings.InputSettings
 }
@@ -49,12 +50,14 @@ func (svc *SettingsService) Update(args InputArgs) error {
 	}
 
 	svc.currentKeys = args.Inputs
+	svc.currentInputs = make([]settings.Input, len(svc.currentKeys))
 	svc.currentCursorX = args.CursorX
 	svc.currentCursorY = args.CursorY
 
 	for i, k := range svc.inputSettings.Keyboard {
 		for _, arg := range args.Inputs {
 			if k == arg {
+				svc.currentInputs = append(svc.currentInputs, i)
 				svc.inputStates[i]++
 				continue
 			}
@@ -73,20 +76,4 @@ func (svc *SettingsService) GetWindowSettings() (settings.WindowSettings, error)
 	}
 
 	return ws, nil
-}
-
-func (svc *SettingsService) IsAny() bool {
-	return len(svc.currentKeys) > 0
-}
-
-func (svc *SettingsService) IsPressed(i settings.Input) bool {
-	return svc.inputStates[i] >= 1
-}
-
-func (svc *SettingsService) IsJustPressed(i settings.Input) bool {
-	return svc.inputStates[i] == 1
-}
-
-func (svc *SettingsService) GetCursor() (x, y int) {
-	return svc.currentCursorX, svc.currentCursorY
 }

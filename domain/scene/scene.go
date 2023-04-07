@@ -18,16 +18,9 @@ type Scene interface {
 type GameState struct {
 	Log      logs.Logger
 	SceneSvc SceneService
-	InputSvc InputService
+	InputSvc settings.InputService
 }
 
 type SceneService interface {
 	GoTo(Scene) error
-}
-
-type InputService interface {
-	IsAny() bool
-	IsPressed(settings.Input) bool
-	IsJustPressed(settings.Input) bool
-	GetCursor() (x, y int)
 }
