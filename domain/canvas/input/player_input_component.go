@@ -11,34 +11,33 @@ type PlayerInputComponent struct {
 
 func NewPlayerInputComponent(inputSvc settings.InputService) *PlayerInputComponent {
 	pic := &PlayerInputComponent{
-    inputSvc: inputSvc,
-  }
+		inputSvc: inputSvc,
+	}
 
 	return pic
 }
 
 func (i *PlayerInputComponent) Update(e *canvas.Entity) {
-  e.Reset()
+	e.Reset()
 
 	for _, input := range i.inputSvc.CurrentInputs() {
 		switch input {
 		case settings.MoveUp:
-      e.State = "move"
-      e.OrientationY = canvas.North
-      e.DeltaY--
+			e.State = "move"
+			e.OrientationY = canvas.North
+			e.DeltaY = -1
 		case settings.MoveDown:
-      e.State = "move"
-      e.OrientationY = canvas.South
-      e.DeltaY++
+			e.State = "move"
+			e.OrientationY = canvas.South
+			e.DeltaY = 1
 		case settings.MoveRight:
-      e.State = "move"
-      e.OrientationX = canvas.East
-      e.DeltaX++
+			e.State = "move"
+			e.OrientationX = canvas.East
+			e.DeltaX = 1
 		case settings.MoveLeft:
-      e.State = "move"
-      e.OrientationX = canvas.West
-      e.DeltaX--
+			e.State = "move"
+			e.OrientationX = canvas.West
+			e.DeltaX = -1
 		}
 	}
 }
-

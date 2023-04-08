@@ -33,11 +33,13 @@ func NewPilot(
 		DeltaY:            0,
 		Acceleration:      canvas.DefaultAcceleration,
 		Deceleration:      canvas.DefaultDeceleration,
+		VelocityX:          0,
+		VelocityY:          0,
 		MaxVelocity:       canvas.DefaultMaxVelocity,
 		Mass:              canvas.DefaultMass,
 		Sheet:             "pilot",
 		Sprite:            "idle_front_1",
-		SpriteSpeed:       5,
+		SpriteSpeed:       6,
 		SpriteVariant:     1,
 		SpriteMaxVariants: 6,
 		State:             "idle",
@@ -66,6 +68,7 @@ func (g *pilotGraphics) Update(e *canvas.Entity) {
 	}
 
 	sprite := strings.Join(spriteName, "_")
+	e.SpriteMaxVariants = spriteVariants[sprite]
 	e.VariantUpdate()
 	e.Sprite = fmt.Sprintf("%s_%d", sprite, e.SpriteVariant)
 }

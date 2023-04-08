@@ -9,10 +9,10 @@ const (
 	East
 	South OrientationY = iota
 	North
-	DefaultAcceleration = 1
-	DefaultDeceleration = 1
+	DefaultAcceleration = 3
+	DefaultDeceleration = 15
 	DefaultMaxVelocity  = 10
-	DefaultMass         = 5
+	DefaultMass         = 1
 )
 
 type InputComponent interface {
@@ -31,12 +31,14 @@ type Entity struct {
 	Height            int
 	X                 int
 	Y                 int
-	DeltaX            int
-	DeltaY            int
-	Acceleration      int
-	Deceleration      int
-	MaxVelocity       int
-	Mass              int
+	DeltaX            float64
+	DeltaY            float64
+	Acceleration      float64
+	Deceleration      float64
+	VelocityX         float64
+	VelocityY         float64
+	MaxVelocity       float64
+	Mass              float64
 	Sheet             string
 	Sprite            string
 	SpriteSpeed       float32
@@ -63,9 +65,10 @@ func (e *Entity) VariantUpdate() {
 }
 
 func (e *Entity) Reset() {
-  e.State = "idle"
-  e.OrientationX = Neutral
-  e.OrientationY = South
-  e.DeltaX = 0
-  e.DeltaY = 0
+	e.State = "idle"
+	if e.DeltaX == 0 && e.DeltaY != 0 {
+		e.OrientationX = Neutral
+	}
+	e.DeltaX = 0
+	e.DeltaY = 0
 }
