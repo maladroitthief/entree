@@ -41,7 +41,7 @@ type Entity struct {
 	Mass              float64
 	Sheet             string
 	Sprite            string
-	SpriteSpeed       float32
+	SpriteSpeed       float64
 	SpriteVariant     int
 	SpriteMaxVariants int
 	State             string
@@ -60,7 +60,7 @@ func (e *Entity) Update(c *Canvas) {
 }
 
 func (e *Entity) VariantUpdate() {
-	speed := float32(e.StateCounter) / e.SpriteSpeed
+	speed := float64(e.StateCounter) / (e.SpriteSpeed / float64(e.SpriteMaxVariants))
 	e.SpriteVariant = int(speed)%e.SpriteMaxVariants + 1
 }
 

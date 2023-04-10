@@ -6,13 +6,14 @@ import (
 )
 
 var (
-	ErrNameBlank       = errors.New("name cannot be blank")
-	ErrRowSize         = errors.New("rows must be at least 1")
-	ErrColumnSize      = errors.New("columns must be at least 1")
-	ErrSpriteSize      = errors.New("sprite size must be at least 1")
-	ErrSpriteRowOOB    = errors.New("sprite row is out of sheet bounds")
-	ErrSpriteColumnOOB = errors.New("sprite column is out of sheet bounds")
-	ErrSpriteNotFound  = errors.New("sprite does not exist in this sheet")
+	ErrNameBlank            = errors.New("name cannot be blank")
+	ErrRowSize              = errors.New("rows must be at least 1")
+	ErrColumnSize           = errors.New("columns must be at least 1")
+	ErrSpriteSize           = errors.New("sprite size must be at least 1")
+	ErrSpriteRowOOB         = errors.New("sprite row is out of sheet bounds")
+	ErrSpriteColumnOOB      = errors.New("sprite column is out of sheet bounds")
+	ErrSpriteOffsetNegative = errors.New("sprite offset is negative")
+	ErrSpriteNotFound       = errors.New("sprite does not exist in this sheet")
 )
 
 type spriteSheet struct {
@@ -20,6 +21,7 @@ type spriteSheet struct {
 	Image      image.Image
 	Rows       int
 	Columns    int
+	Offset     int
 	SpriteSize int
 	Sprites    map[string]Sprite
 }
@@ -36,6 +38,7 @@ func NewSpriteSheet(
 	image image.Image,
 	rows int,
 	columns int,
+	offset int,
 	size int,
 ) (SpriteSheet, error) {
 	if name == "" {
@@ -54,11 +57,16 @@ func NewSpriteSheet(
 		return nil, ErrSpriteSize
 	}
 
+	if offset < 0 {
+		return nil, ErrSpriteSize
+	}
+
 	return &spriteSheet{
 		Name:       name,
 		Image:      image,
 		Rows:       rows,
 		Columns:    columns,
+		Offset:     offset,
 		SpriteSize: size,
 		Sprites:    make(map[string]Sprite),
 	}, nil
@@ -92,7 +100,10 @@ func (ss *spriteSheet) SpriteRectangle(name string) (image.Rectangle, error) {
 		return image.Rectangle{}, ErrSpriteNotFound
 	}
 
-	point_1 := image.Pt((s.Column-1)*ss.SpriteSize, (s.Row-1)*ss.SpriteSize)
+	startingX := (s.Column-1)*ss.SpriteSize + (s.Column-1)*ss.Offset
+	startingY := (s.Row-1)*ss.SpriteSize + (s.Row-1)*ss.Offset
+
+	point_1 := image.Pt(startingX, startingY)
 	point_2 := image.Pt(point_1.X+ss.SpriteSize, point_1.Y+ss.SpriteSize)
 
 	return image.Rectangle{Min: point_1, Max: point_2}, nil
