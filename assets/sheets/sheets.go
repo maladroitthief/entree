@@ -8,7 +8,13 @@ import (
 
 func SpriteArray(name string, row, columnStart, columnEnd int) []sprite.Sprite {
 	if columnStart > columnEnd {
-		panic("sprite loader")
+		return []sprite.Sprite{
+			{
+				Name:   name,
+				Row:    row,
+				Column: columnStart,
+			},
+		}
 	}
 
 	spriteCount := columnEnd - columnStart + 1
@@ -16,7 +22,7 @@ func SpriteArray(name string, row, columnStart, columnEnd int) []sprite.Sprite {
 
 	for i := 0; i < spriteCount; i++ {
 		results[i] = sprite.Sprite{
-			Name:   fmt.Sprintf("%s_%d", name, columnStart + i),
+			Name:   fmt.Sprintf("%s_%d", name, columnStart+i),
 			Row:    row,
 			Column: columnStart + i,
 		}

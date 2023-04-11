@@ -26,6 +26,11 @@ func main() {
 		log.Fatal("main", "pilot_sheet", err)
 	}
 	graphicsSvc.LoadSpriteSheet(pilotSheet)
+	testSheet, err := sheets.TestSheet()
+	if err != nil {
+		log.Fatal("main", "test_sheet", err)
+	}
+	graphicsSvc.LoadSpriteSheet(testSheet)
 
 	// Scene Service
 	sceneSvc := application.NewSceneService(log, settingsSvc)
