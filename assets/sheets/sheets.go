@@ -30,3 +30,11 @@ func SpriteArray(name string, row, columnStart, columnEnd int) []sprite.Sprite {
 
 	return results
 }
+
+func Sprite(name string, row, col int) sprite.Sprite {
+  return sprite.Sprite{
+      Name:   name,
+      Row:    row,
+      Column: col,
+  }
+}

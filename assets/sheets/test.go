@@ -33,14 +33,15 @@ func TestSheet() (sprite.SpriteSheet, error) {
 	}
 
 	sprites := []sprite.Sprite{}
-	sprites = append(sprites, SpriteArray("blank", 1, 1, 0)...)
-	sprites = append(sprites, SpriteArray("small_gravel", 1, 2, 0)...)
-	sprites = append(sprites, SpriteArray("big_gravel", 1, 3, 0)...)
-	sprites = append(sprites, SpriteArray("small_stones", 1, 4, 0)...)
-	sprites = append(sprites, SpriteArray("big_stones", 1, 5, 0)...)
-	sprites = append(sprites, SpriteArray("grass", 1, 6, 0)...)
-	sprites = append(sprites, SpriteArray("flowers", 1, 7, 0)...)
-	sprites = append(sprites, SpriteArray("tall_grass", 1, 8, 0)...)
+	sprites = append(sprites, Sprite("blank", 1, 1))
+	sprites = append(sprites, Sprite("small_gravel", 1, 2))
+	sprites = append(sprites, Sprite("big_gravel", 1, 3))
+	sprites = append(sprites, Sprite("small_stones", 1, 4))
+	sprites = append(sprites, Sprite("big_stones", 1, 5))
+	sprites = append(sprites, Sprite("grass", 1, 6))
+	sprites = append(sprites, Sprite("flowers", 1, 7))
+	sprites = append(sprites, Sprite("tall_grass", 1, 8))
+	sprites = append(sprites, Sprite("tall_grass", 1, 8))
 
 	for _, s := range sprites {
 		err = ss.AddSprite(s)
