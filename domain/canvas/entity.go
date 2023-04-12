@@ -26,6 +26,7 @@ type PhysicsComponent interface {
 type GraphicsComponent interface {
 	Update(*Entity)
 }
+
 type Entity struct {
 	Width             int
 	Height            int

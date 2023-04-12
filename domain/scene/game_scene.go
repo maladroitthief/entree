@@ -31,7 +31,7 @@ func NewGameScene(state *GameState) *GameScene {
 	)
 	gs.middleground.AddEntity(pilot)
 
-	grass := background.NewGrass(100, 100)
+	grass := background.Grass(100, 100)
 	gs.background.AddEntity(grass)
 
 	return gs
