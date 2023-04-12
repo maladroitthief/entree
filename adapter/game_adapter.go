@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
@@ -96,4 +97,8 @@ func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int)
 
 func (ga *GameAdapter) GetWindowSettings() (settings.WindowSettings, error) {
 	return ga.settingsSvc.GetWindowSettings()
+}
+
+func (ga *GameAdapter) GetBackgroundColor() color.Color {
+	return ga.sceneSvc.GetBackgroundColor()
 }

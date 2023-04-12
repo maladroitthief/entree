@@ -75,6 +75,8 @@ func (e *EbitenGame) Update() (err error) {
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
+  screen.Fill(e.gameAdpt.GetBackgroundColor())
+
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
 		err := e.DrawEntity(screen, entity)

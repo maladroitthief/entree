@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"image/color"
+
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/canvas/background"
 	"github.com/maladroitthief/entree/domain/canvas/input"
@@ -9,41 +11,47 @@ import (
 )
 
 type GameScene struct {
-	middleGround *canvas.Canvas
-	backGround   *canvas.Canvas
+	middleground    *canvas.Canvas
+	background      *canvas.Canvas
+	backgroundColor color.Color
 }
 
 func NewGameScene(state *GameState) *GameScene {
 	mgc := canvas.NewCanvas()
 	bgc := canvas.NewCanvas()
 	gs := &GameScene{
-		middleGround: mgc,
-		backGround:   bgc,
+		middleground:    mgc,
+		background:      bgc,
+		backgroundColor: state.Theme.Green(),
 	}
 
 	pilot := player.NewPilot(
 		input.NewPlayerInputComponent(state.InputSvc),
 		physics.NewBasePhysicsComponent(),
 	)
-	gs.middleGround.AddEntity(pilot)
+	gs.middleground.AddEntity(pilot)
 
 	grass := background.NewGrass(100, 100)
-	gs.backGround.AddEntity(grass)
+	gs.background.AddEntity(grass)
 
 	return gs
 }
 
 func (s *GameScene) Update(state *GameState) error {
 	// Get the current scene actions
-	for _, entity := range s.middleGround.Entities() {
-		entity.Update(s.middleGround)
+	for _, entity := range s.middleground.Entities() {
+		entity.Update(s.middleground)
 	}
 
 	return nil
 }
 
 func (s *GameScene) GetEntities() []*canvas.Entity {
-  entities := s.backGround.Entities()
-  entities = append(entities, s.middleGround.Entities()...)
+	entities := s.background.Entities()
+	entities = append(entities, s.middleground.Entities()...)
 	return entities
+}
+
+func (s *GameScene) GetBackgroundColor() color.Color {
+	return s.backgroundColor
 }

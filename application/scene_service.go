@@ -1,7 +1,10 @@
 package application
 
 import (
+	"image/color"
+
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/scene"
 )
@@ -15,6 +18,7 @@ type SceneService struct {
 	currentScene    scene.Scene
 	nextScene       scene.Scene
 	transitionCount int
+	theme           theme.Colors
 
 	settingsSvc *SettingsService
 }
@@ -34,6 +38,7 @@ func NewSceneService(
 	return &SceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
+		theme:       &theme.TokyoNight{},
 	}
 }
 
@@ -45,7 +50,14 @@ func (svc *SceneService) Update(args InputArgs) error {
 	}
 
 	if svc.currentScene == nil {
-		err = svc.GoTo(&scene.TitleScene{})
+		err = svc.GoTo(scene.NewTitleScene(
+			&scene.GameState{
+				Log:      svc.log,
+				SceneSvc: svc,
+				InputSvc: svc.settingsSvc,
+				Theme:    svc.theme,
+			},
+		))
 	}
 
 	if err != nil {
@@ -58,6 +70,7 @@ func (svc *SceneService) Update(args InputArgs) error {
 				Log:      svc.log,
 				SceneSvc: svc,
 				InputSvc: svc.settingsSvc,
+				Theme:    svc.theme,
 			},
 		)
 	}
@@ -76,6 +89,10 @@ func (svc *SceneService) Update(args InputArgs) error {
 
 func (svc *SceneService) GetEntities() []*canvas.Entity {
 	return svc.currentScene.GetEntities()
+}
+
+func (svc *SceneService) GetBackgroundColor() color.Color {
+	return svc.currentScene.GetBackgroundColor()
 }
 
 func (svc *SceneService) GoTo(s scene.Scene) error {
