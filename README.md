@@ -1,11 +1,13 @@
-# entree
+# Entrée
 
 Game where you fight food
 
-## architecture
+## Architecture
+
+### System
 
 ```mermaid
-graph LR
+graph
   subgraph Infrastructure
     ebiten
     settingsRepository
@@ -27,12 +29,14 @@ graph LR
   end
 
   subgraph Domain
-    action
     canvas
+    canvas --> settings
     ebiten --> canvas
     gameAdapter --> canvas
     sceneService --> canvas
     scene
+    scene --> canvas
+    scene --> settings
     sceneService --> scene
     settings
     settingsRepository --> settings
