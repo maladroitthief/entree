@@ -21,6 +21,7 @@ graph LR
     gameAdapter --> sceneService
     settingsService
     gameAdapter --> settingsService
+    sceneService --> settingsService
     graphicsService
     gameAdapter --> graphicsService
   end
