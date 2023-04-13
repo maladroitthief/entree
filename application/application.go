@@ -1,6 +1,6 @@
 package application
 
-type InputArgs struct {
+type Inputs struct {
 	CursorX int
 	CursorY int
 	Inputs  []string

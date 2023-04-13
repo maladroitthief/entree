@@ -54,7 +54,7 @@ func NewGameAdapter(
 
 func (ga *GameAdapter) Update(args UpdateArgs) error {
 	// Scene Update
-	err := ga.sceneSvc.Update(application.InputArgs{
+	err := ga.sceneSvc.Update(application.Inputs{
 		CursorX: args.CursorX,
 		CursorY: args.CursorY,
 		Inputs:  args.Inputs,

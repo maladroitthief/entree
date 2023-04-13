@@ -42,7 +42,7 @@ func NewSceneService(
 	}
 }
 
-func (svc *SceneService) Update(args InputArgs) error {
+func (svc *SceneService) Update(args Inputs) error {
 	// Update Settings
 	err := svc.settingsSvc.Update(args)
 	if err != nil {

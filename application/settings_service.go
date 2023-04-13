@@ -35,7 +35,7 @@ func NewSettingsService(
 	}
 }
 
-func (svc *SettingsService) Update(args InputArgs) error {
+func (svc *SettingsService) Update(args Inputs) error {
 	if svc.inputStates == nil {
 		svc.inputStates = map[settings.Input]int{}
 	}
