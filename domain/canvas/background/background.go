@@ -5,10 +5,10 @@ import (
 )
 
 const (
-  SpriteSize = 16
+	SpriteSize = 16
 )
 
-func StaticEntity(x, y int, sheet, sprite string) *canvas.Entity {
+func StaticTile(x, y float64, sheet, sprite string) *canvas.Entity {
 	return &canvas.Entity{
 		Width:             SpriteSize,
 		Height:            SpriteSize,

@@ -17,8 +17,8 @@ type GameScene struct {
 }
 
 func NewGameScene(state *GameState) *GameScene {
-	mgc := canvas.NewCanvas()
-	bgc := canvas.NewCanvas()
+	mgc := canvas.NewCanvas(8, 8, 16)
+	bgc := canvas.NewCanvas(8, 8, 16)
 	gs := &GameScene{
 		middleground:    mgc,
 		background:      bgc,

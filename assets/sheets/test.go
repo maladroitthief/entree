@@ -43,6 +43,23 @@ func TestSheet() (sprite.SpriteSheet, error) {
 	sprites = append(sprites, Sprite("tall_grass", 1, 8))
 	sprites = append(sprites, Sprite("tall_grass", 1, 8))
 
+	sprites = append(sprites, Sprite("wall_group_north_west", 17, 1))
+	sprites = append(sprites, Sprite("wall_group_north", 17, 2))
+	sprites = append(sprites, Sprite("wall_group_north_east", 17, 3))
+	sprites = append(sprites, Sprite("wall_group_west", 18, 1))
+	sprites = append(sprites, Sprite("wall_group", 18, 2))
+	sprites = append(sprites, Sprite("wall_group_east", 18, 3))
+	sprites = append(sprites, Sprite("wall_group_south_west", 19, 1))
+	sprites = append(sprites, Sprite("wall_group_south", 19, 2))
+	sprites = append(sprites, Sprite("wall_group_south_east", 19, 3))
+	sprites = append(sprites, Sprite("wall_group_south_east", 19, 3))
+	sprites = append(sprites, Sprite("wall_north_west", 17, 4))
+	sprites = append(sprites, Sprite("wall_north_east", 17, 5))
+	sprites = append(sprites, Sprite("wall_south_west", 18, 4))
+	sprites = append(sprites, Sprite("wall_south_east", 18, 5))
+	sprites = append(sprites, Sprite("wall", 19, 4))
+	sprites = append(sprites, Sprite("wall_tall", 19, 5))
+
 	for _, s := range sprites {
 		err = ss.AddSprite(s)
 		if err != nil {

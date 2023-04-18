@@ -35,9 +35,9 @@ func (p *BasePhysicsComponent) resolveX(e *canvas.Entity) {
 
 	e.VelocityX += e.DeltaX * e.Acceleration * e.Mass
 	if e.VelocityX < 0 {
-		e.X += int(math.Max(e.VelocityX, -e.MaxVelocity))
+		e.X += math.Max(e.VelocityX, -e.MaxVelocity)
 	} else {
-		e.X += int(math.Min(e.VelocityX, e.MaxVelocity))
+		e.X += math.Min(e.VelocityX, e.MaxVelocity)
 	}
 }
 
@@ -53,8 +53,8 @@ func (p *BasePhysicsComponent) resolveY(e *canvas.Entity) {
 
 	e.VelocityY += e.DeltaY * e.Acceleration * e.Mass
 	if e.VelocityY < 0 {
-		e.Y += int(math.Max(e.VelocityY, -e.MaxVelocity))
+		e.Y += math.Max(e.VelocityY, -e.MaxVelocity)
 	} else {
-		e.Y += int(math.Min(e.VelocityY, e.MaxVelocity))
+		e.Y += math.Min(e.VelocityY, e.MaxVelocity)
 	}
 }

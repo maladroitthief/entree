@@ -28,10 +28,10 @@ type GraphicsComponent interface {
 }
 
 type Entity struct {
-	Width             int
-	Height            int
-	X                 int
-	Y                 int
+	Width             float64
+	Height            float64
+	X                 float64
+	Y                 float64
 	DeltaX            float64
 	DeltaY            float64
 	Acceleration      float64
@@ -61,7 +61,8 @@ func (e *Entity) Update(c *Canvas) {
 }
 
 func (e *Entity) VariantUpdate() {
-	speed := float64(e.StateCounter) / (e.SpriteSpeed / float64(e.SpriteMaxVariants))
+	speed := float64(e.StateCounter) /
+		(e.SpriteSpeed / float64(e.SpriteMaxVariants))
 	e.SpriteVariant = int(speed)%e.SpriteMaxVariants + 1
 }
 

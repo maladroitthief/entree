@@ -2,10 +2,20 @@ package canvas
 
 type Canvas struct {
 	entities []*Entity
+	x        int
+	y        int
+	size     int
+	grid     map[int]map[int][]*Entity
 }
 
-func NewCanvas() *Canvas {
-	return &Canvas{}
+func NewCanvas(x, y, size int) *Canvas {
+	c := &Canvas{
+		x:    x,
+		y:    y,
+		size: size,
+	}
+
+	return c
 }
 
 func (c *Canvas) AddEntity(e *Entity) {

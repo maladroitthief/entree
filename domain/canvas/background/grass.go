@@ -4,6 +4,6 @@ import (
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
-func Grass(x, y int) *canvas.Entity {
-	return StaticEntity(x, y, "test", "grass")
+func Grass(x, y float64) *canvas.Entity {
+	return StaticTile(x, y, "test", "grass")
 }
