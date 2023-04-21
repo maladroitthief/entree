@@ -25,19 +25,19 @@ func (i *PlayerInputComponent) Update(e *canvas.Entity) {
 		case settings.MoveUp:
 			e.State = "move"
 			e.OrientationY = canvas.North
-			e.DeltaY = -1
+			e.DeltaPosition.Y = -1
 		case settings.MoveDown:
 			e.State = "move"
 			e.OrientationY = canvas.South
-			e.DeltaY = 1
+			e.DeltaPosition.Y = 1
 		case settings.MoveRight:
 			e.State = "move"
 			e.OrientationX = canvas.East
-			e.DeltaX = 1
+			e.DeltaPosition.X = 1
 		case settings.MoveLeft:
 			e.State = "move"
 			e.OrientationX = canvas.West
-			e.DeltaX = -1
+			e.DeltaPosition.X = -1
 		}
 	}
 }

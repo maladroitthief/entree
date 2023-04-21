@@ -12,7 +12,7 @@ import (
 )
 
 const (
-  DefaultScale = 3
+	DefaultScale = 3
 )
 
 type EbitenGame struct {
@@ -75,7 +75,7 @@ func (e *EbitenGame) Update() (err error) {
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
-  screen.Fill(e.gameAdpt.GetBackgroundColor())
+	screen.Fill(e.gameAdpt.GetBackgroundColor())
 
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
@@ -100,15 +100,15 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (er
 	// Draw the sprite
 	e.spriteOptions.GeoM.Reset()
 	e.spriteOptions.GeoM.Scale(DefaultScale, DefaultScale)
-  if entity.OrientationX == canvas.West {
-    e.spriteOptions.GeoM.Scale(-1, 1)
-    e.spriteOptions.GeoM.Translate(float64(entity.Width)*DefaultScale, 0)
-  }
+	if entity.OrientationX == canvas.West {
+		e.spriteOptions.GeoM.Scale(-1, 1)
+		e.spriteOptions.GeoM.Translate(float64(entity.Size.X)*DefaultScale, 0)
+	}
 	e.spriteOptions.GeoM.Translate(
-		float64(entity.Width)/2,
-		float64(entity.Height)/2,
+		float64(entity.Size.X)/2,
+		float64(entity.Size.Y)/2,
 	)
-	e.spriteOptions.GeoM.Translate(float64(entity.X), float64(entity.Y))
+	e.spriteOptions.GeoM.Translate(float64(entity.Position.X), float64(entity.Position.Y))
 	screen.DrawImage(sprite, e.spriteOptions)
 
 	return nil

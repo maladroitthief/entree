@@ -8,10 +8,8 @@ const (
 
 func StaticEntity(x, y float64, sheet, sprite string) *canvas.Entity {
 	return &canvas.Entity{
-		Width:             SpriteSize,
-		Height:            SpriteSize,
-		X:                 x,
-		Y:                 y,
+		Size:              canvas.Size{X: SpriteSize, Y: SpriteSize},
+		Position:          canvas.Position{X: x, Y: y},
 		Sheet:             sheet,
 		Sprite:            sprite,
 		SpriteSpeed:       40,

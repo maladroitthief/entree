@@ -25,14 +25,10 @@ func NewPilot(
 	physics canvas.PhysicsComponent,
 ) *canvas.Entity {
 	return &canvas.Entity{
-		Width:             32,
-		Height:            32,
-		X:                 100,
-		Y:                 100,
-		DeltaX:            0,
-		DeltaY:            0,
+		Size:              canvas.Size{X: 32, Y: 32},
+		Position:          canvas.Position{X: 100, Y: 100},
+		DeltaPosition:     canvas.DeltaPosition{X: 0, Y: 0},
 		Acceleration:      canvas.DefaultAcceleration,
-		Deceleration:      canvas.DefaultDeceleration,
 		VelocityX:         0,
 		VelocityY:         0,
 		MaxVelocity:       canvas.DefaultMaxVelocity,

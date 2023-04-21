@@ -95,10 +95,9 @@ func TestEntity_Reset(t *testing.T) {
 		{
 			name: "default",
 			e: &canvas.Entity{
-				State:        "move",
-				OrientationX: canvas.West,
-				DeltaX:       1,
-				DeltaY:       1,
+				State:         "move",
+				OrientationX:  canvas.West,
+				DeltaPosition: canvas.DeltaPosition{1, 1},
 			},
 			want: want{
 				state:        "idle",
@@ -110,10 +109,9 @@ func TestEntity_Reset(t *testing.T) {
 		{
 			name: "no deltaX movement",
 			e: &canvas.Entity{
-				State:        "move",
-				OrientationX: canvas.West,
-				DeltaX:       0,
-				DeltaY:       1,
+				State:         "move",
+				OrientationX:  canvas.West,
+				DeltaPosition: canvas.DeltaPosition{0, 1},
 			},
 			want: want{
 				state:        "idle",
@@ -134,12 +132,12 @@ func TestEntity_Reset(t *testing.T) {
 				t.Errorf("Entity.Reset() OrientationX = %v, want %v", tt.e.OrientationX, tt.want.orientationX)
 			}
 
-			if !reflect.DeepEqual(tt.e.DeltaX, tt.want.deltaX) {
-				t.Errorf("Entity.Reset() DeltaX = %v, want %v", tt.e.DeltaX, tt.want.deltaX)
+			if !reflect.DeepEqual(tt.e.DeltaPosition.X, tt.want.deltaX) {
+				t.Errorf("Entity.Reset() DeltaX = %v, want %v", tt.e.DeltaPosition.X, tt.want.deltaX)
 			}
 
-			if !reflect.DeepEqual(tt.e.DeltaY, tt.want.deltaY) {
-				t.Errorf("Entity.Reset() DeltaY = %v, want %v", tt.e.DeltaY, tt.want.deltaY)
+			if !reflect.DeepEqual(tt.e.DeltaPosition.Y, tt.want.deltaY) {
+				t.Errorf("Entity.Reset() DeltaY = %v, want %v", tt.e.DeltaPosition.Y, tt.want.deltaY)
 			}
 		})
 	}

@@ -5,8 +5,8 @@ import (
 
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/canvas/background"
-	"github.com/maladroitthief/entree/domain/canvas/input"
-	"github.com/maladroitthief/entree/domain/canvas/physics"
+	"github.com/maladroitthief/entree/domain/canvas/components/input"
+	"github.com/maladroitthief/entree/domain/canvas/components/physics"
 	"github.com/maladroitthief/entree/domain/canvas/player"
 )
 

@@ -1,7 +1,13 @@
 package canvas
 
+import "github.com/maladroitthief/entree/domain/physics/collision"
+
 type OrientationX int
 type OrientationY int
+type Size collision.Point
+type Position collision.Point
+type DeltaPosition collision.Point
+type Velocity collision.Point
 
 const (
 	Neutral OrientationX = iota
@@ -15,27 +21,12 @@ const (
 	DefaultMass         = 1
 )
 
-type InputComponent interface {
-	Update(*Entity)
-}
-
-type PhysicsComponent interface {
-	Update(*Entity, *Canvas)
-}
-
-type GraphicsComponent interface {
-	Update(*Entity)
-}
-
 type Entity struct {
-	Width             float64
-	Height            float64
-	X                 float64
-	Y                 float64
-	DeltaX            float64
-	DeltaY            float64
+	Size              Size
+	Position          Position
+	DeltaPosition     DeltaPosition
+	Velocity          Velocity
 	Acceleration      float64
-	Deceleration      float64
 	VelocityX         float64
 	VelocityY         float64
 	MaxVelocity       float64
@@ -68,9 +59,9 @@ func (e *Entity) VariantUpdate() {
 
 func (e *Entity) Reset() {
 	e.State = "idle"
-	if e.DeltaX == 0 && e.DeltaY != 0 {
+	dx, dy := e.DeltaPosition.X, e.DeltaPosition.Y
+	if dx == 0 && dy != 0 {
 		e.OrientationX = Neutral
 	}
-	e.DeltaX = 0
-	e.DeltaY = 0
+	e.DeltaPosition = DeltaPosition{0, 0}
 }
