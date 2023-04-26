@@ -1,11 +1,13 @@
 package canvas
 
+import "github.com/maladroitthief/entree/domain/physics/collision"
+
 type Canvas struct {
 	entities []*Entity
 	x        int
 	y        int
 	size     int
-	grid     map[int]map[int][]*Entity
+	hashMap  collision.Hashmap[*Entity]
 }
 
 func NewCanvas(x, y, size int) *Canvas {

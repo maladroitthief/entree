@@ -41,20 +41,78 @@ func (h *Hashmap[T]) ToIndex(x, y int) Index {
 	return Index{xPos, yPos}
 }
 
+func (h *Hashmap[T]) Add(val T, bounds Rectangle) {
+	min := h.ToIndex(int(bounds.MinPoint.X), int(bounds.MinPoint.Y))
+	max := h.ToIndex(int(bounds.MaxPoint.X), int(bounds.MaxPoint.Y))
+
+	for x := min.X; x <= max.X; x++ {
+		for y := min.Y; y <= max.Y; y++ {
+			cell := h.GetCell(Index{x, y})
+			cell.Add(val, bounds)
+		}
+	}
+}
+
+func (h *Hashmap[T]) Check(bounds Rectangle) []T {
+	min := h.ToIndex(int(bounds.MinPoint.X), int(bounds.MinPoint.Y))
+	max := h.ToIndex(int(bounds.MaxPoint.X), int(bounds.MaxPoint.Y))
+
+	flags := make(map[T]bool)
+
+	for x := min.X; x <= max.X; x++ {
+		for y := min.Y; y <= max.Y; y++ {
+			cell := h.GetCell(Index{x, y})
+			collisions := cell.Check(bounds)
+			for _, collision := range collisions {
+				flags[collision.item] = true
+			}
+		}
+	}
+
+	items := make([]T, 0, len(flags))
+	for item := range flags {
+		items = append(items, item)
+	}
+
+	return items
+}
+
 type Cell[T comparable] struct {
-	items []T
+	items []CellItem[T]
 }
 
 func NewCell[T comparable]() *Cell[T] {
 	return &Cell[T]{
-		items: make([]T, 0),
+		items: make([]CellItem[T], 0),
 	}
 }
 
-func (c *Cell[T]) Add(item T) {
-	c.items = append(c.items, item)
+func (c *Cell[T]) Add(item T, bounds Rectangle) {
+	c.items = append(
+		c.items,
+		CellItem[T]{
+			item:   item,
+			bounds: bounds,
+		},
+	)
+}
+
+func (c *Cell[T]) Check(bounds Rectangle) []CellItem[T] {
+	items := make([]CellItem[T], 0)
+	for _, item := range c.items {
+		if bounds.Intersects(item.bounds) {
+			items = append(items, item)
+		}
+	}
+
+	return items
 }
 
 func (c *Cell[T]) Clear() {
 	c.items = c.items[:0]
+}
+
+type CellItem[T comparable] struct {
+	bounds Rectangle
+	item   T
 }
