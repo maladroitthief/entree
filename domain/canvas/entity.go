@@ -1,13 +1,13 @@
 package canvas
 
-import "github.com/maladroitthief/entree/domain/physics/collision"
+import (
+	"math"
+
+	"github.com/maladroitthief/entree/domain/physics/collision"
+)
 
 type OrientationX int
 type OrientationY int
-type Size collision.Point
-type Position collision.Point
-type DeltaPosition collision.Point
-type Velocity collision.Point
 
 const (
 	Neutral OrientationX = iota
@@ -15,20 +15,18 @@ const (
 	East
 	South OrientationY = iota
 	North
-	DefaultAcceleration = 3
+	DefaultAcceleration = 2
 	DefaultDeceleration = 15
 	DefaultMaxVelocity  = 10
-	DefaultMass         = 1
+	DefaultMass         = 10
 )
 
 type Entity struct {
-	Size              Size
-	Position          Position
-	DeltaPosition     DeltaPosition
-	Velocity          Velocity
+	Size              collision.Vector
+	Position          collision.Vector
+	DeltaPosition     collision.Vector
+	Velocity          collision.Vector
 	Acceleration      float64
-	VelocityX         float64
-	VelocityY         float64
 	MaxVelocity       float64
 	Mass              float64
 	Sheet             string
@@ -57,11 +55,39 @@ func (e *Entity) VariantUpdate() {
 	e.SpriteVariant = int(speed)%e.SpriteMaxVariants + 1
 }
 
+func (e *Entity) LimitVelocity() {
+	direction := collision.Vector{X: 1, Y: 1}
+
+	if e.Velocity.X < 0 {
+		direction.X = -1
+	}
+
+	if e.Velocity.Y < 0 {
+		direction.Y = -1
+	}
+
+	if math.Abs(e.Velocity.X) > e.MaxVelocity {
+		e.Velocity.X = e.MaxVelocity
+	}
+
+	if math.Abs(e.Velocity.Y) > e.MaxVelocity {
+		e.Velocity.Y = e.MaxVelocity
+	}
+
+	e.Velocity = e.Velocity.ScaleXY(direction.X, direction.Y)
+
+	// Normalize the diagonals
+	m := e.Velocity.Magnitude()
+	if m > e.MaxVelocity {
+		e.Velocity = e.Velocity.Scale(e.MaxVelocity / m)
+	}
+}
+
 func (e *Entity) Reset() {
 	e.State = "idle"
 	dx, dy := e.DeltaPosition.X, e.DeltaPosition.Y
 	if dx == 0 && dy != 0 {
 		e.OrientationX = Neutral
 	}
-	e.DeltaPosition = DeltaPosition{0, 0}
+	e.DeltaPosition = collision.Vector{X: 0, Y: 0}
 }

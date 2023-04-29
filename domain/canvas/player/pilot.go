@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/maladroitthief/entree/domain/canvas"
+	"github.com/maladroitthief/entree/domain/physics/collision"
 )
 
 var (
@@ -25,12 +26,11 @@ func NewPilot(
 	physics canvas.PhysicsComponent,
 ) *canvas.Entity {
 	return &canvas.Entity{
-		Size:              canvas.Size{X: 32, Y: 32},
-		Position:          canvas.Position{X: 100, Y: 100},
-		DeltaPosition:     canvas.DeltaPosition{X: 0, Y: 0},
+		Size:              collision.Vector{X: 32, Y: 32},
+		Position:          collision.Vector{X: 100, Y: 100},
+		DeltaPosition:     collision.Vector{X: 0, Y: 0},
+		Velocity:          collision.Vector{0, 0},
 		Acceleration:      canvas.DefaultAcceleration,
-		VelocityX:         0,
-		VelocityY:         0,
 		MaxVelocity:       canvas.DefaultMaxVelocity,
 		Mass:              canvas.DefaultMass,
 		Sheet:             "pilot",

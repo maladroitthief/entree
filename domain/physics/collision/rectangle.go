@@ -1,13 +1,15 @@
 package collision
 
 type Rectangle struct {
-	MinPoint Point
-	MaxPoint Point
+	MinPoint Vector
+	MaxPoint Vector
+	Vertices [4]Vector
 }
 
+// NewRectangle creates a rectangle that has a counter-clockwise rotation of vectors
 func NewRectangle(x1, y1, x2, y2 float64) Rectangle {
-	minPoint := Point{x1, y1}
-	maxPoint := Point{x2, y2}
+	minPoint := Vector{x1, y1}
+	maxPoint := Vector{x2, y2}
 
 	if x1 > x2 {
 		minPoint.X = x2
@@ -18,9 +20,16 @@ func NewRectangle(x1, y1, x2, y2 float64) Rectangle {
 		minPoint.Y = y2
 		maxPoint.Y = y1
 	}
+
 	return Rectangle{
 		MinPoint: minPoint,
 		MaxPoint: maxPoint,
+		Vertices: [4]Vector{
+			{X: minPoint.X, Y: maxPoint.Y},
+			{X: minPoint.X, Y: minPoint.Y},
+			{X: maxPoint.X, Y: minPoint.Y},
+			{X: maxPoint.X, Y: maxPoint.Y},
+		},
 	}
 }
 
@@ -58,31 +67,31 @@ func (r Rectangle) Intersects(s Rectangle) bool {
 	return true
 }
 
-func (r Rectangle) Center() Point {
-	return Point{
+func (r Rectangle) Center() Vector {
+	return Vector{
 		X: r.MinPoint.X + (r.Width() / 2),
 		Y: r.MinPoint.Y + (r.Height() / 2),
 	}
 }
 
-func (r Rectangle) Vertex1() Point {
-	return Point{
+func (r Rectangle) Vertex1() Vector {
+	return Vector{
 		X: r.MinPoint.X,
 		Y: r.MaxPoint.Y,
 	}
 }
 
-func (r Rectangle) Vertex2() Point {
+func (r Rectangle) Vertex2() Vector {
 	return r.MaxPoint
 }
 
-func (r Rectangle) Vertex3() Point {
-	return Point{
+func (r Rectangle) Vertex3() Vector {
+	return Vector{
 		X: r.MaxPoint.X,
 		Y: r.MinPoint.Y,
 	}
 }
 
-func (r Rectangle) Vertex4() Point {
+func (r Rectangle) Vertex4() Vector {
 	return r.MinPoint
 }

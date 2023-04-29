@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/maladroitthief/entree/domain/canvas"
+	"github.com/maladroitthief/entree/domain/physics/collision"
 )
 
 type InputMock struct {
@@ -97,7 +98,7 @@ func TestEntity_Reset(t *testing.T) {
 			e: &canvas.Entity{
 				State:         "move",
 				OrientationX:  canvas.West,
-				DeltaPosition: canvas.DeltaPosition{1, 1},
+				DeltaPosition: collision.Vector{1, 1},
 			},
 			want: want{
 				state:        "idle",
@@ -111,7 +112,7 @@ func TestEntity_Reset(t *testing.T) {
 			e: &canvas.Entity{
 				State:         "move",
 				OrientationX:  canvas.West,
-				DeltaPosition: canvas.DeltaPosition{0, 1},
+				DeltaPosition: collision.Vector{0, 1},
 			},
 			want: want{
 				state:        "idle",
