@@ -5,8 +5,6 @@ import (
 
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/canvas/background"
-	"github.com/maladroitthief/entree/domain/canvas/components/input"
-	"github.com/maladroitthief/entree/domain/canvas/components/physics"
 	"github.com/maladroitthief/entree/domain/canvas/player"
 )
 
@@ -25,10 +23,7 @@ func NewGameScene(state *GameState) *GameScene {
 		backgroundColor: state.Theme.Green(),
 	}
 
-	pilot := player.NewPilot(
-		input.NewPlayerInputComponent(state.InputSvc),
-		physics.NewBasePhysicsComponent(),
-	)
+	pilot := player.NewPilot(player.NewPlayerInputComponent(state.InputSvc))
 	gs.middleground.AddEntity(pilot)
 
 	grass := background.Grass(100, 100)

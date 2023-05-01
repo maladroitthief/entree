@@ -1,4 +1,4 @@
-package input
+package player
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
@@ -25,19 +25,22 @@ func (i *PlayerInputComponent) Update(e *canvas.Entity) {
 		case settings.MoveUp:
 			e.State = "move"
 			e.OrientationY = canvas.North
-			e.DeltaPosition.Y = -1
+			e.Send("DeltaPositionY", "-1")
 		case settings.MoveDown:
 			e.State = "move"
 			e.OrientationY = canvas.South
-			e.DeltaPosition.Y = 1
+			e.Send("DeltaPositionY", "1")
 		case settings.MoveRight:
 			e.State = "move"
 			e.OrientationX = canvas.East
-			e.DeltaPosition.X = 1
+			e.Send("DeltaPositionX", "1")
 		case settings.MoveLeft:
 			e.State = "move"
 			e.OrientationX = canvas.West
-			e.DeltaPosition.X = -1
+			e.Send("DeltaPositionX", "-1")
 		}
 	}
+}
+
+func (i *PlayerInputComponent) Receive(e *canvas.Entity, msg, val string) {
 }

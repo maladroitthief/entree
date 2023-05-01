@@ -11,35 +11,29 @@ const (
 
 func StaticTile(x, y float64, sheet, sprite string) *canvas.Entity {
 	return &canvas.Entity{
-		Size:              collision.Vector{X: SpriteSize, Y: SpriteSize},
-		Position:          collision.Vector{X: x, Y: y},
-		Sheet:             sheet,
-		Sprite:            sprite,
-		SpriteSpeed:       40,
-		SpriteVariant:     1,
-		SpriteMaxVariants: 1,
-		OrientationX:      canvas.Neutral,
-		OrientationY:      canvas.South,
-		Input:             &backgroundInput{},
-		Physics:           &backgroundPhysics{},
-		Graphics:          &backgroundGraphics{},
+		Size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
+		Position:     collision.Vector{X: x, Y: y},
+		Sheet:        sheet,
+		Sprite:       sprite,
+		OrientationX: canvas.Neutral,
+		OrientationY: canvas.South,
+		Input:        &backgroundInput{},
+		Physics:      &backgroundPhysics{},
+		Graphics:     &backgroundGraphics{},
 	}
 }
 
-type backgroundGraphics struct {
-}
+type backgroundInput struct{}
 
-func (g *backgroundGraphics) Update(e *canvas.Entity) {
-}
+func (i *backgroundInput) Update(e *canvas.Entity)                   {}
+func (i *backgroundInput) Receive(e *canvas.Entity, msg, val string) {}
 
-type backgroundPhysics struct {
-}
+type backgroundPhysics struct{}
 
-func (g *backgroundPhysics) Update(e *canvas.Entity, c *canvas.Canvas) {
-}
+func (p *backgroundPhysics) Update(e *canvas.Entity, c *canvas.Canvas) {}
+func (p *backgroundPhysics) Receive(e *canvas.Entity, msg, val string) {}
 
-type backgroundInput struct {
-}
+type backgroundGraphics struct{}
 
-func (g *backgroundInput) Update(e *canvas.Entity) {
-}
+func (g *backgroundGraphics) Update(e *canvas.Entity)                   {}
+func (g *backgroundGraphics) Receive(e *canvas.Entity, msg, val string) {}

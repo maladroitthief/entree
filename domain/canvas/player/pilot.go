@@ -1,70 +1,43 @@
 package player
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/physics/collision"
 )
 
-var (
-	spriteVariants = map[string]int{
-		"idle_front":      6,
-		"idle_front_side": 4,
-		"idle_back":       6,
-		"idle_back_side":  4,
-		"move_front":      6,
-		"move_front_side": 6,
-		"move_back":       6,
-		"move_back_side":  6,
-	}
-)
-
 func NewPilot(
 	input canvas.InputComponent,
-	physics canvas.PhysicsComponent,
 ) *canvas.Entity {
+	physics := NewPlayerPhysicsComponent()
+	graphics := NewPlayerGraphicsComponent(
+		map[string]int{
+			"idle_front":      6,
+			"idle_front_side": 4,
+			"idle_back":       6,
+			"idle_back_side":  4,
+			"move_front":      6,
+			"move_front_side": 6,
+			"move_back":       6,
+			"move_back_side":  6,
+		},
+	)
+
 	return &canvas.Entity{
-		Size:              collision.Vector{X: 32, Y: 32},
-		Position:          collision.Vector{X: 100, Y: 100},
-		DeltaPosition:     collision.Vector{X: 0, Y: 0},
-		Velocity:          collision.Vector{0, 0},
-		Acceleration:      canvas.DefaultAcceleration,
-		MaxVelocity:       canvas.DefaultMaxVelocity,
-		Mass:              canvas.DefaultMass,
-		Sheet:             "pilot",
-		Sprite:            "idle_front_1",
-		SpriteSpeed:       40,
-		SpriteVariant:     1,
-		SpriteMaxVariants: 6,
-		State:             "idle",
-		StateCounter:      0,
-		OrientationX:      canvas.Neutral,
-		OrientationY:      canvas.South,
-		Input:             input,
-		Physics:           physics,
-		Graphics:          &pilotGraphics{},
+		Size:         collision.Vector{X: 32, Y: 32},
+		Position:     collision.Vector{X: 100, Y: 100},
+		Sheet:        "pilot",
+		Sprite:       "idle_front_1",
+		State:        "idle",
+		StateCounter: 0,
+		OrientationX: canvas.Neutral,
+		OrientationY: canvas.South,
+		Components: []canvas.Component{
+			input,
+			physics,
+			graphics,
+		},
+		Input:    input,
+		Physics:  physics,
+		Graphics: graphics,
 	}
-}
-
-type pilotGraphics struct {
-}
-
-func (g *pilotGraphics) Update(e *canvas.Entity) {
-	spriteName := []string{e.State}
-	if e.OrientationY == canvas.South {
-		spriteName = append(spriteName, "front")
-	} else {
-		spriteName = append(spriteName, "back")
-	}
-
-	if e.OrientationX != canvas.Neutral {
-		spriteName = append(spriteName, "side")
-	}
-
-	sprite := strings.Join(spriteName, "_")
-	e.SpriteMaxVariants = spriteVariants[sprite]
-	e.VariantUpdate()
-	e.Sprite = fmt.Sprintf("%s_%d", sprite, e.SpriteVariant)
 }
