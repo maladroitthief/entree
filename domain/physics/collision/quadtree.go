@@ -20,12 +20,21 @@ type QuadTreeItem[T comparable] struct {
 }
 
 func NewQuadTree[T comparable](level int, bounds Rectangle) *QuadTree[T] {
-	return &QuadTree[T]{
+	qt := &QuadTree[T]{
 		maxItems:  DefaultMaxItems,
 		maxLevels: DefaultMaxLevels,
 		level:     level,
 		bounds:    bounds,
 		items:     make([]*QuadTreeItem[T], 0),
+	}
+
+	return qt
+}
+
+func NewQuadTreeItem[T comparable](item T, bounds Rectangle) *QuadTreeItem[T] {
+	return &QuadTreeItem[T]{
+		item:   item,
+		bounds: bounds,
 	}
 }
 
@@ -34,7 +43,9 @@ func (q *QuadTree[T]) Clear() {
 
 	// TODO: do we need to remove the nodes?
 	for _, node := range q.nodes {
-		node.Clear()
+		if node != nil {
+			node.Clear()
+		}
 		node = nil
 	}
 }

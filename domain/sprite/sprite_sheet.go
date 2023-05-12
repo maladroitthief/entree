@@ -58,7 +58,7 @@ func NewSpriteSheet(
 	}
 
 	if offset < 0 {
-		return nil, ErrSpriteSize
+		return nil, ErrSpriteOffsetNegative
 	}
 
 	return &spriteSheet{

@@ -6,13 +6,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/maladroitthief/entree/adapter"
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
 const (
-	DefaultScale = 3
+	DefaultScale = 1
 )
 
 type EbitenGame struct {
@@ -22,6 +24,7 @@ type EbitenGame struct {
 	width         int
 	height        int
 	title         string
+	theme         theme.Colors
 	spriteOptions *ebiten.DrawImageOptions
 	spriteSheets  map[string]*ebiten.Image
 	sprites       map[string]*ebiten.Image
@@ -37,6 +40,7 @@ func NewEbitenGame(
 		width:         0,
 		height:        0,
 		title:         "",
+		theme:         &theme.TokyoNight{},
 		spriteOptions: &ebiten.DrawImageOptions{},
 		spriteSheets:  make(map[string]*ebiten.Image),
 		sprites:       make(map[string]*ebiten.Image),
@@ -97,19 +101,35 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (er
 		}
 	}
 
-	// Draw the sprite
+	// Reset the sprite options
 	e.spriteOptions.GeoM.Reset()
-	e.spriteOptions.GeoM.Scale(DefaultScale, DefaultScale)
+
+	// Move the anchor point to the sprites center
+	e.spriteOptions.GeoM.Translate(
+		-float64(sprite.Bounds().Size().X)/2,
+		-float64(sprite.Bounds().Size().Y)/2,
+	)
+
+	// Flip the sprite if moving west
 	if entity.OrientationX == canvas.West {
 		e.spriteOptions.GeoM.Scale(-1, 1)
-		e.spriteOptions.GeoM.Translate(float64(entity.Size.X)*DefaultScale, 0)
 	}
-	e.spriteOptions.GeoM.Translate(
-		float64(entity.Size.X)/2,
-		float64(entity.Size.Y)/2,
-	)
+
+	// Position the sprite and draw it
 	e.spriteOptions.GeoM.Translate(float64(entity.Position.X), float64(entity.Position.Y))
 	screen.DrawImage(sprite, e.spriteOptions)
+
+	// Draw the debug rectangle
+	vector.StrokeRect(
+		screen,
+		float32(entity.Position.X-(entity.Size.X/2)),
+		float32(entity.Position.Y-(entity.Size.Y/2)),
+		float32(entity.Size.X),
+		float32(entity.Size.Y),
+		1,
+		e.theme.Red(),
+		false,
+	)
 
 	return nil
 }
@@ -142,6 +162,7 @@ func (e *EbitenGame) LoadSprite(
 
 	// Get the sprite rectangle and the sprite sheet sub image
 	spriteRectangle, err := e.gameAdpt.GetSpriteRectangle(sheetName, spriteName)
+	fmt.Println(spriteRectangle)
 	if err != nil {
 		return nil, err
 	}

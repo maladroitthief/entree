@@ -5,6 +5,7 @@ import (
 
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/canvas/background"
+	"github.com/maladroitthief/entree/domain/canvas/environment"
 	"github.com/maladroitthief/entree/domain/canvas/player"
 )
 
@@ -29,10 +30,18 @@ func NewGameScene(state *GameState) *GameScene {
 	grass := background.Grass(100, 100)
 	gs.background.AddEntity(grass)
 
+	for i := 0; i < 8; i++ {
+		wall := environment.Wall(200+(float64(i)*16), 200)
+		gs.middleground.AddEntity(wall)
+	}
+
 	return gs
 }
 
 func (s *GameScene) Update(state *GameState) error {
+	// Update the canvas
+	s.middleground.Update()
+
 	// Get the current scene actions
 	for _, entity := range s.middleground.Entities() {
 		entity.Update(s.middleground)

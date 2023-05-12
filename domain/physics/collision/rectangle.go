@@ -6,6 +6,15 @@ type Rectangle struct {
 	Vertices [4]Vector
 }
 
+func Bounds(position, size Vector) Rectangle {
+	return NewRectangle(
+		position.X-size.X/2,
+		position.Y-size.Y/2,
+		position.X+size.X/2,
+		position.Y+size.Y/2,
+	)
+}
+
 // NewRectangle creates a rectangle that has a counter-clockwise rotation of vectors
 func NewRectangle(x1, y1, x2, y2 float64) Rectangle {
 	minPoint := Vector{x1, y1}

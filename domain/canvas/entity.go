@@ -13,15 +13,16 @@ const (
 	East
 	South OrientationY = iota
 	North
-	DefaultAcceleration = 2
-	DefaultMaxVelocity  = 10
+	DefaultAcceleration = 1.5
+	DefaultMaxVelocity  = 5
 	DefaultMass         = 10
 	DefaultSpriteSpeed  = 40
 )
 
 type Entity struct {
-	Size         collision.Vector
 	Position     collision.Vector
+	Size         collision.Vector
+	Bounds       collision.Rectangle
 	Sheet        string
 	Sprite       string
 	State        string
@@ -35,6 +36,7 @@ type Entity struct {
 }
 
 func (e *Entity) Update(c *Canvas) {
+	e.setBounds()
 	e.Input.Update(e)
 	e.Physics.Update(e, c)
 	e.Graphics.Update(e)
@@ -44,6 +46,15 @@ func (e *Entity) Send(msg, val string) {
 	for _, c := range e.Components {
 		c.Receive(e, msg, val)
 	}
+}
+
+func (e *Entity) setBounds() {
+	e.Bounds = collision.NewRectangle(
+		e.Position.X,
+		e.Position.Y,
+		e.Position.X+e.Size.X,
+		e.Position.Y+e.Size.Y,
+	)
 }
 
 func (e *Entity) Reset() {

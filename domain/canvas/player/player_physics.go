@@ -31,7 +31,7 @@ func (p *PlayerPhysicsComponent) Update(e *canvas.Entity, c *canvas.Canvas) {
 
 	// Position Handling
 	p.resolveVelocity()
-	p.resolvePosition(e)
+	p.resolvePosition(c, e)
 }
 
 func (p *PlayerPhysicsComponent) Receive(e *canvas.Entity, msg, val string) {
@@ -66,8 +66,58 @@ func (p *PlayerPhysicsComponent) resolveVelocity() {
 	p.limitVelocity()
 }
 
-func (p *PlayerPhysicsComponent) resolvePosition(e *canvas.Entity) {
-	e.Position = e.Position.Add(p.Velocity)
+func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e *canvas.Entity) {
+	newPosition := e.Position.Add(p.Velocity)
+	newBounds := collision.NewRectangle(
+		newPosition.X,
+		newPosition.Y,
+		newPosition.X+e.Size.X,
+		newPosition.Y+e.Size.Y,
+	)
+	collisions := c.Collisions(e, newBounds)
+
+	if len(collisions) == 0 {
+		e.Position = newPosition
+		return
+	}
+
+	for _, ce := range collisions {
+		// Set the X position
+		if p.DeltaPosition.X != 0 {
+			newBounds = collision.NewRectangle(
+				newPosition.X,
+				e.Bounds.MinPoint.Y,
+				newPosition.X+e.Size.X,
+				e.Bounds.MaxPoint.Y,
+			)
+			if ce.Bounds.Intersects(newBounds) {
+				if p.DeltaPosition.X > 0 && newBounds.MaxPoint.X > ce.Bounds.MinPoint.X {
+					newPosition.X = ce.Bounds.MinPoint.X - e.Size.X - 1
+				} else if p.DeltaPosition.X < 0 && newBounds.MinPoint.X < ce.Bounds.MaxPoint.X {
+					newPosition.X = ce.Bounds.MaxPoint.X + 1
+				}
+			}
+		}
+
+		// Set the Y position
+		if p.DeltaPosition.Y != 0 {
+			newBounds = collision.NewRectangle(
+				e.Bounds.MinPoint.X,
+				newPosition.Y,
+				e.Bounds.MaxPoint.X,
+				newPosition.Y+e.Size.Y,
+			)
+			if ce.Bounds.Intersects(newBounds) {
+				if p.DeltaPosition.Y > 0 && newBounds.MaxPoint.Y > ce.Bounds.MinPoint.Y {
+					newPosition.Y = ce.Bounds.MinPoint.Y - e.Size.Y - 1
+				} else if p.DeltaPosition.Y < 0 && newBounds.MinPoint.Y < ce.Bounds.MaxPoint.Y {
+					newPosition.Y = ce.Bounds.MaxPoint.Y + 1
+				}
+			}
+		}
+	}
+
+	e.Position = newPosition
 }
 
 func (p *PlayerPhysicsComponent) limitVelocity() {

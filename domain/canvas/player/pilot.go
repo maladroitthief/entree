@@ -23,7 +23,7 @@ func NewPilot(
 	)
 
 	return &canvas.Entity{
-		Size:         collision.Vector{X: 32, Y: 32},
+		Size:         collision.Vector{X: 16, Y: 16},
 		Position:     collision.Vector{X: 100, Y: 100},
 		Sheet:        "pilot",
 		Sprite:       "idle_front_1",
