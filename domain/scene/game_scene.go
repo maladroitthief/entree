@@ -50,7 +50,7 @@ func (s *GameScene) Update(state *GameState) error {
 	return nil
 }
 
-func (s *GameScene) GetEntities() []*canvas.Entity {
+func (s *GameScene) GetEntities() []canvas.Entity {
 	entities := s.background.Entities()
 	entities = append(entities, s.middleground.Entities()...)
 	return entities

@@ -87,7 +87,7 @@ func (svc *SceneService) Update(args Inputs) error {
 	return nil
 }
 
-func (svc *SceneService) GetEntities() []*canvas.Entity {
+func (svc *SceneService) GetEntities() []canvas.Entity {
 	return svc.currentScene.GetEntities()
 }
 

@@ -25,6 +25,7 @@ type EbitenGame struct {
 	height        int
 	title         string
 	theme         theme.Colors
+	scale         float64
 	spriteOptions *ebiten.DrawImageOptions
 	spriteSheets  map[string]*ebiten.Image
 	sprites       map[string]*ebiten.Image
@@ -91,11 +92,11 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	e.DrawDebug(screen)
 }
 
-func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (err error) {
+func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err error) {
 	// Load the sprite
-	sprite, ok := e.sprites[SpriteKey(entity.Sheet, entity.Sprite)]
+	sprite, ok := e.sprites[SpriteKey(entity.Sheet(), entity.Sprite())]
 	if !ok {
-		sprite, err = e.LoadSprite(entity.Sheet, entity.Sprite)
+		sprite, err = e.LoadSprite(entity.Sheet(), entity.Sprite())
 		if err != nil {
 			return err
 		}
@@ -110,22 +111,25 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity *canvas.Entity) (er
 		-float64(sprite.Bounds().Size().Y)/2,
 	)
 
+	// Scale the sprite
+	e.spriteOptions.GeoM.Scale(e.scale, e.scale)
+
 	// Flip the sprite if moving west
-	if entity.OrientationX == canvas.West {
+	if entity.OrientationX() == canvas.West {
 		e.spriteOptions.GeoM.Scale(-1, 1)
 	}
 
 	// Position the sprite and draw it
-	e.spriteOptions.GeoM.Translate(float64(entity.Position.X), float64(entity.Position.Y))
+	e.spriteOptions.GeoM.Translate(float64(entity.Position().X), float64(entity.Position().Y))
 	screen.DrawImage(sprite, e.spriteOptions)
 
 	// Draw the debug rectangle
 	vector.StrokeRect(
 		screen,
-		float32(entity.Position.X-(entity.Size.X/2)),
-		float32(entity.Position.Y-(entity.Size.Y/2)),
-		float32(entity.Size.X),
-		float32(entity.Size.Y),
+		float32(entity.Position().X-(entity.Size().X/2)),
+		float32(entity.Position().Y-(entity.Size().Y/2)),
+		float32(entity.Size().X),
+		float32(entity.Size().Y),
 		1,
 		e.theme.Red(),
 		false,
@@ -162,7 +166,6 @@ func (e *EbitenGame) LoadSprite(
 
 	// Get the sprite rectangle and the sprite sheet sub image
 	spriteRectangle, err := e.gameAdpt.GetSpriteRectangle(sheetName, spriteName)
-	fmt.Println(spriteRectangle)
 	if err != nil {
 		return nil, err
 	}
@@ -180,23 +183,21 @@ func (e *EbitenGame) Layout(width, height int) (screenWidth, screenHeight int) {
 }
 
 func (e *EbitenGame) WindowHandler() error {
-	windowSettings, err := e.gameAdpt.GetWindowSettings()
-	if err != nil {
-		return err
-	}
+	w, h := e.gameAdpt.GetWindowSize()
 
-	widthChanged := e.width != windowSettings.Width
-	heightChanged := e.height != windowSettings.Height
-
-	if widthChanged || heightChanged {
-		e.width = windowSettings.Width
-		e.height = windowSettings.Height
+	if e.width != w || e.height != h {
+		e.width = w
+		e.height = h
 		ebiten.SetWindowSize(e.width, e.height)
 	}
 
-	if e.title != windowSettings.Title {
-		e.title = windowSettings.Title
+	if e.title != e.gameAdpt.GetWindowTitle() {
+		e.title = e.gameAdpt.GetWindowTitle()
 		ebiten.SetWindowTitle(e.title)
+	}
+
+	if e.scale != e.gameAdpt.GetScale() {
+		e.scale = e.gameAdpt.GetScale()
 	}
 
 	return nil

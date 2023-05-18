@@ -26,19 +26,19 @@ func NewPlayerPhysicsComponent() *PlayerPhysicsComponent {
 	return bpc
 }
 
-func (p *PlayerPhysicsComponent) Update(e *canvas.Entity, c *canvas.Canvas) {
-	e.StateCounter++
+func (p *PlayerPhysicsComponent) Update(e canvas.Entity, c *canvas.Canvas) {
+	e.IncrementStateCounter()
 
 	// Position Handling
 	p.resolveVelocity()
 	p.resolvePosition(c, e)
 }
 
-func (p *PlayerPhysicsComponent) Receive(e *canvas.Entity, msg, val string) {
+func (p *PlayerPhysicsComponent) Receive(e canvas.Entity, msg, val string) {
 	switch msg {
 	case "Reset":
 		if p.DeltaPosition.X == 0 && p.DeltaPosition.Y != 0 {
-			e.OrientationX = canvas.Neutral
+			e.SetOrientationX(canvas.Neutral)
 		}
 		p.DeltaPosition.X, p.DeltaPosition.Y = 0, 0
 	case "DeltaPositionX":
@@ -66,58 +66,26 @@ func (p *PlayerPhysicsComponent) resolveVelocity() {
 	p.limitVelocity()
 }
 
-func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e *canvas.Entity) {
-	newPosition := e.Position.Add(p.Velocity)
+func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Entity) {
+	newPosition := e.Position().Add(p.Velocity)
 	newBounds := collision.NewRectangle(
 		newPosition.X,
 		newPosition.Y,
-		newPosition.X+e.Size.X,
-		newPosition.Y+e.Size.Y,
+		newPosition.X+e.Size().X,
+		newPosition.Y+e.Size().Y,
 	)
 	collisions := c.Collisions(e, newBounds)
 
 	if len(collisions) == 0 {
-		e.Position = newPosition
+		e.SetPosition(newPosition)
 		return
 	}
 
 	for _, ce := range collisions {
-		// Set the X position
-		if p.DeltaPosition.X != 0 {
-			newBounds = collision.NewRectangle(
-				newPosition.X,
-				e.Bounds.MinPoint.Y,
-				newPosition.X+e.Size.X,
-				e.Bounds.MaxPoint.Y,
-			)
-			if ce.Bounds.Intersects(newBounds) {
-				if p.DeltaPosition.X > 0 && newBounds.MaxPoint.X > ce.Bounds.MinPoint.X {
-					newPosition.X = ce.Bounds.MinPoint.X - e.Size.X - 1
-				} else if p.DeltaPosition.X < 0 && newBounds.MinPoint.X < ce.Bounds.MaxPoint.X {
-					newPosition.X = ce.Bounds.MaxPoint.X + 1
-				}
-			}
-		}
-
-		// Set the Y position
-		if p.DeltaPosition.Y != 0 {
-			newBounds = collision.NewRectangle(
-				e.Bounds.MinPoint.X,
-				newPosition.Y,
-				e.Bounds.MaxPoint.X,
-				newPosition.Y+e.Size.Y,
-			)
-			if ce.Bounds.Intersects(newBounds) {
-				if p.DeltaPosition.Y > 0 && newBounds.MaxPoint.Y > ce.Bounds.MinPoint.Y {
-					newPosition.Y = ce.Bounds.MinPoint.Y - e.Size.Y - 1
-				} else if p.DeltaPosition.Y < 0 && newBounds.MinPoint.Y < ce.Bounds.MaxPoint.Y {
-					newPosition.Y = ce.Bounds.MaxPoint.Y + 1
-				}
-			}
-		}
+		newPosition = canvas.CollisionVector(e, ce, p.DeltaPosition, newPosition)
 	}
 
-	e.Position = newPosition
+	e.SetPosition(newPosition)
 }
 
 func (p *PlayerPhysicsComponent) limitVelocity() {

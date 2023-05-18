@@ -3,11 +3,11 @@ package canvas
 import "github.com/maladroitthief/entree/domain/physics/collision"
 
 type Canvas struct {
-	entities []*Entity
+	entities []Entity
 	x        int
 	y        int
 	size     int
-	quadTree *collision.QuadTree[*Entity]
+	quadTree *collision.QuadTree[Entity]
 }
 
 func NewCanvas(x, y, size int) *Canvas {
@@ -15,7 +15,7 @@ func NewCanvas(x, y, size int) *Canvas {
 		x:    x,
 		y:    y,
 		size: size,
-		quadTree: collision.NewQuadTree[*Entity](
+		quadTree: collision.NewQuadTree[Entity](
 			0, collision.NewRectangle(0, 0, float64(x*size), float64(y*size)),
 		),
 	}
@@ -23,7 +23,7 @@ func NewCanvas(x, y, size int) *Canvas {
 	return c
 }
 
-func (c *Canvas) AddEntity(e *Entity) {
+func (c *Canvas) AddEntity(e Entity) {
 	c.entities = append(c.entities, e)
 }
 
@@ -33,18 +33,18 @@ func (c *Canvas) Update() {
 		c.quadTree.Insert(
 			collision.NewQuadTreeItem(
 				entity,
-				collision.Bounds(entity.Position, entity.Size),
+				collision.Bounds(entity.Position(), entity.Size()),
 			),
 		)
 	}
 }
 
-func (c *Canvas) Entities() []*Entity {
+func (c *Canvas) Entities() []Entity {
 	return c.entities
 }
 
-func (c *Canvas) Collisions(e *Entity, r collision.Rectangle) []*Entity {
-	results := []*Entity{}
+func (c *Canvas) Collisions(e Entity, r collision.Rectangle) []Entity {
+	results := []Entity{}
 
 	// Broad phase
 	candidates := c.quadTree.Get(r)
@@ -55,7 +55,7 @@ func (c *Canvas) Collisions(e *Entity, r collision.Rectangle) []*Entity {
 			continue
 		}
 
-		if r.Intersects(candidate.Bounds) {
+		if r.Intersects(candidate.Bounds()) {
 			results = append(results, candidate)
 		}
 	}

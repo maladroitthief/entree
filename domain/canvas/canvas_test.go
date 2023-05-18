@@ -34,7 +34,7 @@ func TestNewCanvas(t *testing.T) {
 
 func TestCanvas_AddEntity(t *testing.T) {
 	type args struct {
-		e *canvas.Entity
+		e canvas.Entity
 	}
 	tests := []struct {
 		name string
@@ -45,7 +45,7 @@ func TestCanvas_AddEntity(t *testing.T) {
 			name: "Default",
 			c:    canvas.NewCanvas(0, 0, 0),
 			args: args{
-				e: &canvas.Entity{},
+				e: &EntityMock{},
 			},
 		},
 	}
@@ -61,13 +61,13 @@ func TestCanvas_Entities(t *testing.T) {
 		name string
 		c    *canvas.Canvas
 		len  int
-		want []*canvas.Entity
+		want []canvas.Entity
 	}{
 		{
 			name: "default",
 			c:    canvas.NewCanvas(0, 0, 0),
 			len:  0,
-			want: []*canvas.Entity{},
+			want: []canvas.Entity{},
 		},
 	}
 	for _, tt := range tests {

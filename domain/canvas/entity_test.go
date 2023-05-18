@@ -7,36 +7,21 @@ import (
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
-type InputMock struct{}
-
-func (m *InputMock) Update(*canvas.Entity)                  {}
-func (m *InputMock) Receive(*canvas.Entity, string, string) {}
-
-type PhysicsMock struct{}
-
-func (m *PhysicsMock) Update(*canvas.Entity, *canvas.Canvas)  {}
-func (m *PhysicsMock) Receive(*canvas.Entity, string, string) {}
-
-type GraphicsMock struct{}
-
-func (m *GraphicsMock) Update(*canvas.Entity)                  {}
-func (m *GraphicsMock) Receive(*canvas.Entity, string, string) {}
-
 func TestEntity_Update(t *testing.T) {
 	type args struct {
 		c *canvas.Canvas
 	}
 	tests := []struct {
 		name string
-		e    *canvas.Entity
+		e    canvas.Entity
 		args args
 	}{
 		{
 			name: "default",
-			e: &canvas.Entity{
-				Input:    &InputMock{},
-				Physics:  &PhysicsMock{},
-				Graphics: &GraphicsMock{},
+			e: &EntityMock{
+				input:    &InputMock{},
+				physics:  &PhysicsMock{},
+				graphics: &GraphicsMock{},
 			},
 			args: args{&canvas.Canvas{}},
 		},
@@ -55,14 +40,14 @@ func TestEntity_Reset(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		e    *canvas.Entity
+		e    canvas.Entity
 		want want
 	}{
 		{
 			name: "default",
-			e: &canvas.Entity{
-				State:        "move",
-				OrientationX: canvas.West,
+			e: &EntityMock{
+				state:        "move",
+				orientationX: canvas.West,
 			},
 			want: want{
 				state:        "idle",
@@ -72,7 +57,7 @@ func TestEntity_Reset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.e.Reset()
+			canvas.ResetEntity(tt.e)
 			if !reflect.DeepEqual(tt.e.State, tt.want.state) {
 				t.Errorf("Entity.Reset() state = %v, want %v", tt.e.State, tt.want.state)
 			}

@@ -7,7 +7,6 @@ import (
 	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/settings"
 	"github.com/maladroitthief/entree/domain/sprite"
 )
 
@@ -67,7 +66,7 @@ func (ga *GameAdapter) Update(args UpdateArgs) error {
 	return nil
 }
 
-func (ga *GameAdapter) GetEntities() []*canvas.Entity {
+func (ga *GameAdapter) GetEntities() []canvas.Entity {
 	e := ga.sceneSvc.GetEntities()
 
 	return e
@@ -87,16 +86,19 @@ func (ga *GameAdapter) GetSpriteRectangle(
 }
 
 func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int) {
-	ws, err := ga.settingsSvc.GetWindowSettings()
-	if err != nil {
-		args := struct{ width, height int }{width, height}
-		ga.log.Fatal("Layout", args, err)
-	}
-	return ws.Width, ws.Height
+	return ga.GetWindowSize()
 }
 
-func (ga *GameAdapter) GetWindowSettings() (settings.WindowSettings, error) {
-	return ga.settingsSvc.GetWindowSettings()
+func (ga *GameAdapter) GetWindowSize() (screenWidth, screenHeight int) {
+	return ga.settingsSvc.GetWindowWidth(), ga.settingsSvc.GetWindowHeight()
+}
+
+func (ga *GameAdapter) GetWindowTitle() string {
+	return ga.settingsSvc.GetWindowTitle()
+}
+
+func (ga *GameAdapter) GetScale() float64 {
+	return ga.settingsSvc.GetScale()
 }
 
 func (ga *GameAdapter) GetBackgroundColor() color.Color {

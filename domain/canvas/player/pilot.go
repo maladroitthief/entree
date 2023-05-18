@@ -7,7 +7,7 @@ import (
 
 func NewPilot(
 	input canvas.InputComponent,
-) *canvas.Entity {
+) canvas.Entity {
 	physics := NewPlayerPhysicsComponent()
 	graphics := NewPlayerGraphicsComponent(
 		map[string]int{
@@ -22,22 +22,22 @@ func NewPilot(
 		},
 	)
 
-	return &canvas.Entity{
-		Size:         collision.Vector{X: 16, Y: 16},
-		Position:     collision.Vector{X: 100, Y: 100},
-		Sheet:        "pilot",
-		Sprite:       "idle_front_1",
-		State:        "idle",
-		StateCounter: 0,
-		OrientationX: canvas.Neutral,
-		OrientationY: canvas.South,
-		Components: []canvas.Component{
+	return &playerEntity{
+		size:         collision.Vector{X: 16, Y: 16},
+		position:     collision.Vector{X: 100, Y: 100},
+		sheet:        "pilot",
+		sprite:       "idle_front_1",
+		state:        "idle",
+		stateCounter: 0,
+		orientationX: canvas.Neutral,
+		orientationY: canvas.South,
+		components: []canvas.Component{
 			input,
 			physics,
 			graphics,
 		},
-		Input:    input,
-		Physics:  physics,
-		Graphics: graphics,
+		input:    input,
+		physics:  physics,
+		graphics: graphics,
 	}
 }

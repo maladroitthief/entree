@@ -5,35 +5,153 @@ import (
 	"github.com/maladroitthief/entree/domain/physics/collision"
 )
 
-const (
-	SpriteSize = 16
-)
+type backgroundEntity struct {
+	position     collision.Vector
+	size         collision.Vector
+	bounds       collision.Rectangle
+	scale        float64
+	sheet        string
+	sprite       string
+	state        string
+	stateCounter int
+	orientationX canvas.OrientationX
+	orientationY canvas.OrientationY
+	components   []canvas.Component
+	input        canvas.InputComponent
+	physics      canvas.PhysicsComponent
+	graphics     canvas.GraphicsComponent
+}
 
-func StaticTile(x, y float64, sheet, sprite string) *canvas.Entity {
-	return &canvas.Entity{
-		Size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
-		Position:     collision.Vector{X: x, Y: y},
-		Sheet:        sheet,
-		Sprite:       sprite,
-		OrientationX: canvas.Neutral,
-		OrientationY: canvas.South,
-		Input:        &backgroundInput{},
-		Physics:      &backgroundPhysics{},
-		Graphics:     &backgroundGraphics{},
+func (e *backgroundEntity) Update(c *canvas.Canvas) {
+	e.SetBounds()
+	e.InputComponent().Update(e)
+	e.PhysicsComponent().Update(e, c)
+	e.GraphicsComponent().Update(e)
+}
+
+func (e *backgroundEntity) Send(msg, val string) {
+	for _, c := range e.Components() {
+		c.Receive(e, msg, val)
 	}
 }
 
-type backgroundInput struct{}
+func (e *backgroundEntity) Position() collision.Vector {
+	return e.position
+}
 
-func (i *backgroundInput) Update(e *canvas.Entity)                   {}
-func (i *backgroundInput) Receive(e *canvas.Entity, msg, val string) {}
+func (e *backgroundEntity) SetPosition(v collision.Vector) {
+	e.position = v
+}
 
-type backgroundPhysics struct{}
+func (e *backgroundEntity) Size() collision.Vector {
+	return e.size
+}
 
-func (p *backgroundPhysics) Update(e *canvas.Entity, c *canvas.Canvas) {}
-func (p *backgroundPhysics) Receive(e *canvas.Entity, msg, val string) {}
+func (e *backgroundEntity) SetSize(v collision.Vector) {
+	e.size = v
+}
 
-type backgroundGraphics struct{}
+func (e *backgroundEntity) Bounds() collision.Rectangle {
+	return e.bounds
+}
 
-func (g *backgroundGraphics) Update(e *canvas.Entity)                   {}
-func (g *backgroundGraphics) Receive(e *canvas.Entity, msg, val string) {}
+func (e *backgroundEntity) SetBounds() {
+	e.bounds = collision.NewRectangle(
+		e.Position().X,
+		e.Position().Y,
+		e.Position().X+e.Size().X,
+		e.Position().Y+e.Size().Y,
+	)
+}
+
+func (e *backgroundEntity) Scale() float64 {
+	return e.scale
+}
+
+func (e *backgroundEntity) SetScale(f float64) {
+	e.scale = f
+}
+
+func (e *backgroundEntity) Sheet() string {
+	return e.sheet
+}
+
+func (e *backgroundEntity) SetSheet(s string) {
+	e.sheet = s
+}
+
+func (e *backgroundEntity) Sprite() string {
+	return e.sprite
+}
+
+func (e *backgroundEntity) SetSprite(s string) {
+	e.sprite = s
+}
+
+func (e *backgroundEntity) State() string {
+	return e.state
+}
+
+func (e *backgroundEntity) SetState(s string) {
+	e.state = s
+}
+
+func (e *backgroundEntity) StateCounter() int {
+	return e.stateCounter
+}
+
+func (e *backgroundEntity) SetStateCounter(i int) {
+	e.stateCounter = i
+}
+
+func (e *backgroundEntity) IncrementStateCounter() {
+	e.stateCounter++
+}
+
+func (e *backgroundEntity) OrientationX() canvas.OrientationX {
+	return e.orientationX
+}
+
+func (e *backgroundEntity) SetOrientationX(o canvas.OrientationX) {
+	e.orientationX = o
+}
+
+func (e *backgroundEntity) OrientationY() canvas.OrientationY {
+	return e.orientationY
+}
+
+func (e *backgroundEntity) SetOrientationY(o canvas.OrientationY) {
+	e.orientationY = o
+}
+
+func (e *backgroundEntity) Components() []canvas.Component {
+	return e.components
+}
+
+func (e *backgroundEntity) SetComponents(c []canvas.Component) {
+	e.components = c
+}
+
+func (e *backgroundEntity) InputComponent() canvas.InputComponent {
+	return e.input
+}
+
+func (e *backgroundEntity) SetInputComponent(c canvas.InputComponent) {
+	e.input = c
+}
+
+func (e *backgroundEntity) PhysicsComponent() canvas.PhysicsComponent {
+	return e.physics
+}
+
+func (e *backgroundEntity) SetPhysicsComponent(c canvas.PhysicsComponent) {
+	e.physics = c
+}
+
+func (e *backgroundEntity) GraphicsComponent() canvas.GraphicsComponent {
+	return e.graphics
+}
+
+func (e *backgroundEntity) SetGraphicsComponent(c canvas.GraphicsComponent) {
+	e.graphics = c
+}

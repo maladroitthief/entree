@@ -9,12 +9,14 @@ type SettingsService struct {
 	repo settings.Repository
 	log  logs.Logger
 
+	inputSettings  *settings.InputSettings
+	windowSettings *settings.WindowSettings
+
 	currentKeys    []string
 	currentCursorX int
 	currentCursorY int
 	currentInputs  []settings.Input
 	inputStates    map[settings.Input]int
-	inputSettings  *settings.InputSettings
 }
 
 func NewSettingsService(
@@ -40,13 +42,20 @@ func (svc *SettingsService) Update(args Inputs) error {
 		svc.inputStates = map[settings.Input]int{}
 	}
 
-	if svc.inputSettings == nil {
-		is, err := svc.repo.GetInputSettings()
+	if svc.windowSettings == nil {
+		err := svc.getWindowSettings()
+
 		if err != nil {
 			return err
 		}
+	}
 
-		svc.inputSettings = &is
+	if svc.inputSettings == nil {
+		err := svc.getInputSettings()
+
+		if err != nil {
+			return err
+		}
 	}
 
 	svc.currentKeys = args.Inputs
@@ -69,13 +78,25 @@ func (svc *SettingsService) Update(args Inputs) error {
 	return nil
 }
 
-func (svc *SettingsService) GetWindowSettings() (settings.WindowSettings, error) {
+func (svc *SettingsService) getWindowSettings() error {
 	ws, err := svc.repo.GetWindowSettings()
 	if err != nil {
-		return settings.WindowSettings{}, err
+		return err
 	}
 
-	return ws, nil
+	svc.windowSettings = &ws
+
+	return nil
+}
+
+func (svc *SettingsService) getInputSettings() error {
+	is, err := svc.repo.GetInputSettings()
+	if err != nil {
+		return err
+	}
+
+	svc.inputSettings = &is
+	return nil
 }
 
 func (svc *SettingsService) IsAny() bool {
@@ -96,4 +117,20 @@ func (svc *SettingsService) GetCursor() (x, y int) {
 
 func (svc *SettingsService) CurrentInputs() []settings.Input {
 	return svc.currentInputs
+}
+
+func (svc *SettingsService) GetWindowHeight() int {
+	return svc.windowSettings.Height
+}
+
+func (svc *SettingsService) GetWindowWidth() int {
+	return svc.windowSettings.Width
+}
+
+func (svc *SettingsService) GetWindowTitle() string {
+	return svc.windowSettings.Title
+}
+
+func (svc *SettingsService) GetScale() float64 {
+	return svc.windowSettings.Scale
 }

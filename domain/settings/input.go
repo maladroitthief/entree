@@ -26,8 +26,8 @@ const (
 )
 
 var (
-	ErrUnboundKey = errors.New("key is unbound")
-  ErrNilKeyboard = errors.New("keyboard is nil")
+	ErrUnboundKey  = errors.New("key is unbound")
+	ErrNilKeyboard = errors.New("keyboard is nil")
 )
 
 type InputSettings struct {
@@ -36,7 +36,7 @@ type InputSettings struct {
 
 func (i *InputSettings) Validate() error {
 	if i.Keyboard == nil {
-    return ErrNilKeyboard
+		return ErrNilKeyboard
 	}
 
 	return nil
@@ -93,9 +93,10 @@ func DefaultKeyboard() map[Input]string {
 }
 
 type InputService interface {
-  CurrentInputs() []Input
-  IsAny() bool
-  IsPressed(i Input) bool
-  IsJustPressed(i Input) bool
-  GetCursor() (x, y int)
+	CurrentInputs() []Input
+	IsAny() bool
+	IsPressed(i Input) bool
+	IsJustPressed(i Input) bool
+	GetCursor() (x, y int)
+	GetScale() float64
 }

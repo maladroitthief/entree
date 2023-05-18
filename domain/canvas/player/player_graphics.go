@@ -24,25 +24,25 @@ func NewPlayerGraphicsComponent(vmLUT map[string]int) *PlayerGraphicsComponent {
 	return pgc
 }
 
-func (g *PlayerGraphicsComponent) Update(e *canvas.Entity) {
-	spriteName := []string{e.State}
-	if e.OrientationY == canvas.South {
+func (g *PlayerGraphicsComponent) Update(e canvas.Entity) {
+	spriteName := []string{e.State()}
+	if e.OrientationY() == canvas.South {
 		spriteName = append(spriteName, "front")
 	} else {
 		spriteName = append(spriteName, "back")
 	}
 
-	if e.OrientationX != canvas.Neutral {
+	if e.OrientationX() != canvas.Neutral {
 		spriteName = append(spriteName, "side")
 	}
 
 	sprite := strings.Join(spriteName, "_")
 	g.VariantMax = g.VariantMaxLUT[sprite]
-	g.VariantUpdate(float64(e.StateCounter))
-	e.Sprite = fmt.Sprintf("%s_%d", sprite, g.Variant)
+	g.VariantUpdate(float64(e.StateCounter()))
+	e.SetSprite(fmt.Sprintf("%s_%d", sprite, g.Variant))
 }
 
-func (g *PlayerGraphicsComponent) Receive(e *canvas.Entity, msg, val string) {
+func (g *PlayerGraphicsComponent) Receive(e canvas.Entity, msg, val string) {
 
 }
 

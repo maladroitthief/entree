@@ -18,6 +18,11 @@ func main() {
 		log,
 		settingsRepo,
 	)
+	// Update it once to initialize the service
+	err := settingsSvc.Update(application.Inputs{})
+	if err != nil {
+		log.Fatal("main", "settingsSvc", err)
+	}
 
 	// Graphics Service
 	graphicsSvc := application.NewGraphicsService(log)

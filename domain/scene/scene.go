@@ -15,7 +15,7 @@ const (
 
 type Scene interface {
 	Update(*GameState) error
-	GetEntities() []*canvas.Entity
+	GetEntities() []canvas.Entity
 	GetBackgroundColor() color.Color
 }
 

@@ -17,30 +17,30 @@ func NewPlayerInputComponent(inputSvc settings.InputService) *PlayerInputCompone
 	return pic
 }
 
-func (i *PlayerInputComponent) Update(e *canvas.Entity) {
-	e.Reset()
+func (i *PlayerInputComponent) Update(e canvas.Entity) {
+	canvas.ResetEntity(e)
 
 	for _, input := range i.inputSvc.CurrentInputs() {
 		switch input {
 		case settings.MoveUp:
-			e.State = "move"
-			e.OrientationY = canvas.North
+			e.SetState("move")
+			e.SetOrientationY(canvas.North)
 			e.Send("DeltaPositionY", "-1")
 		case settings.MoveDown:
-			e.State = "move"
-			e.OrientationY = canvas.South
+			e.SetState("move")
+			e.SetOrientationY(canvas.South)
 			e.Send("DeltaPositionY", "1")
 		case settings.MoveRight:
-			e.State = "move"
-			e.OrientationX = canvas.East
+			e.SetState("move")
+			e.SetOrientationX(canvas.East)
 			e.Send("DeltaPositionX", "1")
 		case settings.MoveLeft:
-			e.State = "move"
-			e.OrientationX = canvas.West
+			e.SetState("move")
+			e.SetOrientationX(canvas.West)
 			e.Send("DeltaPositionX", "-1")
 		}
 	}
 }
 
-func (i *PlayerInputComponent) Receive(e *canvas.Entity, msg, val string) {
+func (i *PlayerInputComponent) Receive(e canvas.Entity, msg, val string) {
 }

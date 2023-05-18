@@ -24,7 +24,7 @@ func (s *TitleScene) Update(state *GameState) error {
 	return nil
 }
 
-func (s *TitleScene) GetEntities() []*canvas.Entity {
+func (s *TitleScene) GetEntities() []canvas.Entity {
 	return nil
 }
 
