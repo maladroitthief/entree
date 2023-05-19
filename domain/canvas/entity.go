@@ -13,6 +13,7 @@ const (
 	East
 	South OrientationY = iota
 	North
+	DefaultScale        = 3
 	DefaultAcceleration = 1.5
 	DefaultMaxVelocity  = 5
 	DefaultMass         = 10

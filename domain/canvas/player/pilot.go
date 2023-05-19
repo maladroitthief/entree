@@ -24,7 +24,8 @@ func NewPilot(
 
 	return &playerEntity{
 		size:         collision.Vector{X: 16, Y: 16},
-		position:     collision.Vector{X: 100, Y: 100},
+		position:     collision.Vector{X: 50, Y: 50},
+		scale:        canvas.DefaultScale,
 		sheet:        "pilot",
 		sprite:       "idle_front_1",
 		state:        "idle",

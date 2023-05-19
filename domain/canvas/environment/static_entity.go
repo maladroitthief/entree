@@ -13,6 +13,7 @@ func StaticEntity(x, y float64, sheet, sprite string) canvas.Entity {
 	return &environmentEntity{
 		size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
 		position:     collision.Vector{X: x, Y: y},
+		scale:        canvas.DefaultScale,
 		sheet:        sheet,
 		sprite:       sprite,
 		orientationX: canvas.Neutral,

@@ -36,19 +36,19 @@ func (e *playerEntity) Send(msg, val string) {
 }
 
 func (e *playerEntity) Position() collision.Vector {
-	return e.position
+	return e.position.Scale(e.Scale())
 }
 
 func (e *playerEntity) SetPosition(v collision.Vector) {
-	e.position = v
+	e.position = v.Scale(1 / e.Scale())
 }
 
 func (e *playerEntity) Size() collision.Vector {
-	return e.size
+	return e.size.Scale(e.Scale())
 }
 
 func (e *playerEntity) SetSize(v collision.Vector) {
-	e.size = v
+	e.size = v.Scale(1 / e.Scale())
 }
 
 func (e *playerEntity) Bounds() collision.Rectangle {
@@ -65,6 +65,10 @@ func (e *playerEntity) SetBounds() {
 }
 
 func (e *playerEntity) Scale() float64 {
+	if e.scale <= 0 {
+		return 1
+	}
+
 	return e.scale
 }
 

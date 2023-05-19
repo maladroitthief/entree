@@ -42,6 +42,7 @@ func NewEbitenGame(
 		height:        0,
 		title:         "",
 		theme:         &theme.TokyoNight{},
+		scale:         1,
 		spriteOptions: &ebiten.DrawImageOptions{},
 		spriteSheets:  make(map[string]*ebiten.Image),
 		sprites:       make(map[string]*ebiten.Image),
@@ -112,7 +113,7 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 	)
 
 	// Scale the sprite
-	e.spriteOptions.GeoM.Scale(e.scale, e.scale)
+	e.spriteOptions.GeoM.Scale(entity.Scale(), entity.Scale())
 
 	// Flip the sprite if moving west
 	if entity.OrientationX() == canvas.West {
