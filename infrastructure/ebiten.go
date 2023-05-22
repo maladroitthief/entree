@@ -121,7 +121,10 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 	}
 
 	// Position the sprite and draw it
-	e.spriteOptions.GeoM.Translate(float64(entity.Position().X), float64(entity.Position().Y))
+	e.spriteOptions.GeoM.Translate(
+		entity.Position().X+entity.Offset().X,
+		entity.Position().Y+entity.Offset().Y,
+	)
 	screen.DrawImage(sprite, e.spriteOptions)
 
 	// Draw the debug rectangle

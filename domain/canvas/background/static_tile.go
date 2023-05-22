@@ -13,6 +13,7 @@ func StaticTile(x, y float64, sheet, sprite string) canvas.Entity {
 	return &backgroundEntity{
 		size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
 		position:     collision.Vector{X: x, Y: y},
+		offset:       collision.Vector{X: 0, Y: 0},
 		scale:        canvas.DefaultScale,
 		sheet:        sheet,
 		sprite:       sprite,

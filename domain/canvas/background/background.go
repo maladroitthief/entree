@@ -8,6 +8,7 @@ import (
 type backgroundEntity struct {
 	position     collision.Vector
 	size         collision.Vector
+	offset       collision.Vector
 	bounds       collision.Rectangle
 	scale        float64
 	sheet        string
@@ -49,6 +50,10 @@ func (e *backgroundEntity) Size() collision.Vector {
 
 func (e *backgroundEntity) SetSize(v collision.Vector) {
 	e.size = v.Scale(1 / e.Scale())
+}
+
+func (e *backgroundEntity) Offset() collision.Vector {
+	return e.offset
 }
 
 func (e *backgroundEntity) Bounds() collision.Rectangle {

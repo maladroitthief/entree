@@ -27,6 +27,7 @@ type Entity interface {
 	SetPosition(collision.Vector)
 	Size() collision.Vector
 	SetSize(collision.Vector)
+	Offset() collision.Vector
 	Bounds() collision.Rectangle
 	SetBounds()
 	Scale() float64

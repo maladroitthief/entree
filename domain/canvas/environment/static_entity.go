@@ -9,10 +9,10 @@ const (
 	SpriteSize = 16
 )
 
-func StaticEntity(x, y float64, sheet, sprite string) canvas.Entity {
+func StaticEntity(positionX, positionY, sizeX, sizeY float64, sheet, sprite string) canvas.Entity {
 	return &environmentEntity{
-		size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
-		position:     collision.Vector{X: x, Y: y},
+		size:         collision.Vector{X: sizeX, Y: sizeY},
+		position:     collision.Vector{X: positionX, Y: positionY},
 		scale:        canvas.DefaultScale,
 		sheet:        sheet,
 		sprite:       sprite,

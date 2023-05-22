@@ -8,6 +8,7 @@ import (
 type EntityMock struct {
 	position     collision.Vector
 	size         collision.Vector
+	offset       collision.Vector
 	bounds       collision.Rectangle
 	scale        float64
 	sheet        string
@@ -49,6 +50,10 @@ func (e *EntityMock) Size() collision.Vector {
 
 func (e *EntityMock) SetSize(v collision.Vector) {
 	e.size = v
+}
+
+func (e *EntityMock) Offset() collision.Vector {
+	return e.offset
 }
 
 func (e *EntityMock) Bounds() collision.Rectangle {
