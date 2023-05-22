@@ -68,12 +68,7 @@ func (p *PlayerPhysicsComponent) resolveVelocity() {
 
 func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Entity) {
 	newPosition := e.Position().Add(p.Velocity)
-	newBounds := collision.NewRectangle(
-		newPosition.X,
-		newPosition.Y,
-		newPosition.X+e.Size().X,
-		newPosition.Y+e.Size().Y,
-	)
+	newBounds := collision.Bounds(newPosition, e.Size())
 	collisions := c.Collisions(e, newBounds)
 
 	if len(collisions) == 0 {

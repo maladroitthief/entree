@@ -64,34 +64,30 @@ func CollisionVector(e, ce Entity, deltaPosition, position collision.Vector) col
 
 	// Set the X position
 	if deltaPosition.X != 0 {
-		newBounds := collision.NewRectangle(
-			position.X,
-			e.Bounds().MinPoint.Y,
-			position.X+e.Size().X,
-			e.Bounds().MaxPoint.Y,
+		newBounds := collision.Bounds(
+			collision.Vector{X: newPosition.X, Y: e.Position().Y},
+			e.Size(),
 		)
 		if ce.Bounds().Intersects(newBounds) {
 			if deltaPosition.X > 0 {
-				newPosition.X = ce.Bounds().MinPoint.X - e.Size().X - 1
+				newPosition.X = ce.Bounds().MinPoint.X - e.Size().X/2 - 1
 			} else {
-				newPosition.X = ce.Bounds().MaxPoint.X + 1
+				newPosition.X = ce.Bounds().MaxPoint.X + e.Size().X/2 + 1
 			}
 		}
 	}
 
 	// Set the Y position
 	if deltaPosition.Y != 0 {
-		newBounds := collision.NewRectangle(
-			e.Bounds().MinPoint.X,
-			position.Y,
-			e.Bounds().MaxPoint.X,
-			position.Y+e.Size().Y,
+		newBounds := collision.Bounds(
+			collision.Vector{X: e.Position().X, Y: newPosition.Y},
+			e.Size(),
 		)
 		if ce.Bounds().Intersects(newBounds) {
 			if deltaPosition.Y > 0 {
-				newPosition.Y = ce.Bounds().MinPoint.Y - e.Size().Y - 1
+				newPosition.Y = ce.Bounds().MinPoint.Y - e.Size().Y/2 - 1
 			} else {
-				newPosition.Y = ce.Bounds().MaxPoint.Y + 1
+				newPosition.Y = ce.Bounds().MaxPoint.Y + e.Size().Y/2 + 1
 			}
 		}
 	}

@@ -127,12 +127,20 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 	// Draw the debug rectangle
 	vector.StrokeRect(
 		screen,
-		float32(entity.Position().X-(entity.Size().X/2)),
-		float32(entity.Position().Y-(entity.Size().Y/2)),
-		float32(entity.Size().X),
-		float32(entity.Size().Y),
+		float32(entity.Bounds().MinPoint.X),
+		float32(entity.Bounds().MinPoint.Y),
+		float32(entity.Bounds().Width()),
+		float32(entity.Bounds().Height()),
 		1,
 		e.theme.Red(),
+		false,
+	)
+	vector.DrawFilledCircle(
+		screen,
+		float32(entity.Position().X),
+		float32(entity.Position().Y),
+		3,
+		e.theme.BrightRed(),
 		false,
 	)
 

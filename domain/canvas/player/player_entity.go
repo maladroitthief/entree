@@ -56,12 +56,7 @@ func (e *playerEntity) Bounds() collision.Rectangle {
 }
 
 func (e *playerEntity) SetBounds() {
-	e.bounds = collision.NewRectangle(
-		e.Position().X,
-		e.Position().Y,
-		e.Position().X+e.Size().X,
-		e.Position().Y+e.Size().Y,
-	)
+	e.bounds = collision.Bounds(e.Position(), e.Size())
 }
 
 func (e *playerEntity) Scale() float64 {
