@@ -18,6 +18,7 @@ const (
 	DefaultMaxVelocity  = 5
 	DefaultMass         = 10
 	DefaultSpriteSpeed  = 40
+	CollisionBuffer     = 1
 )
 
 type Entity interface {
@@ -61,37 +62,56 @@ func ResetEntity(e Entity) {
 }
 
 func CollisionVector(e, ce Entity, deltaPosition, position collision.Vector) collision.Vector {
-	newPosition := position
+	return collision.Vector{
+		X: collisionVectorX(e, ce, deltaPosition.X, position.X),
+		Y: collisionVectorY(e, ce, deltaPosition.Y, position.Y),
+	}
+}
 
-	// Set the X position
-	if deltaPosition.X != 0 {
-		newBounds := collision.Bounds(
-			collision.Vector{X: newPosition.X, Y: e.Position().Y},
-			e.Size(),
-		)
-		if ce.Bounds().Intersects(newBounds) {
-			if deltaPosition.X > 0 {
-				newPosition.X = ce.Bounds().MinPoint.X - e.Size().X/2 - 1
-			} else {
-				newPosition.X = ce.Bounds().MaxPoint.X + e.Size().X/2 + 1
-			}
-		}
+func collisionVectorX(e, ce Entity, deltaX, positionX float64) float64 {
+	// If we are not moving in X, do nothing
+	if deltaX == 0 {
+		return positionX
 	}
 
-	// Set the Y position
-	if deltaPosition.Y != 0 {
-		newBounds := collision.Bounds(
-			collision.Vector{X: e.Position().X, Y: newPosition.Y},
-			e.Size(),
-		)
-		if ce.Bounds().Intersects(newBounds) {
-			if deltaPosition.Y > 0 {
-				newPosition.Y = ce.Bounds().MinPoint.Y - e.Size().Y/2 - 1
-			} else {
-				newPosition.Y = ce.Bounds().MaxPoint.Y + e.Size().Y/2 + 1
-			}
-		}
+	newBounds := collision.Bounds(
+		collision.Vector{X: positionX, Y: e.Position().Y},
+		e.Size(),
+	)
+
+	// if no collision occurs, allow the movement
+	if !ce.Bounds().Intersects(newBounds) {
+		return positionX
 	}
 
-	return newPosition
+	// Set the position to the bounds of the object we are colliding with. This step avoids issues where an entity would stop prematurely before contacting another entity
+	if deltaX > 0 {
+		return ce.Bounds().MinPoint.X - e.Size().X/2 - CollisionBuffer
+	}
+
+	return ce.Bounds().MaxPoint.X + e.Size().X/2 + CollisionBuffer
+}
+
+func collisionVectorY(e, ce Entity, deltaY, positionY float64) float64 {
+	// If we are not moving in Y, do nothing
+	if deltaY == 0 {
+		return positionY
+	}
+
+	newBounds := collision.Bounds(
+		collision.Vector{X: e.Position().X, Y: positionY},
+		e.Size(),
+	)
+
+	// if no collision occurs, allow the movement
+	if !ce.Bounds().Intersects(newBounds) {
+		return positionY
+	}
+
+	// Set the position to the bounds of the object we are colliding with. This step avoids issues where an entity would stop prematurely before contacting another entity
+	if deltaY > 0 {
+		return ce.Bounds().MinPoint.Y - e.Size().Y/2 - CollisionBuffer
+	}
+
+	return ce.Bounds().MaxPoint.Y + e.Size().Y/2 + CollisionBuffer
 }
