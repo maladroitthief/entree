@@ -13,20 +13,27 @@ const (
 	transitionCountMax = 5
 )
 
-type SceneService struct {
+type SceneService interface {
+	Update(args Inputs) error
+	GetEntities() []canvas.Entity
+	GetBackgroundColor() color.Color
+	GoTo(s scene.Scene) error
+}
+
+type sceneService struct {
 	log             logs.Logger
 	currentScene    scene.Scene
 	nextScene       scene.Scene
 	transitionCount int
 	theme           theme.Colors
 
-	settingsSvc *SettingsService
+	settingsSvc SettingsService
 }
 
 func NewSceneService(
 	logger logs.Logger,
-	settingsSvc *SettingsService,
-) *SceneService {
+	settingsSvc SettingsService,
+) SceneService {
 	if logger == nil {
 		panic("nil scene logger")
 	}
@@ -35,14 +42,14 @@ func NewSceneService(
 		panic("nil settings service")
 	}
 
-	return &SceneService{
+	return &sceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
 		theme:       &theme.TokyoNight{},
 	}
 }
 
-func (svc *SceneService) Update(args Inputs) error {
+func (svc *sceneService) Update(args Inputs) error {
 	// Update Settings
 	err := svc.settingsSvc.Update(args)
 	if err != nil {
@@ -87,15 +94,15 @@ func (svc *SceneService) Update(args Inputs) error {
 	return nil
 }
 
-func (svc *SceneService) GetEntities() []canvas.Entity {
+func (svc *sceneService) GetEntities() []canvas.Entity {
 	return svc.currentScene.GetEntities()
 }
 
-func (svc *SceneService) GetBackgroundColor() color.Color {
+func (svc *sceneService) GetBackgroundColor() color.Color {
 	return svc.currentScene.GetBackgroundColor()
 }
 
-func (svc *SceneService) GoTo(s scene.Scene) error {
+func (svc *sceneService) GoTo(s scene.Scene) error {
 	if svc.currentScene == nil {
 		svc.currentScene = s
 	} else {

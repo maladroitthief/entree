@@ -12,29 +12,33 @@ var (
 	ErrSheetNotFound = errors.New("sprite sheet not in service")
 )
 
-type GraphicsService struct {
+type GraphicsService interface {
+	LoadSpriteSheet(ss sprite.SpriteSheet)
+	GetSprite(sheetName, spriteName string) (image.Rectangle, error)
+	GetSpriteSheet(sheetName string) (sprite.SpriteSheet, error)
+}
+
+type graphicsService struct {
 	log    logs.Logger
 	sheets map[string]sprite.SpriteSheet
 }
 
-func NewGraphicsService(
-	logger logs.Logger,
-) *GraphicsService {
+func NewGraphicsService(logger logs.Logger) GraphicsService {
 	if logger == nil {
 		panic("nil graphics logger")
 	}
 
-	return &GraphicsService{
+	return &graphicsService{
 		log:    logger,
 		sheets: make(map[string]sprite.SpriteSheet),
 	}
 }
 
-func (svc *GraphicsService) LoadSpriteSheet(ss sprite.SpriteSheet) {
+func (svc *graphicsService) LoadSpriteSheet(ss sprite.SpriteSheet) {
 	svc.sheets[ss.GetName()] = ss
 }
 
-func (svc *GraphicsService) GetSprite(
+func (svc *graphicsService) GetSprite(
 	sheetName,
 	spriteName string,
 ) (image.Rectangle, error) {
@@ -47,7 +51,7 @@ func (svc *GraphicsService) GetSprite(
 	return ss.SpriteRectangle(spriteName)
 }
 
-func (svc *GraphicsService) GetSpriteSheet(
+func (svc *graphicsService) GetSpriteSheet(
 	sheetName string,
 ) (sprite.SpriteSheet, error) {
 	ss, ok := svc.sheets[sheetName]

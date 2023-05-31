@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"errors"
 	"image"
 	"image/color"
 
@@ -10,11 +11,18 @@ import (
 	"github.com/maladroitthief/entree/domain/sprite"
 )
 
+var (
+	ErrSceneServiceNil    = errors.New("nil scene service")
+	ErrGraphicsServiceNil = errors.New("nil graphics service")
+	ErrSettingsServiceNil = errors.New("nil settings service")
+	ErrLoggerNil          = errors.New("nil logger")
+)
+
 type GameAdapter struct {
 	log         logs.Logger
-	sceneSvc    *application.SceneService
-	graphicsSvc *application.GraphicsService
-	settingsSvc *application.SettingsService
+	sceneSvc    application.SceneService
+	graphicsSvc application.GraphicsService
+	settingsSvc application.SettingsService
 }
 
 type UpdateArgs struct {
@@ -25,10 +33,10 @@ type UpdateArgs struct {
 
 func NewGameAdapter(
 	log logs.Logger,
-	sceneSvc *application.SceneService,
-	graphicsSvc *application.GraphicsService,
-	settingsSvc *application.SettingsService,
-) *GameAdapter {
+	sceneSvc application.SceneService,
+	graphicsSvc application.GraphicsService,
+	settingsSvc application.SettingsService,
+) (*GameAdapter, error) {
 	ga := GameAdapter{
 		log:         log,
 		settingsSvc: settingsSvc,
@@ -36,19 +44,23 @@ func NewGameAdapter(
 		graphicsSvc: graphicsSvc,
 	}
 
+	if log == nil {
+		return nil, ErrLoggerNil
+	}
+
 	if sceneSvc == nil {
-		panic("nil scene service")
+		return nil, ErrSceneServiceNil
 	}
 
 	if graphicsSvc == nil {
-		panic("nil graphics service")
+		return nil, ErrGraphicsServiceNil
 	}
 
 	if settingsSvc == nil {
-		panic("nil settings service")
+		return nil, ErrSettingsServiceNil
 	}
 
-	return &ga
+	return &ga, nil
 }
 
 func (ga *GameAdapter) Update(args UpdateArgs) error {
@@ -67,14 +79,10 @@ func (ga *GameAdapter) Update(args UpdateArgs) error {
 }
 
 func (ga *GameAdapter) GetEntities() []canvas.Entity {
-	e := ga.sceneSvc.GetEntities()
-
-	return e
+	return ga.sceneSvc.GetEntities()
 }
 
-func (ga *GameAdapter) GetSpriteSheet(
-	sheet string,
-) (sprite.SpriteSheet, error) {
+func (ga *GameAdapter) GetSpriteSheet(sheet string) (sprite.SpriteSheet, error) {
 	return ga.graphicsSvc.GetSpriteSheet(sheet)
 }
 

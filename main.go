@@ -41,7 +41,12 @@ func main() {
 	sceneSvc := application.NewSceneService(log, settingsSvc)
 
 	// Game adapter
-	gameAdpt := adapter.NewGameAdapter(log, sceneSvc, graphicsSvc, settingsSvc)
+	gameAdpt, err := adapter.NewGameAdapter(log, sceneSvc, graphicsSvc, settingsSvc)
+	if err != nil {
+		log.Fatal("main", nil, err)
+	}
+
+	// Ebiten driver
 	ebitenGame, err := infrastructure.NewEbitenGame(log, gameAdpt)
 	if err != nil {
 		log.Fatal("main", nil, err)

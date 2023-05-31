@@ -28,6 +28,7 @@ func (c *Canvas) AddEntity(e Entity) {
 }
 
 func (c *Canvas) Update() {
+	// dump the quadtree and rebuild it
 	c.quadTree.Clear()
 	for _, entity := range c.entities {
 		c.quadTree.Insert(

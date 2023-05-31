@@ -5,7 +5,20 @@ import (
 	"github.com/maladroitthief/entree/domain/settings"
 )
 
-type SettingsService struct {
+type SettingsService interface {
+	Update(args Inputs) error
+	IsAny() bool
+	IsPressed(i settings.Input) bool
+	IsJustPressed(i settings.Input) bool
+	GetCursor() (x, y int)
+	CurrentInputs() []settings.Input
+	GetWindowHeight() int
+	GetWindowWidth() int
+	GetWindowTitle() string
+	GetScale() float64
+}
+
+type settingsService struct {
 	repo settings.Repository
 	log  logs.Logger
 
@@ -22,7 +35,7 @@ type SettingsService struct {
 func NewSettingsService(
 	logger logs.Logger,
 	repo settings.Repository,
-) *SettingsService {
+) SettingsService {
 	if logger == nil {
 		panic("nil game logger")
 	}
@@ -31,13 +44,13 @@ func NewSettingsService(
 		panic("nil settings repo")
 	}
 
-	return &SettingsService{
+	return &settingsService{
 		repo: repo,
 		log:  logger,
 	}
 }
 
-func (svc *SettingsService) Update(args Inputs) error {
+func (svc *settingsService) Update(args Inputs) error {
 	if svc.inputStates == nil {
 		svc.inputStates = map[settings.Input]int{}
 	}
@@ -78,7 +91,7 @@ func (svc *SettingsService) Update(args Inputs) error {
 	return nil
 }
 
-func (svc *SettingsService) getWindowSettings() error {
+func (svc *settingsService) getWindowSettings() error {
 	ws, err := svc.repo.GetWindowSettings()
 	if err != nil {
 		return err
@@ -89,7 +102,7 @@ func (svc *SettingsService) getWindowSettings() error {
 	return nil
 }
 
-func (svc *SettingsService) getInputSettings() error {
+func (svc *settingsService) getInputSettings() error {
 	is, err := svc.repo.GetInputSettings()
 	if err != nil {
 		return err
@@ -99,38 +112,38 @@ func (svc *SettingsService) getInputSettings() error {
 	return nil
 }
 
-func (svc *SettingsService) IsAny() bool {
+func (svc *settingsService) IsAny() bool {
 	return len(svc.currentKeys) > 0
 }
 
-func (svc *SettingsService) IsPressed(i settings.Input) bool {
+func (svc *settingsService) IsPressed(i settings.Input) bool {
 	return svc.inputStates[i] >= 1
 }
 
-func (svc *SettingsService) IsJustPressed(i settings.Input) bool {
+func (svc *settingsService) IsJustPressed(i settings.Input) bool {
 	return svc.inputStates[i] == 1
 }
 
-func (svc *SettingsService) GetCursor() (x, y int) {
+func (svc *settingsService) GetCursor() (x, y int) {
 	return svc.currentCursorX, svc.currentCursorY
 }
 
-func (svc *SettingsService) CurrentInputs() []settings.Input {
+func (svc *settingsService) CurrentInputs() []settings.Input {
 	return svc.currentInputs
 }
 
-func (svc *SettingsService) GetWindowHeight() int {
+func (svc *settingsService) GetWindowHeight() int {
 	return svc.windowSettings.Height
 }
 
-func (svc *SettingsService) GetWindowWidth() int {
+func (svc *settingsService) GetWindowWidth() int {
 	return svc.windowSettings.Width
 }
 
-func (svc *SettingsService) GetWindowTitle() string {
+func (svc *settingsService) GetWindowTitle() string {
 	return svc.windowSettings.Title
 }
 
-func (svc *SettingsService) GetScale() float64 {
+func (svc *settingsService) GetScale() float64 {
 	return svc.windowSettings.Scale
 }
