@@ -12,10 +12,10 @@ import (
 )
 
 var (
+	ErrLoggerNil          = errors.New("nil logger")
 	ErrSceneServiceNil    = errors.New("nil scene service")
 	ErrGraphicsServiceNil = errors.New("nil graphics service")
 	ErrSettingsServiceNil = errors.New("nil settings service")
-	ErrLoggerNil          = errors.New("nil logger")
 )
 
 type GameAdapter struct {

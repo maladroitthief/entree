@@ -14,18 +14,25 @@ func main() {
 
 	// Settings Service
 	settingsRepo := infrastructure.NewSettingsJsonRepository("settings.json")
-	settingsSvc := application.NewSettingsService(
+	settingsSvc, err := application.NewSettingsService(
 		log,
 		settingsRepo,
 	)
+	if err != nil {
+		log.Fatal("main", "settingsSvc", err)
+	}
+
 	// Update it once to initialize the service
-	err := settingsSvc.Update(application.Inputs{})
+	err = settingsSvc.Update(application.Inputs{})
 	if err != nil {
 		log.Fatal("main", "settingsSvc", err)
 	}
 
 	// Graphics Service
-	graphicsSvc := application.NewGraphicsService(log)
+	graphicsSvc, err := application.NewGraphicsService(log)
+	if err != nil {
+		log.Fatal("main", "graphicsSvc", err)
+	}
 	pilotSheet, err := sheets.PilotSheet()
 	if err != nil {
 		log.Fatal("main", "pilot_sheet", err)
@@ -38,7 +45,10 @@ func main() {
 	graphicsSvc.LoadSpriteSheet(testSheet)
 
 	// Scene Service
-	sceneSvc := application.NewSceneService(log, settingsSvc)
+	sceneSvc, err := application.NewSceneService(log, settingsSvc)
+	if err != nil {
+		log.Fatal("main", "sceneSvc", err)
+	}
 
 	// Game adapter
 	gameAdpt, err := adapter.NewGameAdapter(log, sceneSvc, graphicsSvc, settingsSvc)

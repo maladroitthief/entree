@@ -23,15 +23,15 @@ type graphicsService struct {
 	sheets map[string]sprite.SpriteSheet
 }
 
-func NewGraphicsService(logger logs.Logger) GraphicsService {
+func NewGraphicsService(logger logs.Logger) (GraphicsService, error) {
 	if logger == nil {
-		panic("nil graphics logger")
+		return nil, ErrLoggerNil
 	}
 
 	return &graphicsService{
 		log:    logger,
 		sheets: make(map[string]sprite.SpriteSheet),
-	}
+	}, nil
 }
 
 func (svc *graphicsService) LoadSpriteSheet(ss sprite.SpriteSheet) {

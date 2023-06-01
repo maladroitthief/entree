@@ -33,20 +33,20 @@ type sceneService struct {
 func NewSceneService(
 	logger logs.Logger,
 	settingsSvc SettingsService,
-) SceneService {
+) (SceneService, error) {
 	if logger == nil {
-		panic("nil scene logger")
+		return nil, ErrLoggerNil
 	}
 
 	if settingsSvc == nil {
-		panic("nil settings service")
+		return nil, ErrSettingsServiceNil
 	}
 
 	return &sceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
 		theme:       &theme.TokyoNight{},
-	}
+	}, nil
 }
 
 func (svc *sceneService) Update(args Inputs) error {

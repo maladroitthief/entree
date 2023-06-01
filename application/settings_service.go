@@ -1,8 +1,14 @@
 package application
 
 import (
+	"errors"
+
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/settings"
+)
+
+var (
+	ErrSettingsRepoNil = errors.New("settings repo is nil")
 )
 
 type SettingsService interface {
@@ -35,40 +41,36 @@ type settingsService struct {
 func NewSettingsService(
 	logger logs.Logger,
 	repo settings.Repository,
-) SettingsService {
+) (SettingsService, error) {
 	if logger == nil {
-		panic("nil game logger")
+		return nil, ErrLoggerNil
 	}
 
 	if repo == nil {
-		panic("nil settings repo")
+		return nil, ErrSettingsRepoNil
 	}
 
-	return &settingsService{
+	svc := &settingsService{
 		repo: repo,
 		log:  logger,
 	}
+
+	err := svc.getWindowSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.getInputSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	return svc, nil
 }
 
 func (svc *settingsService) Update(args Inputs) error {
 	if svc.inputStates == nil {
 		svc.inputStates = map[settings.Input]int{}
-	}
-
-	if svc.windowSettings == nil {
-		err := svc.getWindowSettings()
-
-		if err != nil {
-			return err
-		}
-	}
-
-	if svc.inputSettings == nil {
-		err := svc.getInputSettings()
-
-		if err != nil {
-			return err
-		}
 	}
 
 	svc.currentKeys = args.Inputs

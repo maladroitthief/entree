@@ -150,6 +150,7 @@ func TestGameAdapter_Update(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.Update() failed to create a NewGameAdapter()")
+				return
 			}
 
 			err = ga.Update(tt.args.args)
@@ -194,6 +195,7 @@ func TestGameAdapter_GetEntities(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetEntities() failed to create a NewGameAdapter()")
+				return
 			}
 
 			got := ga.GetEntities()
@@ -247,6 +249,7 @@ func TestGameAdapter_GetSpriteSheet(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetSpriteSheet() failed to create a NewGameAdapter()")
+				return
 			}
 
 			got, err := ga.GetSpriteSheet(tt.args.sheet)
@@ -307,6 +310,7 @@ func TestGameAdapter_GetSpriteRectangle(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetSpriteRectangle() failed to create a NewGameAdapter()")
+				return
 			}
 
 			got, err := ga.GetSpriteRectangle(tt.args.sheet, tt.args.sprite)
@@ -366,6 +370,7 @@ func TestGameAdapter_Layout(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.Layout() failed to create a NewGameAdapter()")
+				return
 			}
 
 			gotScreenWidth, gotScreenHeight := ga.Layout(tt.args.width, tt.args.height)
@@ -415,6 +420,7 @@ func TestGameAdapter_GetWindowSize(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetWindowSize() failed to create a NewGameAdapter()")
+				return
 			}
 
 			gotScreenWidth, gotScreenHeight := ga.GetWindowSize()
@@ -462,6 +468,7 @@ func TestGameAdapter_GetWindowTitle(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetWindowTitle() failed to create a NewGameAdapter()")
+				return
 			}
 
 			if got := ga.GetWindowTitle(); got != tt.want {
@@ -505,6 +512,7 @@ func TestGameAdapter_GetScale(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetScale() failed to create a NewGameAdapter()")
+				return
 			}
 
 			if got := ga.GetScale(); got != tt.want {
@@ -548,6 +556,7 @@ func TestGameAdapter_GetBackgroundColor(t *testing.T) {
 
 			if err != nil {
 				t.Errorf("GameAdapter.GetBackgroundColor() failed to create a NewGameAdapter()")
+				return
 			}
 
 			if got := ga.GetBackgroundColor(); !reflect.DeepEqual(got, tt.want) {
