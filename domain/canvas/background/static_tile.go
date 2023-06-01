@@ -2,7 +2,7 @@ package background
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics/collision"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 const (
@@ -11,9 +11,9 @@ const (
 
 func StaticTile(x, y float64, sheet, sprite string) canvas.Entity {
 	return &backgroundEntity{
-		size:         collision.Vector{X: SpriteSize, Y: SpriteSize},
-		position:     collision.Vector{X: x, Y: y},
-		offset:       collision.Vector{X: 0, Y: 0},
+		size:         physics.Vector{X: SpriteSize, Y: SpriteSize},
+		position:     physics.Vector{X: x, Y: y},
+		offset:       physics.Vector{X: 0, Y: 0},
 		scale:        canvas.DefaultScale,
 		sheet:        sheet,
 		sprite:       sprite,

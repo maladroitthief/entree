@@ -5,12 +5,12 @@ import (
 	"strconv"
 
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics/collision"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 type PlayerPhysicsComponent struct {
-	DeltaPosition collision.Vector
-	Velocity      collision.Vector
+	DeltaPosition physics.Vector
+	Velocity      physics.Vector
 	Acceleration  float64
 	MaxVelocity   float64
 	Mass          float64
@@ -68,7 +68,7 @@ func (p *PlayerPhysicsComponent) resolveVelocity() {
 
 func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Entity) {
 	newPosition := e.Position().Add(p.Velocity)
-	newBounds := collision.Bounds(newPosition, e.Size())
+	newBounds := physics.Bounds(newPosition, e.Size())
 	collisions := c.Collisions(e, newBounds)
 
 	if len(collisions) == 0 {
@@ -84,7 +84,7 @@ func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Enti
 }
 
 func (p *PlayerPhysicsComponent) limitVelocity() {
-	direction := collision.Vector{X: 1, Y: 1}
+	direction := physics.Vector{X: 1, Y: 1}
 
 	if p.Velocity.X < 0 {
 		direction.X = -1

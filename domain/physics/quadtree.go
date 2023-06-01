@@ -1,4 +1,4 @@
-package collision
+package physics
 
 const (
 	DefaultMaxItems  = 50

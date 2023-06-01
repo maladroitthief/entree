@@ -1,13 +1,13 @@
 package canvas
 
-import "github.com/maladroitthief/entree/domain/physics/collision"
+import "github.com/maladroitthief/entree/domain/physics"
 
 type Canvas struct {
 	entities []Entity
 	x        int
 	y        int
 	size     int
-	quadTree *collision.QuadTree[Entity]
+	quadTree *physics.QuadTree[Entity]
 }
 
 func NewCanvas(x, y, size int) *Canvas {
@@ -15,8 +15,8 @@ func NewCanvas(x, y, size int) *Canvas {
 		x:    x,
 		y:    y,
 		size: size,
-		quadTree: collision.NewQuadTree[Entity](
-			0, collision.NewRectangle(0, 0, float64(x*size), float64(y*size)),
+		quadTree: physics.NewQuadTree[Entity](
+			0, physics.NewRectangle(0, 0, float64(x*size), float64(y*size)),
 		),
 	}
 
@@ -32,9 +32,9 @@ func (c *Canvas) Update() {
 	c.quadTree.Clear()
 	for _, entity := range c.entities {
 		c.quadTree.Insert(
-			collision.NewQuadTreeItem(
+			physics.NewQuadTreeItem(
 				entity,
-				collision.Bounds(entity.Position(), entity.Size()),
+				physics.Bounds(entity.Position(), entity.Size()),
 			),
 		)
 	}
@@ -44,7 +44,7 @@ func (c *Canvas) Entities() []Entity {
 	return c.entities
 }
 
-func (c *Canvas) Collisions(e Entity, r collision.Rectangle) []Entity {
+func (c *Canvas) Collisions(e Entity, r physics.Rectangle) []Entity {
 	results := []Entity{}
 
 	// Broad phase

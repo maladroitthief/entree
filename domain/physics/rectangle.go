@@ -1,4 +1,4 @@
-package collision
+package physics
 
 type Rectangle struct {
 	MinPoint Vector

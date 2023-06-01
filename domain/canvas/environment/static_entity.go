@@ -2,7 +2,7 @@ package environment
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics/collision"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 const (
@@ -11,8 +11,8 @@ const (
 
 func StaticEntity(positionX, positionY, sizeX, sizeY float64, sheet, sprite string) canvas.Entity {
 	return &environmentEntity{
-		size:         collision.Vector{X: sizeX, Y: sizeY},
-		position:     collision.Vector{X: positionX, Y: positionY},
+		size:         physics.Vector{X: sizeX, Y: sizeY},
+		position:     physics.Vector{X: positionX, Y: positionY},
 		scale:        canvas.DefaultScale,
 		sheet:        sheet,
 		sprite:       sprite,

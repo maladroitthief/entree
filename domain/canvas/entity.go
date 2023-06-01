@@ -1,8 +1,6 @@
 package canvas
 
-import (
-	"github.com/maladroitthief/entree/domain/physics/collision"
-)
+import "github.com/maladroitthief/entree/domain/physics"
 
 type OrientationX int
 type OrientationY int
@@ -24,12 +22,12 @@ const (
 type Entity interface {
 	Update(*Canvas)
 	Send(msg, val string)
-	Position() collision.Vector
-	SetPosition(collision.Vector)
-	Size() collision.Vector
-	SetSize(collision.Vector)
-	Offset() collision.Vector
-	Bounds() collision.Rectangle
+	Position() physics.Vector
+	SetPosition(physics.Vector)
+	Size() physics.Vector
+	SetSize(physics.Vector)
+	Offset() physics.Vector
+	Bounds() physics.Rectangle
 	SetBounds()
 	Scale() float64
 	SetScale(float64)
@@ -61,8 +59,8 @@ func ResetEntity(e Entity) {
 	e.Send("Reset", "")
 }
 
-func CollisionVector(e, ce Entity, deltaPosition, position collision.Vector) collision.Vector {
-	return collision.Vector{
+func CollisionVector(e, ce Entity, deltaPosition, position physics.Vector) physics.Vector {
+	return physics.Vector{
 		X: collisionVectorX(e, ce, deltaPosition.X, position.X),
 		Y: collisionVectorY(e, ce, deltaPosition.Y, position.Y),
 	}
@@ -74,12 +72,12 @@ func collisionVectorX(e, ce Entity, deltaX, positionX float64) float64 {
 		return positionX
 	}
 
-	newBounds := collision.Bounds(
-		collision.Vector{X: positionX, Y: e.Position().Y},
+	newBounds := physics.Bounds(
+		physics.Vector{X: positionX, Y: e.Position().Y},
 		e.Size(),
 	)
 
-	// if no collision occurs, allow the movement
+	// if no physics occurs, allow the movement
 	if !ce.Bounds().Intersects(newBounds) {
 		return positionX
 	}
@@ -98,12 +96,12 @@ func collisionVectorY(e, ce Entity, deltaY, positionY float64) float64 {
 		return positionY
 	}
 
-	newBounds := collision.Bounds(
-		collision.Vector{X: e.Position().X, Y: positionY},
+	newBounds := physics.Bounds(
+		physics.Vector{X: e.Position().X, Y: positionY},
 		e.Size(),
 	)
 
-	// if no collision occurs, allow the movement
+	// if no physics occurs, allow the movement
 	if !ce.Bounds().Intersects(newBounds) {
 		return positionY
 	}

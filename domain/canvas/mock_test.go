@@ -2,14 +2,14 @@ package canvas_test
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics/collision"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 type EntityMock struct {
-	position     collision.Vector
-	size         collision.Vector
-	offset       collision.Vector
-	bounds       collision.Rectangle
+	position     physics.Vector
+	size         physics.Vector
+	offset       physics.Vector
+	bounds       physics.Rectangle
 	scale        float64
 	sheet        string
 	sprite       string
@@ -36,32 +36,32 @@ func (e *EntityMock) Send(msg, val string) {
 	}
 }
 
-func (e *EntityMock) Position() collision.Vector {
+func (e *EntityMock) Position() physics.Vector {
 	return e.position
 }
 
-func (e *EntityMock) SetPosition(v collision.Vector) {
+func (e *EntityMock) SetPosition(v physics.Vector) {
 	e.position = v
 }
 
-func (e *EntityMock) Size() collision.Vector {
+func (e *EntityMock) Size() physics.Vector {
 	return e.size
 }
 
-func (e *EntityMock) SetSize(v collision.Vector) {
+func (e *EntityMock) SetSize(v physics.Vector) {
 	e.size = v
 }
 
-func (e *EntityMock) Offset() collision.Vector {
+func (e *EntityMock) Offset() physics.Vector {
 	return e.offset
 }
 
-func (e *EntityMock) Bounds() collision.Rectangle {
+func (e *EntityMock) Bounds() physics.Rectangle {
 	return e.bounds
 }
 
 func (e *EntityMock) SetBounds() {
-	e.bounds = collision.NewRectangle(
+	e.bounds = physics.NewRectangle(
 		e.Position().X,
 		e.Position().Y,
 		e.Position().X+e.Size().X,

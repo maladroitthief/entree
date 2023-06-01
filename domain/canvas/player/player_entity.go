@@ -2,14 +2,14 @@ package player
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics/collision"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 type playerEntity struct {
-	position     collision.Vector
-	size         collision.Vector
-	offset       collision.Vector
-	bounds       collision.Rectangle
+	position     physics.Vector
+	size         physics.Vector
+	offset       physics.Vector
+	bounds       physics.Rectangle
 	scale        float64
 	sheet        string
 	sprite       string
@@ -36,32 +36,32 @@ func (e *playerEntity) Send(msg, val string) {
 	}
 }
 
-func (e *playerEntity) Position() collision.Vector {
+func (e *playerEntity) Position() physics.Vector {
 	return e.position.Scale(e.Scale())
 }
 
-func (e *playerEntity) SetPosition(v collision.Vector) {
+func (e *playerEntity) SetPosition(v physics.Vector) {
 	e.position = v.Scale(1 / e.Scale())
 }
 
-func (e *playerEntity) Size() collision.Vector {
+func (e *playerEntity) Size() physics.Vector {
 	return e.size.Scale(e.Scale())
 }
 
-func (e *playerEntity) SetSize(v collision.Vector) {
+func (e *playerEntity) SetSize(v physics.Vector) {
 	e.size = v.Scale(1 / e.Scale())
 }
 
-func (e *playerEntity) Offset() collision.Vector {
+func (e *playerEntity) Offset() physics.Vector {
 	return e.offset
 }
 
-func (e *playerEntity) Bounds() collision.Rectangle {
+func (e *playerEntity) Bounds() physics.Rectangle {
 	return e.bounds
 }
 
 func (e *playerEntity) SetBounds() {
-	e.bounds = collision.Bounds(e.Position(), e.Size())
+	e.bounds = physics.Bounds(e.Position(), e.Size())
 }
 
 func (e *playerEntity) Scale() float64 {
