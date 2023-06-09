@@ -72,6 +72,33 @@ func Test_sceneService_Update(t *testing.T) {
 	}
 }
 
+func Test_sceneService_GetCamera(t *testing.T) {
+	type fields struct {
+		log         logs.Logger
+		settingsSvc application.SettingsService
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   scene.Camera
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			if err != nil {
+				t.Errorf("SceneService.GetCamera() failed to create a NewSceneService()")
+				return
+			}
+			got := svc.GetCamera()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("sceneService.GetCamera() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_sceneService_GetEntities(t *testing.T) {
 	type fields struct {
 		log         logs.Logger

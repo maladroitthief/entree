@@ -26,6 +26,7 @@ type EbitenGame struct {
 	title         string
 	theme         theme.Colors
 	scale         float64
+	world         *ebiten.Image
 	spriteOptions *ebiten.DrawImageOptions
 	spriteSheets  map[string]*ebiten.Image
 	sprites       map[string]*ebiten.Image
@@ -47,6 +48,8 @@ func NewEbitenGame(
 		spriteSheets:  make(map[string]*ebiten.Image),
 		sprites:       make(map[string]*ebiten.Image),
 	}
+	canvasWidth, canvasHeight := e.gameAdpt.GetCanvasSize()
+	e.world = ebiten.NewImage(canvasWidth, canvasHeight)
 
 	err := e.WindowHandler()
 
@@ -81,7 +84,9 @@ func (e *EbitenGame) Update() (err error) {
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
-	screen.Fill(e.gameAdpt.GetBackgroundColor())
+	e.world.Clear()
+	screen.Fill(e.theme.Black())
+	e.world.Fill(e.gameAdpt.GetBackgroundColor())
 
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
@@ -90,6 +95,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 			e.log.Error("Draw", entity, err)
 		}
 	}
+	e.Render(screen)
 	e.DrawDebug(screen)
 }
 
@@ -125,11 +131,11 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 		entity.Position().X+entity.Offset().X,
 		entity.Position().Y+entity.Offset().Y,
 	)
-	screen.DrawImage(sprite, e.spriteOptions)
+	e.world.DrawImage(sprite, e.spriteOptions)
 
 	// Draw the debug rectangle
 	vector.StrokeRect(
-		screen,
+		e.world,
 		float32(entity.Bounds().MinPoint.X),
 		float32(entity.Bounds().MinPoint.Y),
 		float32(entity.Bounds().Width()),
@@ -139,7 +145,7 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 		false,
 	)
 	vector.DrawFilledCircle(
-		screen,
+		e.world,
 		float32(entity.Position().X),
 		float32(entity.Position().Y),
 		3,
@@ -148,6 +154,18 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 	)
 
 	return nil
+}
+
+func (e *EbitenGame) Render(screen *ebiten.Image) {
+	m := ebiten.GeoM{}
+	c := e.gameAdpt.GetCamera()
+	position := c.Position()
+	m.Translate(-position.X, -position.Y)
+
+	// Scale around the center
+	m.Translate(float64(e.width/2), float64(e.height/2))
+
+	screen.DrawImage(e.world, &ebiten.DrawImageOptions{GeoM: m})
 }
 
 func (e *EbitenGame) LoadSpriteSheet(sheet string) (*ebiten.Image, error) {

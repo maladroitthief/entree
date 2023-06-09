@@ -7,22 +7,28 @@ import (
 	"github.com/maladroitthief/entree/domain/canvas/background"
 	"github.com/maladroitthief/entree/domain/canvas/environment"
 	"github.com/maladroitthief/entree/domain/canvas/player"
+	"github.com/maladroitthief/entree/domain/physics"
 )
 
 type GameScene struct {
+	columns         int
+	rows            int
+	cellSize        int
+	camera          Camera
 	middleground    *canvas.Canvas
 	background      *canvas.Canvas
 	backgroundColor color.Color
 }
 
 func NewGameScene(state *GameState) *GameScene {
-	mgc := canvas.NewCanvas(8, 8, 16)
-	bgc := canvas.NewCanvas(8, 8, 16)
 	gs := &GameScene{
-		middleground:    mgc,
-		background:      bgc,
+		columns:         8,
+		rows:            8,
+		cellSize:        16,
 		backgroundColor: state.Theme.Green(),
 	}
+	gs.middleground = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
+	gs.background = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
 
 	pilot := player.NewPilot(player.NewPlayerInputComponent(state.InputSvc))
 	gs.middleground.AddEntity(pilot)
@@ -34,6 +40,11 @@ func NewGameScene(state *GameState) *GameScene {
 		wall := environment.Wall(200+(float64(i)*environment.WallSize), 200)
 		gs.middleground.AddEntity(wall)
 	}
+
+	gs.camera = NewCamera(
+		pilot,
+		physics.Vector{X: 800, Y: 800},
+	)
 
 	return gs
 }
@@ -50,6 +61,10 @@ func (s *GameScene) Update(state *GameState) error {
 	return nil
 }
 
+func (s *GameScene) GetCanvasSize() (width, height int) {
+	return s.columns * s.cellSize, s.rows * s.cellSize
+}
+
 func (s *GameScene) GetEntities() []canvas.Entity {
 	entities := s.background.Entities()
 	entities = append(entities, s.middleground.Entities()...)
@@ -58,4 +73,8 @@ func (s *GameScene) GetEntities() []canvas.Entity {
 
 func (s *GameScene) GetBackgroundColor() color.Color {
 	return s.backgroundColor
+}
+
+func (s *GameScene) GetCamera() Camera {
+	return s.camera
 }

@@ -15,6 +15,8 @@ const (
 
 type SceneService interface {
 	Update(args Inputs) error
+	GetCamera() scene.Camera
+	GetCanvasSize() (int, int)
 	GetEntities() []canvas.Entity
 	GetBackgroundColor() color.Color
 	GoTo(s scene.Scene) error
@@ -42,11 +44,21 @@ func NewSceneService(
 		return nil, ErrSettingsServiceNil
 	}
 
-	return &sceneService{
+	svc := &sceneService{
 		log:         logger,
 		settingsSvc: settingsSvc,
 		theme:       &theme.TokyoNight{},
-	}, nil
+	}
+	err := svc.GoTo(scene.NewTitleScene(
+		&scene.GameState{
+			Log:      svc.log,
+			SceneSvc: svc,
+			InputSvc: svc.settingsSvc,
+			Theme:    svc.theme,
+		},
+	))
+
+	return svc, err
 }
 
 func (svc *sceneService) Update(args Inputs) error {
@@ -92,6 +104,14 @@ func (svc *sceneService) Update(args Inputs) error {
 	svc.nextScene = nil
 
 	return nil
+}
+
+func (svc *sceneService) GetCamera() scene.Camera {
+	return svc.currentScene.GetCamera()
+}
+
+func (svc *sceneService) GetCanvasSize() (width, height int) {
+	return svc.currentScene.GetCanvasSize()
 }
 
 func (svc *sceneService) GetEntities() []canvas.Entity {

@@ -8,6 +8,7 @@ import (
 	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/canvas"
+	"github.com/maladroitthief/entree/domain/scene"
 	"github.com/maladroitthief/entree/domain/sprite"
 )
 
@@ -76,6 +77,14 @@ func (ga *GameAdapter) Update(args UpdateArgs) error {
 	}
 
 	return nil
+}
+
+func (ga *GameAdapter) GetCamera() scene.Camera {
+	return ga.sceneSvc.GetCamera()
+}
+
+func (ga *GameAdapter) GetCanvasSize() (width, height int) {
+	return ga.sceneSvc.GetCanvasSize()
 }
 
 func (ga *GameAdapter) GetEntities() []canvas.Entity {
