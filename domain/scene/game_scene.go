@@ -37,7 +37,7 @@ func NewGameScene(state *GameState) *GameScene {
 	gs.background.AddEntity(grass)
 
 	for i := 0; i < 8; i++ {
-		wall := environment.Wall(200+(float64(i)*environment.WallSize), 200)
+		wall := environment.Wall((float64(i)*environment.WallSize + environment.WallSize/2), 120)
 		gs.middleground.AddEntity(wall)
 	}
 

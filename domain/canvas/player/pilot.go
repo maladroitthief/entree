@@ -25,7 +25,7 @@ func NewPilot(
 	return &playerEntity{
 		size:         physics.Vector{X: 12, Y: 18},
 		position:     physics.Vector{X: 50, Y: 50},
-		offset:       physics.Vector{X: 0, Y: -18},
+		offset:       physics.Vector{X: 0, Y: -6},
 		scale:        canvas.DefaultScale,
 		sheet:        "pilot",
 		sprite:       "idle_front_1",

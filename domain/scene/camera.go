@@ -25,7 +25,7 @@ func NewCamera(fp FocalPoint, viewPort physics.Vector) Camera {
 	return &camera{
 		focalPoint: fp,
 		viewPort:   viewPort,
-		zoom:       1,
+		zoom:       5,
 	}
 }
 

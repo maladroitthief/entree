@@ -7,6 +7,7 @@ type Canvas struct {
 	x        int
 	y        int
 	size     int
+	bounds   [4]physics.Rectangle
 	quadTree *physics.QuadTree[Entity]
 }
 
@@ -19,6 +20,7 @@ func NewCanvas(x, y, size int) *Canvas {
 			0, physics.NewRectangle(0, 0, float64(x*size), float64(y*size)),
 		),
 	}
+	c.createBounds()
 
 	return c
 }
@@ -62,4 +64,33 @@ func (c *Canvas) Collisions(e Entity, r physics.Rectangle) []Entity {
 	}
 
 	return results
+}
+
+func (c *Canvas) Bounds() []physics.Rectangle {
+	return c.bounds[:]
+}
+
+func (c *Canvas) createBounds() {
+	xSize := float64(c.x * c.size)
+	ySize := float64(c.y * c.size)
+	size := float64(c.size)
+
+	// North
+	c.bounds[0] = physics.NewRectangle(-size, 0, xSize+size, -size)
+	// South
+	c.bounds[1] = physics.NewRectangle(-size, ySize, xSize+size, ySize+size)
+	// East
+	c.bounds[2] = physics.NewRectangle(xSize, ySize+size, xSize+size, -size)
+	// West
+	c.bounds[3] = physics.NewRectangle(-size, ySize+size, 0, -size)
+}
+
+func (c *Canvas) OutOfBounds(e Entity) bool {
+	for _, bounds := range c.bounds {
+		if bounds.Intersects(e.Bounds()) {
+			return true
+		}
+	}
+
+	return false
 }

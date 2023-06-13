@@ -29,6 +29,8 @@ func NewPlayerPhysicsComponent() *PlayerPhysicsComponent {
 func (p *PlayerPhysicsComponent) Update(e canvas.Entity, c *canvas.Canvas) {
 	e.IncrementStateCounter()
 
+	// BoundsHandling
+
 	// Position Handling
 	p.resolveVelocity()
 	p.resolvePosition(c, e)
@@ -71,13 +73,17 @@ func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Enti
 	newBounds := physics.Bounds(newPosition, e.Size())
 	collisions := c.Collisions(e, newBounds)
 
+	for _, oob := range c.Bounds() {
+		newPosition = canvas.CollisionVector(e, oob, p.DeltaPosition, newPosition)
+	}
+
 	if len(collisions) == 0 {
 		e.SetPosition(newPosition)
 		return
 	}
 
 	for _, ce := range collisions {
-		newPosition = canvas.CollisionVector(e, ce, p.DeltaPosition, newPosition)
+		newPosition = canvas.CollisionVector(e, ce.Bounds(), p.DeltaPosition, newPosition)
 	}
 
 	e.SetPosition(newPosition)

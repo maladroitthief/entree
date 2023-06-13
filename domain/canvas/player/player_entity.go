@@ -53,7 +53,7 @@ func (e *playerEntity) SetSize(v physics.Vector) {
 }
 
 func (e *playerEntity) Offset() physics.Vector {
-	return e.offset
+	return e.offset.Scale(e.Scale())
 }
 
 func (e *playerEntity) Bounds() physics.Rectangle {

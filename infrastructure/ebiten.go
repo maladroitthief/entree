@@ -13,10 +13,6 @@ import (
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
-const (
-	DefaultScale = 1
-)
-
 type EbitenGame struct {
 	log      logs.Logger
 	gameAdpt *adapter.GameAdapter
@@ -62,6 +58,7 @@ func (e *EbitenGame) Update() (err error) {
 	if err != nil {
 		return err
 	}
+	e.CanvasHandler()
 
 	// grab cursor coordinates
 	cursorX, cursorY := ebiten.CursorPosition()
@@ -148,7 +145,7 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 		e.world,
 		float32(entity.Position().X),
 		float32(entity.Position().Y),
-		3,
+		1,
 		e.theme.BrightRed(),
 		false,
 	)
@@ -163,6 +160,8 @@ func (e *EbitenGame) Render(screen *ebiten.Image) {
 	m.Translate(-position.X, -position.Y)
 
 	// Scale around the center
+	zoom := c.Zoom()
+	m.Scale(zoom, zoom)
 	m.Translate(float64(e.width/2), float64(e.height/2))
 
 	screen.DrawImage(e.world, &ebiten.DrawImageOptions{GeoM: m})
@@ -231,6 +230,14 @@ func (e *EbitenGame) WindowHandler() error {
 	}
 
 	return nil
+}
+
+func (e *EbitenGame) CanvasHandler() {
+	canvasWidth, canvasHeight := e.gameAdpt.GetCanvasSize()
+	x, y := e.world.Bounds().Dx(), e.world.Bounds().Dy()
+	if canvasWidth != x || canvasHeight != y {
+		e.world = ebiten.NewImage(canvasWidth, canvasHeight)
+	}
 }
 
 func (e *EbitenGame) DrawDebug(screen *ebiten.Image) {
