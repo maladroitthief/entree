@@ -8,6 +8,7 @@ import (
 	"github.com/maladroitthief/entree/domain/canvas/environment"
 	"github.com/maladroitthief/entree/domain/canvas/player"
 	"github.com/maladroitthief/entree/domain/physics"
+	"github.com/maladroitthief/entree/domain/settings"
 )
 
 type GameScene struct {
@@ -50,6 +51,13 @@ func NewGameScene(state *GameState) *GameScene {
 }
 
 func (s *GameScene) Update(state *GameState) error {
+	for _, input := range state.InputSvc.CurrentInputs() {
+		switch input {
+		case settings.Menu:
+			return SceneTermination
+		}
+	}
+
 	// Update the canvas
 	s.middleground.Update()
 

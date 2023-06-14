@@ -17,6 +17,7 @@ var (
 	ErrSceneServiceNil    = errors.New("nil scene service")
 	ErrGraphicsServiceNil = errors.New("nil graphics service")
 	ErrSettingsServiceNil = errors.New("nil settings service")
+	Termination           = errors.New("game exited normally")
 )
 
 type GameAdapter struct {
@@ -71,6 +72,10 @@ func (ga *GameAdapter) Update(args UpdateArgs) error {
 		CursorY: args.CursorY,
 		Inputs:  args.Inputs,
 	})
+
+	if err == scene.SceneTermination {
+		return Termination
+	}
 
 	if err != nil {
 		return err

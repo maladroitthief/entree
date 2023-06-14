@@ -77,7 +77,12 @@ func (e *EbitenGame) Update() (err error) {
 	}
 
 	// update the main game
-	return e.gameAdpt.Update(args)
+	err = e.gameAdpt.Update(args)
+	if err == adapter.Termination {
+		return ebiten.Termination
+	}
+
+	return err
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {

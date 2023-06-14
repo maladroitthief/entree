@@ -1,6 +1,7 @@
 package scene
 
 import (
+	"errors"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/logs"
@@ -11,6 +12,10 @@ import (
 
 const (
 	TransitionMaxCount = 20
+)
+
+var (
+	SceneTermination = errors.New("scene exited normally")
 )
 
 type Scene interface {

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"errors"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/logs"
@@ -11,6 +12,10 @@ import (
 
 const (
 	transitionCountMax = 5
+)
+
+var (
+	Termination = errors.New("game closed normally")
 )
 
 type SceneService interface {

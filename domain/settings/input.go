@@ -88,7 +88,7 @@ func DefaultKeyboard() map[Input]string {
 		UseItem:       "MouseButtonRight",
 		UseConsumable: "Q",
 		Map:           "M",
-		Menu:          "KeyEscape",
+		Menu:          "Escape",
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/physics"
+	"github.com/maladroitthief/entree/domain/settings"
 )
 
 type TitleScene struct {
@@ -33,6 +34,13 @@ func NewTitleScene(state *GameState) *TitleScene {
 }
 
 func (s *TitleScene) Update(state *GameState) error {
+	for _, input := range state.InputSvc.CurrentInputs() {
+		switch input {
+		case settings.Menu:
+			return SceneTermination
+		}
+	}
+
 	if state.InputSvc.IsAny() {
 		return state.SceneSvc.GoTo(NewGameScene(state))
 	}
