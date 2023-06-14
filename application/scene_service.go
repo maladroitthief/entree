@@ -17,6 +17,7 @@ type SceneService interface {
 	Update(args Inputs) error
 	GetCamera() scene.Camera
 	GetCanvasSize() (int, int)
+	GetCanvasCellSize() int
 	GetEntities() []canvas.Entity
 	GetBackgroundColor() color.Color
 	GoTo(s scene.Scene) error
@@ -112,6 +113,10 @@ func (svc *sceneService) GetCamera() scene.Camera {
 
 func (svc *sceneService) GetCanvasSize() (width, height int) {
 	return svc.currentScene.GetCanvasSize()
+}
+
+func (svc *sceneService) GetCanvasCellSize() int {
+	return svc.currentScene.GetCanvasCellSize()
 }
 
 func (svc *sceneService) GetEntities() []canvas.Entity {

@@ -85,6 +85,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	screen.Fill(e.theme.Black())
 	e.world.Fill(e.gameAdpt.GetBackgroundColor())
 
+	e.DrawGrid()
 	entities := e.gameAdpt.GetEntities()
 	for _, entity := range entities {
 		err := e.DrawEntity(screen, entity)
@@ -237,6 +238,37 @@ func (e *EbitenGame) CanvasHandler() {
 	x, y := e.world.Bounds().Dx(), e.world.Bounds().Dy()
 	if canvasWidth != x || canvasHeight != y {
 		e.world = ebiten.NewImage(canvasWidth, canvasHeight)
+	}
+}
+
+func (e *EbitenGame) DrawGrid() {
+	cellSize := e.gameAdpt.GetCanvasCellSize()
+	columns, rows := e.world.Bounds().Dx()/cellSize, e.world.Bounds().Dy()/cellSize
+
+	for i := 0; i <= rows; i++ {
+		vector.StrokeLine(
+			e.world,
+			0,
+			float32(i*cellSize),
+			float32(columns*cellSize),
+			float32(i*cellSize),
+			1,
+			e.theme.Magenta(),
+			false,
+		)
+	}
+
+	for i := 0; i <= columns; i++ {
+		vector.StrokeLine(
+			e.world,
+			float32(i*cellSize),
+			0,
+			float32(i*cellSize),
+			float32(rows*cellSize),
+			1,
+			e.theme.Magenta(),
+			false,
+		)
 	}
 }
 

@@ -12,12 +12,14 @@ type TitleScene struct {
 	camera          Camera
 	width           int
 	height          int
+	cellSize        int
 }
 
 func NewTitleScene(state *GameState) *TitleScene {
 	ts := &TitleScene{
 		width:           800,
 		height:          800,
+		cellSize:        16,
 		backgroundColor: state.Theme.Black(),
 	}
 	ts.camera = NewCamera(
@@ -44,6 +46,10 @@ func (s *TitleScene) GetEntities() []canvas.Entity {
 
 func (s *TitleScene) GetCanvasSize() (width, height int) {
 	return s.width, s.height
+}
+
+func (s *TitleScene) GetCanvasCellSize() int {
+	return s.cellSize
 }
 
 func (s *TitleScene) GetBackgroundColor() color.Color {

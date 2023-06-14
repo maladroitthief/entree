@@ -17,6 +17,7 @@ type Scene interface {
 	Update(*GameState) error
 	GetCamera() Camera
 	GetCanvasSize() (width, height int)
+	GetCanvasCellSize() int
 	GetEntities() []canvas.Entity
 	GetBackgroundColor() color.Color
 }

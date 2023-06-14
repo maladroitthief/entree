@@ -87,6 +87,10 @@ func (ga *GameAdapter) GetCanvasSize() (width, height int) {
 	return ga.sceneSvc.GetCanvasSize()
 }
 
+func (ga *GameAdapter) GetCanvasCellSize() int {
+	return ga.sceneSvc.GetCanvasCellSize()
+}
+
 func (ga *GameAdapter) GetEntities() []canvas.Entity {
 	return ga.sceneSvc.GetEntities()
 }

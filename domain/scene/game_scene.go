@@ -65,6 +65,14 @@ func (s *GameScene) GetCanvasSize() (width, height int) {
 	return s.columns * s.cellSize, s.rows * s.cellSize
 }
 
+func (s *GameScene) GetCanvasGrid() (rows, columns int) {
+	return s.rows, s.columns
+}
+
+func (s *GameScene) GetCanvasCellSize() int {
+	return s.cellSize
+}
+
 func (s *GameScene) GetEntities() []canvas.Entity {
 	entities := s.background.Entities()
 	entities = append(entities, s.middleground.Entities()...)

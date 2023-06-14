@@ -44,6 +44,10 @@ func (svc *sceneService) GetCanvasSize() (int, int) {
 	return 0, 0
 }
 
+func (svc *sceneService) GetCanvasCellSize() int {
+	return 0
+}
+
 func (svc *sceneService) GetEntities() []canvas.Entity {
 	return []canvas.Entity{}
 }
