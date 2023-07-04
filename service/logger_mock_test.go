@@ -1,4 +1,4 @@
-package adapter_test
+package service_test
 
 type logger struct {
 }

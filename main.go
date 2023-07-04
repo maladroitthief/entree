@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/maladroitthief/entree/adapter"
 	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/assets/sheets"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/infrastructure"
+	"github.com/maladroitthief/entree/service"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 
 	// Settings Service
 	settingsRepo := infrastructure.NewSettingsJsonRepository("settings.json")
-	settingsSvc, err := application.NewSettingsService(
+	settingsSvc, err := service.NewSettingsService(
 		log,
 		settingsRepo,
 	)
@@ -23,13 +23,13 @@ func main() {
 	}
 
 	// Update it once to initialize the service
-	err = settingsSvc.Update(application.Inputs{})
+	err = settingsSvc.Update(service.Inputs{})
 	if err != nil {
 		log.Fatal("main", "settingsSvc", err)
 	}
 
 	// Graphics Service
-	graphicsSvc, err := application.NewGraphicsService(log)
+	graphicsSvc, err := service.NewGraphicsService(log)
 	if err != nil {
 		log.Fatal("main", "graphicsSvc", err)
 	}
@@ -45,19 +45,19 @@ func main() {
 	graphicsSvc.LoadSpriteSheet(testSheet)
 
 	// Scene Service
-	sceneSvc, err := application.NewSceneService(log, settingsSvc)
+	sceneSvc, err := service.NewSceneService(log, settingsSvc)
 	if err != nil {
 		log.Fatal("main", "sceneSvc", err)
 	}
 
-	// Game adapter
-	gameAdpt, err := adapter.NewGameAdapter(log, sceneSvc, graphicsSvc, settingsSvc)
+	// Game application
+	gameApp, err := application.NewGameApplication(log, sceneSvc, graphicsSvc, settingsSvc)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}
 
 	// Ebiten driver
-	ebitenGame, err := infrastructure.NewEbitenGame(log, gameAdpt)
+	ebitenGame, err := infrastructure.NewEbitenGame(log, gameApp)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}

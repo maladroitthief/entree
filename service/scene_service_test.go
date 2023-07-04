@@ -1,20 +1,20 @@
-package application_test
+package service_test
 
 import (
 	"image/color"
 	"reflect"
 	"testing"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/scene"
+	"github.com/maladroitthief/entree/service"
 )
 
 func TestNewSceneService(t *testing.T) {
 	type args struct {
 		logger      logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	tests := []struct {
 		name    string
@@ -32,7 +32,7 @@ func TestNewSceneService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := application.NewSceneService(tt.args.logger, tt.args.settingsSvc)
+			_, err := service.NewSceneService(tt.args.logger, tt.args.settingsSvc)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewSceneService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -44,10 +44,10 @@ func TestNewSceneService(t *testing.T) {
 func Test_sceneService_Update(t *testing.T) {
 	type fields struct {
 		log         logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	type args struct {
-		args application.Inputs
+		args service.Inputs
 	}
 	tests := []struct {
 		name    string
@@ -59,7 +59,7 @@ func Test_sceneService_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			svc, err := service.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
 			if err != nil {
 				t.Errorf("SceneService.Update() failed to create a NewSceneService()")
 				return
@@ -75,7 +75,7 @@ func Test_sceneService_Update(t *testing.T) {
 func Test_sceneService_GetCamera(t *testing.T) {
 	type fields struct {
 		log         logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	tests := []struct {
 		name   string
@@ -86,7 +86,7 @@ func Test_sceneService_GetCamera(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			svc, err := service.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
 			if err != nil {
 				t.Errorf("SceneService.GetCamera() failed to create a NewSceneService()")
 				return
@@ -102,7 +102,7 @@ func Test_sceneService_GetCamera(t *testing.T) {
 func Test_sceneService_GetEntities(t *testing.T) {
 	type fields struct {
 		log         logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	tests := []struct {
 		name   string
@@ -113,7 +113,7 @@ func Test_sceneService_GetEntities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			svc, err := service.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
 			if err != nil {
 				t.Errorf("SceneService.GetEntities() failed to create a NewSceneService()")
 				return
@@ -128,7 +128,7 @@ func Test_sceneService_GetEntities(t *testing.T) {
 func Test_sceneService_GetBackgroundColor(t *testing.T) {
 	type fields struct {
 		log         logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	tests := []struct {
 		name   string
@@ -139,7 +139,7 @@ func Test_sceneService_GetBackgroundColor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			svc, err := service.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
 			if err != nil {
 				t.Errorf("SceneService.GetBackgroundColor() failed to create a NewSceneService()")
 				return
@@ -154,7 +154,7 @@ func Test_sceneService_GetBackgroundColor(t *testing.T) {
 func Test_sceneService_GoTo(t *testing.T) {
 	type fields struct {
 		log         logs.Logger
-		settingsSvc application.SettingsService
+		settingsSvc service.SettingsService
 	}
 	type args struct {
 		s scene.Scene
@@ -169,7 +169,7 @@ func Test_sceneService_GoTo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
+			svc, err := service.NewSceneService(tt.fields.log, tt.fields.settingsSvc)
 			if err != nil {
 				t.Errorf("SceneService.GoTo() failed to create a NewSceneService()")
 				return

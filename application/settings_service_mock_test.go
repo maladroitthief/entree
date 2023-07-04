@@ -1,49 +1,49 @@
 package application_test
 
 import (
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/domain/settings"
+	"github.com/maladroitthief/entree/service"
 )
 
 type settingsService struct {
 }
 
-func (s *settingsService) Update(args application.Inputs) error {
+func (svc *settingsService) Update(args service.Inputs) error {
 	return nil
 }
 
-func (s *settingsService) IsAny() bool {
+func (svc *settingsService) IsAny() bool {
 	return false
 }
 
-func (s *settingsService) IsPressed(i settings.Input) bool {
+func (svc *settingsService) IsPressed(i settings.Input) bool {
 	return false
 }
 
-func (s *settingsService) IsJustPressed(i settings.Input) bool {
+func (svc *settingsService) IsJustPressed(i settings.Input) bool {
 	return false
 }
 
-func (s *settingsService) GetCursor() (x, y int) {
+func (svc *settingsService) GetCursor() (x, y int) {
 	return 0, 0
 }
 
-func (s *settingsService) CurrentInputs() []settings.Input {
+func (svc *settingsService) CurrentInputs() []settings.Input {
 	return []settings.Input{}
 }
 
-func (s *settingsService) GetWindowHeight() int {
+func (svc *settingsService) GetWindowHeight() int {
 	return 0
 }
 
-func (s *settingsService) GetWindowWidth() int {
+func (svc *settingsService) GetWindowWidth() int {
 	return 0
 }
 
-func (s *settingsService) GetWindowTitle() string {
+func (svc *settingsService) GetWindowTitle() string {
 	return ""
 }
 
-func (s *settingsService) GetScale() float64 {
+func (svc *settingsService) GetScale() float64 {
 	return 0
 }

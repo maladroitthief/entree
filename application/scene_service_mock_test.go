@@ -1,19 +1,19 @@
-package adapter_test
+package application_test
 
 import (
 	"errors"
 	"image/color"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/physics"
 	"github.com/maladroitthief/entree/domain/scene"
+	"github.com/maladroitthief/entree/service"
 )
 
 type sceneService struct {
 }
 
-func (svc *sceneService) Update(args application.Inputs) error {
+func (svc *sceneService) Update(args service.Inputs) error {
 	if args.CursorX < 0 {
 		return errors.New("bad cursor")
 	}

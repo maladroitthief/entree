@@ -1,15 +1,15 @@
-package adapter
+package application
 
 import (
 	"errors"
 	"image"
 	"image/color"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/scene"
 	"github.com/maladroitthief/entree/domain/sprite"
+	"github.com/maladroitthief/entree/service"
 )
 
 var (
@@ -20,11 +20,11 @@ var (
 	Termination           = errors.New("game exited normally")
 )
 
-type GameAdapter struct {
+type GameApplication struct {
 	log         logs.Logger
-	sceneSvc    application.SceneService
-	graphicsSvc application.GraphicsService
-	settingsSvc application.SettingsService
+	sceneSvc    service.SceneService
+	graphicsSvc service.GraphicsService
+	settingsSvc service.SettingsService
 }
 
 type UpdateArgs struct {
@@ -33,13 +33,13 @@ type UpdateArgs struct {
 	Inputs  []string
 }
 
-func NewGameAdapter(
+func NewGameApplication(
 	log logs.Logger,
-	sceneSvc application.SceneService,
-	graphicsSvc application.GraphicsService,
-	settingsSvc application.SettingsService,
-) (*GameAdapter, error) {
-	ga := GameAdapter{
+	sceneSvc service.SceneService,
+	graphicsSvc service.GraphicsService,
+	settingsSvc service.SettingsService,
+) (*GameApplication, error) {
+	ga := GameApplication{
 		log:         log,
 		settingsSvc: settingsSvc,
 		sceneSvc:    sceneSvc,
@@ -65,9 +65,9 @@ func NewGameAdapter(
 	return &ga, nil
 }
 
-func (ga *GameAdapter) Update(args UpdateArgs) error {
+func (ga *GameApplication) Update(args UpdateArgs) error {
 	// Scene Update
-	err := ga.sceneSvc.Update(application.Inputs{
+	err := ga.sceneSvc.Update(service.Inputs{
 		CursorX: args.CursorX,
 		CursorY: args.CursorY,
 		Inputs:  args.Inputs,
@@ -84,49 +84,49 @@ func (ga *GameAdapter) Update(args UpdateArgs) error {
 	return nil
 }
 
-func (ga *GameAdapter) GetCamera() scene.Camera {
+func (ga *GameApplication) GetCamera() scene.Camera {
 	return ga.sceneSvc.GetCamera()
 }
 
-func (ga *GameAdapter) GetCanvasSize() (width, height int) {
+func (ga *GameApplication) GetCanvasSize() (width, height int) {
 	return ga.sceneSvc.GetCanvasSize()
 }
 
-func (ga *GameAdapter) GetCanvasCellSize() int {
+func (ga *GameApplication) GetCanvasCellSize() int {
 	return ga.sceneSvc.GetCanvasCellSize()
 }
 
-func (ga *GameAdapter) GetEntities() []canvas.Entity {
+func (ga *GameApplication) GetEntities() []canvas.Entity {
 	return ga.sceneSvc.GetEntities()
 }
 
-func (ga *GameAdapter) GetSpriteSheet(sheet string) (sprite.SpriteSheet, error) {
+func (ga *GameApplication) GetSpriteSheet(sheet string) (sprite.SpriteSheet, error) {
 	return ga.graphicsSvc.GetSpriteSheet(sheet)
 }
 
-func (ga *GameAdapter) GetSpriteRectangle(
+func (ga *GameApplication) GetSpriteRectangle(
 	sheet string,
 	sprite string,
 ) (image.Rectangle, error) {
 	return ga.graphicsSvc.GetSprite(sheet, sprite)
 }
 
-func (ga *GameAdapter) Layout(width, height int) (screenWidth, screenHeight int) {
+func (ga *GameApplication) Layout(width, height int) (screenWidth, screenHeight int) {
 	return ga.GetWindowSize()
 }
 
-func (ga *GameAdapter) GetWindowSize() (screenWidth, screenHeight int) {
+func (ga *GameApplication) GetWindowSize() (screenWidth, screenHeight int) {
 	return ga.settingsSvc.GetWindowWidth(), ga.settingsSvc.GetWindowHeight()
 }
 
-func (ga *GameAdapter) GetWindowTitle() string {
+func (ga *GameApplication) GetWindowTitle() string {
 	return ga.settingsSvc.GetWindowTitle()
 }
 
-func (ga *GameAdapter) GetScale() float64 {
+func (ga *GameApplication) GetScale() float64 {
 	return ga.settingsSvc.GetScale()
 }
 
-func (ga *GameAdapter) GetBackgroundColor() color.Color {
+func (ga *GameApplication) GetBackgroundColor() color.Color {
 	return ga.sceneSvc.GetBackgroundColor()
 }

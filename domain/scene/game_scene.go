@@ -23,8 +23,8 @@ type GameScene struct {
 
 func NewGameScene(state *GameState) *GameScene {
 	gs := &GameScene{
-		columns:         8,
-		rows:            8,
+		columns:         64,
+		rows:            64,
 		cellSize:        16,
 		backgroundColor: state.Theme.Green(),
 	}

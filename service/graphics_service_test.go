@@ -1,13 +1,13 @@
-package application_test
+package service_test
 
 import (
 	"image"
 	"reflect"
 	"testing"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/sprite"
+	"github.com/maladroitthief/entree/service"
 )
 
 func TestNewGraphicsService(t *testing.T) {
@@ -29,7 +29,7 @@ func TestNewGraphicsService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := application.NewGraphicsService(tt.args.logger)
+			_, err := service.NewGraphicsService(tt.args.logger)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewGraphicsService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -54,7 +54,7 @@ func Test_graphicsService_LoadSpriteSheet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewGraphicsService(tt.fields.log)
+			svc, err := service.NewGraphicsService(tt.fields.log)
 			if err != nil {
 				t.Errorf("GraphicsService.LoadSpriteSheet() failed to create a NewGraphicsService()")
 				return
@@ -84,7 +84,7 @@ func Test_graphicsService_GetSprite(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewGraphicsService(tt.fields.log)
+			svc, err := service.NewGraphicsService(tt.fields.log)
 			if err != nil {
 				t.Errorf("GraphicsService.GetSprite() failed to create a NewGraphicsService()")
 				return
@@ -120,7 +120,7 @@ func Test_graphicsService_GetSpriteSheet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewGraphicsService(tt.fields.log)
+			svc, err := service.NewGraphicsService(tt.fields.log)
 			if err != nil {
 				t.Errorf("GraphicsService.GetSpriteSheet() failed to create a NewGraphicsService()")
 				return

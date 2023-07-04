@@ -7,15 +7,15 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/maladroitthief/entree/adapter"
+	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/domain/canvas"
 )
 
 type EbitenGame struct {
-	log      logs.Logger
-	gameAdpt *adapter.GameAdapter
+	log     logs.Logger
+	gameApp *application.GameApplication
 
 	width         int
 	height        int
@@ -30,11 +30,11 @@ type EbitenGame struct {
 
 func NewEbitenGame(
 	log logs.Logger,
-	gameAdpt *adapter.GameAdapter,
+	gameApp *application.GameApplication,
 ) (*EbitenGame, error) {
 	e := &EbitenGame{
 		log:           log,
-		gameAdpt:      gameAdpt,
+		gameApp:       gameApp,
 		width:         0,
 		height:        0,
 		title:         "",
@@ -44,7 +44,7 @@ func NewEbitenGame(
 		spriteSheets:  make(map[string]*ebiten.Image),
 		sprites:       make(map[string]*ebiten.Image),
 	}
-	canvasWidth, canvasHeight := e.gameAdpt.GetCanvasSize()
+	canvasWidth, canvasHeight := e.gameApp.GetCanvasSize()
 	e.world = ebiten.NewImage(canvasWidth, canvasHeight)
 
 	err := e.WindowHandler()
@@ -70,15 +70,15 @@ func (e *EbitenGame) Update() (err error) {
 		inputs = append(inputs, key.String())
 	}
 
-	args := adapter.UpdateArgs{
+	args := application.UpdateArgs{
 		CursorX: cursorX,
 		CursorY: cursorY,
 		Inputs:  inputs,
 	}
 
 	// update the main game
-	err = e.gameAdpt.Update(args)
-	if err == adapter.Termination {
+	err = e.gameApp.Update(args)
+	if err == application.Termination {
 		return ebiten.Termination
 	}
 
@@ -88,10 +88,10 @@ func (e *EbitenGame) Update() (err error) {
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	e.world.Clear()
 	screen.Fill(e.theme.Black())
-	e.world.Fill(e.gameAdpt.GetBackgroundColor())
+	e.world.Fill(e.gameApp.GetBackgroundColor())
 
 	e.DrawGrid()
-	entities := e.gameAdpt.GetEntities()
+	entities := e.gameApp.GetEntities()
 	for _, entity := range entities {
 		err := e.DrawEntity(screen, entity)
 		if err != nil {
@@ -161,7 +161,7 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 
 func (e *EbitenGame) Render(screen *ebiten.Image) {
 	m := ebiten.GeoM{}
-	c := e.gameAdpt.GetCamera()
+	c := e.gameApp.GetCamera()
 	position := c.Position()
 	m.Translate(-position.X, -position.Y)
 
@@ -175,7 +175,7 @@ func (e *EbitenGame) Render(screen *ebiten.Image) {
 
 func (e *EbitenGame) LoadSpriteSheet(sheet string) (*ebiten.Image, error) {
 	// Get the sprite sheet
-	ss, err := e.gameAdpt.GetSpriteSheet(sheet)
+	ss, err := e.gameApp.GetSpriteSheet(sheet)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (e *EbitenGame) LoadSprite(
 	}
 
 	// Get the sprite rectangle and the sprite sheet sub image
-	spriteRectangle, err := e.gameAdpt.GetSpriteRectangle(sheetName, spriteName)
+	spriteRectangle, err := e.gameApp.GetSpriteRectangle(sheetName, spriteName)
 	if err != nil {
 		return nil, err
 	}
@@ -214,11 +214,11 @@ func (e *EbitenGame) LoadSprite(
 }
 
 func (e *EbitenGame) Layout(width, height int) (screenWidth, screenHeight int) {
-	return e.gameAdpt.Layout(width, height)
+	return e.gameApp.Layout(width, height)
 }
 
 func (e *EbitenGame) WindowHandler() error {
-	w, h := e.gameAdpt.GetWindowSize()
+	w, h := e.gameApp.GetWindowSize()
 
 	if e.width != w || e.height != h {
 		e.width = w
@@ -226,20 +226,20 @@ func (e *EbitenGame) WindowHandler() error {
 		ebiten.SetWindowSize(e.width, e.height)
 	}
 
-	if e.title != e.gameAdpt.GetWindowTitle() {
-		e.title = e.gameAdpt.GetWindowTitle()
+	if e.title != e.gameApp.GetWindowTitle() {
+		e.title = e.gameApp.GetWindowTitle()
 		ebiten.SetWindowTitle(e.title)
 	}
 
-	if e.scale != e.gameAdpt.GetScale() {
-		e.scale = e.gameAdpt.GetScale()
+	if e.scale != e.gameApp.GetScale() {
+		e.scale = e.gameApp.GetScale()
 	}
 
 	return nil
 }
 
 func (e *EbitenGame) CanvasHandler() {
-	canvasWidth, canvasHeight := e.gameAdpt.GetCanvasSize()
+	canvasWidth, canvasHeight := e.gameApp.GetCanvasSize()
 	x, y := e.world.Bounds().Dx(), e.world.Bounds().Dy()
 	if canvasWidth != x || canvasHeight != y {
 		e.world = ebiten.NewImage(canvasWidth, canvasHeight)
@@ -247,7 +247,7 @@ func (e *EbitenGame) CanvasHandler() {
 }
 
 func (e *EbitenGame) DrawGrid() {
-	cellSize := e.gameAdpt.GetCanvasCellSize()
+	cellSize := e.gameApp.GetCanvasCellSize()
 	columns, rows := e.world.Bounds().Dx()/cellSize, e.world.Bounds().Dy()/cellSize
 
 	for i := 0; i <= rows; i++ {

@@ -1,11 +1,11 @@
-package application_test
+package service_test
 
 import (
 	"testing"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/settings"
+	"github.com/maladroitthief/entree/service"
 )
 
 func TestNewSettingsService(t *testing.T) {
@@ -45,7 +45,7 @@ func TestNewSettingsService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := application.NewSettingsService(tt.args.logger, tt.args.repo)
+			_, err := service.NewSettingsService(tt.args.logger, tt.args.repo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewSettingsService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -60,7 +60,7 @@ func Test_settingsService_Update(t *testing.T) {
 		log  logs.Logger
 	}
 	type args struct {
-		args application.Inputs
+		args service.Inputs
 	}
 	tests := []struct {
 		name    string
@@ -75,14 +75,14 @@ func Test_settingsService_Update(t *testing.T) {
 				log:  &logger{},
 			},
 			args: args{
-				args: application.Inputs{},
+				args: service.Inputs{},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.Update() failed to create a NewSettingsService()")
 				return
@@ -116,7 +116,7 @@ func Test_settingsService_IsAny(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.IsAny() failed to create a NewSettingsService()")
 				return
@@ -154,7 +154,7 @@ func Test_settingsService_IsPressed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.IsPressed() failed to create a NewSettingsService()")
 				return
@@ -192,7 +192,7 @@ func Test_settingsService_IsJustPressed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.IsJustPressed() failed to create a NewSettingsService()")
 				return
@@ -228,7 +228,7 @@ func Test_settingsService_GetCursor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.GetCursor() failed to create a NewSettingsService()")
 				return
@@ -266,7 +266,7 @@ func Test_settingsService_CurrentInputs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.CurrentInputs() failed to create a NewSettingsService()")
 				return
@@ -301,7 +301,7 @@ func Test_settingsService_GetWindowHeight(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.GetWindowHeight() failed to create a NewSettingsService()")
 				return
@@ -335,7 +335,7 @@ func Test_settingsService_GetWindowWidth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.GetWindowWidth() failed to create a NewSettingsService()")
 				return
@@ -369,7 +369,7 @@ func Test_settingsService_GetWindowTitle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.GetWindowTitle() failed to create a NewSettingsService()")
 				return
@@ -403,7 +403,7 @@ func Test_settingsService_GetScale(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, err := application.NewSettingsService(tt.fields.log, tt.fields.repo)
+			svc, err := service.NewSettingsService(tt.fields.log, tt.fields.repo)
 			if err != nil {
 				t.Errorf("SettingsService.GetScale() failed to create a NewSettingsService()")
 				return

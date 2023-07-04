@@ -1,4 +1,4 @@
-package application_test
+package service_test
 
 import "github.com/maladroitthief/entree/domain/settings"
 
