@@ -1,4 +1,4 @@
-package application_test
+package game_test
 
 type logger struct {
 }

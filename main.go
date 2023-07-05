@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/assets/sheets"
 	"github.com/maladroitthief/entree/common/logs"
+	"github.com/maladroitthief/entree/game"
 	"github.com/maladroitthief/entree/infrastructure"
 	"github.com/maladroitthief/entree/service"
 )
@@ -50,19 +50,19 @@ func main() {
 		log.Fatal("main", "sceneSvc", err)
 	}
 
-	// Game application
-	gameApp, err := application.NewGameApplication(log, sceneSvc, graphicsSvc, settingsSvc)
+	// Game
+	game, err := game.NewGame(log, sceneSvc, graphicsSvc, settingsSvc)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}
 
 	// Ebiten driver
-	ebitenGame, err := infrastructure.NewEbitenGame(log, gameApp)
+	ebitenDriver, err := infrastructure.NewEbitenDriver(log, game)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}
 
-	err = ebiten.RunGame(ebitenGame)
+	err = ebiten.RunGame(ebitenDriver)
 	if err != nil {
 		log.Fatal("main", nil, err)
 	}

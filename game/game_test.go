@@ -1,4 +1,4 @@
-package application_test
+package game_test
 
 import (
 	"image"
@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/maladroitthief/entree/application"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/sprite"
+	"github.com/maladroitthief/entree/game"
 	"github.com/maladroitthief/entree/service"
 )
 
@@ -78,10 +78,10 @@ func TestNewGameAdapter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := application.NewGameApplication(tt.args.log, tt.args.sceneSvc, tt.args.graphicsSvc, tt.args.settingsSvc)
+			_, err := game.NewGame(tt.args.log, tt.args.sceneSvc, tt.args.graphicsSvc, tt.args.settingsSvc)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewGameApplication() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewGame() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})
@@ -96,7 +96,7 @@ func TestGameAdapter_Update(t *testing.T) {
 		settingsSvc service.SettingsService
 	}
 	type args struct {
-		args application.UpdateArgs
+		args game.UpdateArgs
 	}
 	tests := []struct {
 		name    string
@@ -113,7 +113,7 @@ func TestGameAdapter_Update(t *testing.T) {
 				settingsSvc: &settingsService{},
 			},
 			args: args{
-				args: application.UpdateArgs{
+				args: game.UpdateArgs{
 					CursorX: 0,
 					CursorY: 0,
 					Inputs:  []string{""},
@@ -130,7 +130,7 @@ func TestGameAdapter_Update(t *testing.T) {
 				settingsSvc: &settingsService{},
 			},
 			args: args{
-				args: application.UpdateArgs{
+				args: game.UpdateArgs{
 					CursorX: -1,
 					CursorY: 0,
 					Inputs:  []string{""},
@@ -141,7 +141,7 @@ func TestGameAdapter_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -149,7 +149,7 @@ func TestGameAdapter_Update(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.Update() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.Update() failed to create a NewGame()")
 				return
 			}
 
@@ -186,7 +186,7 @@ func TestGameAdapter_GetEntities(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -194,7 +194,7 @@ func TestGameAdapter_GetEntities(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetEntities() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetEntities() failed to create a NewGame()")
 				return
 			}
 
@@ -240,7 +240,7 @@ func TestGameAdapter_GetSpriteSheet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -248,7 +248,7 @@ func TestGameAdapter_GetSpriteSheet(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetSpriteSheet() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetSpriteSheet() failed to create a NewGame()")
 				return
 			}
 
@@ -301,7 +301,7 @@ func TestGameAdapter_GetSpriteRectangle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -309,7 +309,7 @@ func TestGameAdapter_GetSpriteRectangle(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetSpriteRectangle() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetSpriteRectangle() failed to create a NewGame()")
 				return
 			}
 
@@ -361,7 +361,7 @@ func TestGameAdapter_Layout(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -369,7 +369,7 @@ func TestGameAdapter_Layout(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.Layout() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.Layout() failed to create a NewGame()")
 				return
 			}
 
@@ -411,7 +411,7 @@ func TestGameAdapter_GetWindowSize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -419,7 +419,7 @@ func TestGameAdapter_GetWindowSize(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetWindowSize() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetWindowSize() failed to create a NewGame()")
 				return
 			}
 
@@ -459,7 +459,7 @@ func TestGameAdapter_GetWindowTitle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -467,7 +467,7 @@ func TestGameAdapter_GetWindowTitle(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetWindowTitle() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetWindowTitle() failed to create a NewGame()")
 				return
 			}
 
@@ -503,7 +503,7 @@ func TestGameAdapter_GetScale(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -511,7 +511,7 @@ func TestGameAdapter_GetScale(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetScale() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetScale() failed to create a NewGame()")
 				return
 			}
 
@@ -547,7 +547,7 @@ func TestGameAdapter_GetBackgroundColor(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ga, err := application.NewGameApplication(
+			ga, err := game.NewGame(
 				tt.fields.log,
 				tt.fields.sceneSvc,
 				tt.fields.graphicsSvc,
@@ -555,7 +555,7 @@ func TestGameAdapter_GetBackgroundColor(t *testing.T) {
 			)
 
 			if err != nil {
-				t.Errorf("GameAdapter.GetBackgroundColor() failed to create a NewGameApplication()")
+				t.Errorf("GameAdapter.GetBackgroundColor() failed to create a NewGame()")
 				return
 			}
 

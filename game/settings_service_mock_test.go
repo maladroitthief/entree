@@ -1,4 +1,4 @@
-package application_test
+package game_test
 
 import (
 	"github.com/maladroitthief/entree/domain/settings"

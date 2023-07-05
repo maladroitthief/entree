@@ -41,12 +41,12 @@ type RoomFactory interface {
 
 type Room interface {
 	Load()
-	Layout() [RoomHeight][RoomWidth]rune
+	Layout() [][]rune
 }
 
 type room struct {
 	template string
-	layout   [RoomHeight][RoomWidth]rune
+	layout   [][]rune
 }
 
 func SampleRoom() Room {
@@ -77,6 +77,6 @@ func (r *room) Load() {
 	}
 }
 
-func (r *room) Layout() [RoomHeight][RoomWidth]rune {
+func (r *room) Layout() [][]rune {
 	return r.layout
 }
