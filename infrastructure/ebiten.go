@@ -90,7 +90,6 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	screen.Fill(e.theme.Black())
 	e.world.Fill(e.game.GetBackgroundColor())
 
-	e.DrawGrid()
 	entities := e.game.GetEntities()
 	for _, entity := range entities {
 		err := e.DrawEntity(screen, entity)
@@ -135,26 +134,6 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 		entity.Position().Y+entity.Offset().Y,
 	)
 	e.world.DrawImage(sprite, e.spriteOptions)
-
-	// Draw the debug rectangle
-	vector.StrokeRect(
-		e.world,
-		float32(entity.Bounds().MinPoint.X),
-		float32(entity.Bounds().MinPoint.Y),
-		float32(entity.Bounds().Width()),
-		float32(entity.Bounds().Height()),
-		1,
-		e.theme.Red(),
-		false,
-	)
-	vector.DrawFilledCircle(
-		e.world,
-		float32(entity.Position().X),
-		float32(entity.Position().Y),
-		1,
-		e.theme.BrightRed(),
-		false,
-	)
 
 	return nil
 }

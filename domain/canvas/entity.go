@@ -13,9 +13,9 @@ const (
 	North
 	DefaultScale        = 1
 	DefaultAcceleration = 1.5
-	DefaultMaxVelocity  = 5
+	DefaultMaxVelocity  = 3
 	DefaultMass         = 10
-	DefaultSpriteSpeed  = 40
+	DefaultSpriteSpeed  = 100
 	CollisionBuffer     = 1
 )
 

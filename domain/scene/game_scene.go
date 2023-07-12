@@ -4,9 +4,8 @@ import (
 	"image/color"
 
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/canvas/background"
-	"github.com/maladroitthief/entree/domain/canvas/environment"
 	"github.com/maladroitthief/entree/domain/canvas/player"
+	"github.com/maladroitthief/entree/domain/level"
 	"github.com/maladroitthief/entree/domain/physics"
 	"github.com/maladroitthief/entree/domain/settings"
 )
@@ -31,19 +30,19 @@ func NewGameScene(state *GameState) *GameScene {
 	gs.middleground = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
 	gs.background = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
 
-	pilot := player.NewPilot(player.NewPlayerInputComponent(state.InputSvc))
-	gs.middleground.AddEntity(pilot)
+	player := player.NewPilot(player.NewPlayerInputComponent(state.InputSvc))
+	gs.middleground.AddEntity(player)
 
-	grass := background.Grass(100, 100)
-	gs.background.AddEntity(grass)
-
-	for i := 0; i < 8; i++ {
-		wall := environment.Wall((float64(i)*environment.WallSize + environment.WallSize/2), 120)
-		gs.middleground.AddEntity(wall)
-	}
+  level := level.NewLevel(
+    level.NewRoomFactory(),
+    level.NewBlockFactory(),
+    player,
+  )
+  level.GenerateRooms()
+  level.Render(gs.middleground)
 
 	gs.camera = NewCamera(
-		pilot,
+		player,
 		physics.Vector{X: 800, Y: 800},
 	)
 
