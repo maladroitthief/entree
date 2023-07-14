@@ -38,10 +38,17 @@ func NewQuadTreeItem[T comparable](item T, bounds Rectangle) *QuadTreeItem[T] {
 	}
 }
 
+func (q *QuadTree[T]) SetMaxItems(max int) {
+  q.maxItems = max
+}
+
+func (q *QuadTree[T]) SetMaxLevels(max int) {
+  q.maxLevels = max
+}
+
 func (q *QuadTree[T]) Clear() {
 	q.items = q.items[:0]
 
-	// TODO: do we need to remove the nodes?
 	for _, node := range q.nodes {
 		if node != nil {
 			node.Clear()
@@ -50,7 +57,7 @@ func (q *QuadTree[T]) Clear() {
 	}
 }
 
-func (q *QuadTree[T]) Split() {
+func (q *QuadTree[T]) split() {
 	q.nodes[0] = NewQuadTree[T](
 		q.level+1,
 		NewRectangle(q.x(), q.y(), q.subWidth(), q.subHeight()),
@@ -107,7 +114,7 @@ func (q *QuadTree[T]) Insert(i *QuadTreeItem[T]) {
 	q.items = append(q.items, i)
 	if len(q.items) > q.maxItems && q.level < q.maxLevels {
 		if q.nodes[0] == nil {
-			q.Split()
+			q.split()
 		}
 
 		i := 0
