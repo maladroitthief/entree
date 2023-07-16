@@ -121,7 +121,7 @@ func TestQuadTree_Get(t *testing.T) {
 			name: "overlap",
 			qt:   physics.NewQuadTree[int](0, physics.NewRectangle(0, 0, 10, 10)),
 			args: args{
-				r: physics.NewRectangle(3, 3, 6, 4),
+				r: physics.NewRectangle(1, 1, 9, 2),
 			},
 			qti: []*physics.QuadTreeItem[int]{
 				physics.NewQuadTreeItem[int](1, physics.NewRectangle(2, 2, 4, 4)),

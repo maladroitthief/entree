@@ -11,7 +11,7 @@ type QuadTree[T comparable] struct {
 	level     int
 	items     []*QuadTreeItem[T]
 	bounds    Rectangle
-	nodes     [4]*QuadTree[T]
+	quadrants [4]*QuadTree[T]
 }
 
 type QuadTreeItem[T comparable] struct {
@@ -39,127 +39,172 @@ func NewQuadTreeItem[T comparable](item T, bounds Rectangle) *QuadTreeItem[T] {
 }
 
 func (q *QuadTree[T]) SetMaxItems(max int) {
-  q.maxItems = max
+	q.maxItems = max
 }
 
 func (q *QuadTree[T]) SetMaxLevels(max int) {
-  q.maxLevels = max
+	q.maxLevels = max
 }
 
 func (q *QuadTree[T]) Clear() {
 	q.items = q.items[:0]
 
-	for _, node := range q.nodes {
-		if node != nil {
-			node.Clear()
+	for _, quadrant := range q.quadrants {
+		if quadrant != nil {
+			quadrant.Clear()
 		}
-		node = nil
+		quadrant = nil
 	}
 }
 
 func (q *QuadTree[T]) split() {
-	q.nodes[0] = NewQuadTree[T](
+	q.quadrants[0] = NewQuadTree[T](
 		q.level+1,
-		NewRectangle(q.x(), q.y(), q.subWidth(), q.subHeight()),
+		NewRectangle(
+			q.bounds.MinPoint.X,
+			q.bounds.MinPoint.Y,
+			q.halfWidth(),
+			q.halfHeight(),
+		),
 	)
-	q.nodes[1] = NewQuadTree[T](
-		q.level+1, NewRectangle(q.x()+q.subWidth(), q.y(), q.subWidth(), q.subHeight()),
-	)
-	q.nodes[2] = NewQuadTree[T](
+	q.quadrants[1] = NewQuadTree[T](
 		q.level+1,
-		NewRectangle(q.x(), q.y()+q.subHeight(), q.subWidth(), q.subHeight()),
+		NewRectangle(
+			q.bounds.MinPoint.X,
+			q.bounds.MinPoint.Y+q.halfHeight(),
+			q.bounds.MinPoint.X+q.halfWidth(),
+			q.bounds.MaxPoint.Y,
+		),
 	)
-	q.nodes[3] = NewQuadTree[T](
+	q.quadrants[2] = NewQuadTree[T](
 		q.level+1,
-		NewRectangle(q.x()+q.subWidth(), q.y()+q.subHeight(), q.subWidth(), q.subHeight()),
+		NewRectangle(
+			q.bounds.MinPoint.X+q.halfWidth(),
+			q.bounds.MinPoint.Y+q.halfHeight(),
+			q.bounds.MaxPoint.X,
+			q.bounds.MaxPoint.Y,
+		),
+	)
+	q.quadrants[3] = NewQuadTree[T](
+		q.level+1,
+		NewRectangle(
+			q.bounds.MinPoint.X+q.halfWidth(),
+			q.bounds.MinPoint.Y,
+			q.bounds.MaxPoint.X,
+			q.bounds.MinPoint.Y+q.halfHeight(),
+		),
 	)
 }
 
 func (q *QuadTree[T]) Index(r Rectangle) int {
-	index := -1
-	midWidth := q.x() + q.subWidth()
-	midHeight := q.y() + q.subHeight()
-
-	inTop := r.MinPoint.Y < midHeight && r.MinPoint.Y+r.Height() < midHeight
-	inBottom := r.MinPoint.Y > midHeight
-	inLeft := r.MinPoint.X < midWidth && r.MinPoint.X+r.Width() < midWidth
-	inRight := r.MinPoint.X > midWidth
-
-	if inLeft && inTop {
-		index = 0
-	}
-	if inRight && inTop {
-		index = 1
-	}
-	if inLeft && inBottom {
-		index = 2
-	}
-	if inRight && inBottom {
-		index = 3
+	if q.quadrants[0] == nil {
+		return -1
 	}
 
-	return index
+	if q.quadrants[0].bounds.Intersects(r) {
+		return 0
+	}
+
+	if q.quadrants[1].bounds.Intersects(r) {
+		return 1
+	}
+
+	if q.quadrants[2].bounds.Intersects(r) {
+		return 2
+	}
+
+	if q.quadrants[3].bounds.Intersects(r) {
+		return 3
+	}
+
+	return -1
 }
 
-func (q *QuadTree[T]) Insert(i *QuadTreeItem[T]) {
-	// Attempt to add to child nodes if they exist
-	if q.nodes[0] != nil {
-		index := q.Index(i.bounds)
+func (q *QuadTree[T]) InclusiveIndexes(r Rectangle) []int {
+	indexes := []int{}
+
+	if q.quadrants[0] == nil {
+		return append(indexes, -1)
+	}
+
+	if q.quadrants[0].bounds.Intersects(r) {
+		indexes = append(indexes, 0)
+	}
+
+	if q.quadrants[1].bounds.Intersects(r) {
+		indexes = append(indexes, 1)
+	}
+
+	if q.quadrants[2].bounds.Intersects(r) {
+		indexes = append(indexes, 2)
+	}
+
+	if q.quadrants[3].bounds.Intersects(r) {
+		indexes = append(indexes, 3)
+	}
+
+	if len(indexes) == 0 {
+		indexes = append(indexes, -1)
+	}
+
+	return indexes
+}
+
+func (q *QuadTree[T]) Insert(qi *QuadTreeItem[T]) {
+	// Attempt to add to child quadrants if they exist
+	if q.quadrants[0] != nil {
+		index := q.Index(qi.bounds)
 		if index != -1 {
-			q.nodes[index].Insert(i)
+			q.quadrants[index].Insert(qi)
 			return
 		}
 	}
+	q.items = append(q.items, qi)
 
-	q.items = append(q.items, i)
-	if len(q.items) > q.maxItems && q.level < q.maxLevels {
-		if q.nodes[0] == nil {
-			q.split()
-		}
+	if len(q.items) <= q.maxItems || q.level >= q.maxLevels {
+		return
+	}
 
-		i := 0
-		for i < len(q.items) {
-			index := q.Index(q.items[i].bounds)
-			if index != -1 {
-				q.nodes[index].Insert(q.items[i])
-				// Remove the item at the given index
-				copy(q.items[i:], q.items[i+1:])
-				q.items[len(q.items)-1] = nil
-				q.items = q.items[:len(q.items)-1]
-			} else {
-				i++
-			}
+	if q.quadrants[0] == nil {
+		q.split()
+	}
+
+	i := 0
+	for i < len(q.items) {
+		index := q.Index(q.items[i].bounds)
+		if index != -1 {
+			q.quadrants[index].Insert(q.items[i])
+			// Remove the item at the given index
+			copy(q.items[i:], q.items[i+1:])
+			q.items[len(q.items)-1] = nil
+			q.items = q.items[:len(q.items)-1]
+		} else {
+			i++
 		}
 	}
 }
 
 func (q *QuadTree[T]) Get(r Rectangle) []T {
 	results := make([]T, 0)
-	index := q.Index(r)
+	indexes := q.InclusiveIndexes(r)
 
-	if index != -1 && q.nodes[0] != nil {
-		results = q.nodes[index].Get(r)
-	}
+	for _, index := range indexes {
+		if index != -1 && q.quadrants[0] != nil {
+			results = append(results, q.quadrants[index].Get(r)...)
+		}
 
-	for _, i := range q.items {
-		results = append(results, i.item)
+		for _, i := range q.items {
+			results = append(results, i.item)
+		}
 	}
 
 	return results
 }
 
-func (q *QuadTree[T]) x() float64 {
-	return q.bounds.MinPoint.X
-}
-
-func (q *QuadTree[T]) y() float64 {
-	return q.bounds.MinPoint.Y
-}
-
-func (q *QuadTree[T]) subHeight() float64 {
+func (q *QuadTree[T]) halfHeight() float64 {
 	return q.bounds.Height() / 2
 }
 
-func (q *QuadTree[T]) subWidth() float64 {
+func (q *QuadTree[T]) halfWidth() float64 {
 	return q.bounds.Width() / 2
 }
