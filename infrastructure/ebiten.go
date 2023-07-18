@@ -129,11 +129,23 @@ func (e *EbitenGame) DrawEntity(screen *ebiten.Image, entity canvas.Entity) (err
 	}
 
 	// Position the sprite and draw it
+	offsetX, offsetY := entity.Offset()
 	e.spriteOptions.GeoM.Translate(
-		entity.Position().X+entity.Offset().X,
-		entity.Position().Y+entity.Offset().Y,
+		entity.X()+offsetX,
+		entity.Y()+offsetY,
 	)
 	e.world.DrawImage(sprite, e.spriteOptions)
+
+	vector.StrokeRect(
+		e.world,
+		float32(entity.Bounds().MinPoint.X),
+		float32(entity.Bounds().MinPoint.Y),
+		float32(entity.Bounds().Width()),
+		float32(entity.Bounds().Height()),
+		1,
+		e.theme.Red(),
+		false,
+	)
 
 	return nil
 }

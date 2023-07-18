@@ -42,7 +42,9 @@ func (c *camera) SetViewPort(vp physics.Vector) {
 }
 
 func (c *camera) Position() physics.Vector {
-	return c.focalPoint.Position()
+  x, y := c.focalPoint.Position()
+
+  return physics.Vector{X: x, Y: y}
 }
 
 func (c *camera) SetFocalPoint(fp FocalPoint) {

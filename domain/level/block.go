@@ -3,7 +3,6 @@ package level
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
 	"github.com/maladroitthief/entree/domain/canvas/environment"
-	"github.com/maladroitthief/entree/domain/physics"
 )
 
 const (
@@ -33,6 +32,7 @@ func (bf *blockFactory) AddWall(c *canvas.Canvas, x, y float64) {
 }
 
 func (bf *blockFactory) AddPlayer(c *canvas.Canvas, p canvas.Entity, x, y float64) {
-	p.SetPosition(physics.Vector{X: x, Y: y})
+	p.SetX(x)
+	p.SetY(y)
 	c.AddEntity(p)
 }

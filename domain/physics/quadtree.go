@@ -1,7 +1,7 @@
 package physics
 
 const (
-	DefaultMaxItems  = 50
+	DefaultMaxItems  = 500
 	DefaultMaxLevels = 10
 )
 
@@ -150,12 +150,13 @@ func (q *QuadTree[T]) InclusiveIndexes(r Rectangle) []int {
 	return indexes
 }
 
-func (q *QuadTree[T]) Insert(qi *QuadTreeItem[T]) {
-	// Attempt to add to child quadrants if they exist
+func (q *QuadTree[T]) Insert(item T, bounds Rectangle) {
+  qi := NewQuadTreeItem[T](item, bounds)
+
 	if q.quadrants[0] != nil {
 		index := q.Index(qi.bounds)
 		if index != -1 {
-			q.quadrants[index].Insert(qi)
+			q.quadrants[index].Insert(qi.item, qi.bounds)
 			return
 		}
 	}
@@ -173,8 +174,7 @@ func (q *QuadTree[T]) Insert(qi *QuadTreeItem[T]) {
 	for i < len(q.items) {
 		index := q.Index(q.items[i].bounds)
 		if index != -1 {
-			q.quadrants[index].Insert(q.items[i])
-			// Remove the item at the given index
+			q.quadrants[index].Insert(q.items[i].item, q.items[i].bounds)
 			copy(q.items[i:], q.items[i+1:])
 			q.items[len(q.items)-1] = nil
 			q.items = q.items[:len(q.items)-1]

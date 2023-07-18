@@ -59,11 +59,19 @@ func TestEntity_Reset(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			canvas.ResetEntity(tt.e)
 			if !reflect.DeepEqual(tt.e.State(), tt.want.state) {
-				t.Errorf("Entity.Reset() state = %v, want %v", tt.e.State(), tt.want.state)
+				t.Errorf(
+          "Entity.Reset() state = %v, want %v",
+          tt.e.State(),
+          tt.want.state,
+        )
 			}
 
 			if !reflect.DeepEqual(tt.e.OrientationX(), tt.want.orientationX) {
-				t.Errorf("Entity.Reset() OrientationX = %v, want %v", tt.e.OrientationX(), tt.want.orientationX)
+				t.Errorf(
+          "Entity.Reset() OrientationX = %v, want %v",
+          tt.e.OrientationX(),
+          tt.want.orientationX,
+        )
 			}
 		})
 	}
