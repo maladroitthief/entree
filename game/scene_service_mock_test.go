@@ -22,18 +22,15 @@ func (svc *sceneService) Update(args service.Inputs) error {
 }
 
 type focalPoint struct {
-	position physics.Vector
 }
 
-func (fp *focalPoint) Position() physics.Vector {
-	return fp.position
+func (fp *focalPoint) Position() (x, y float64) {
+	return x, y
 }
 
 func (svc *sceneService) GetCamera() scene.Camera {
 	camera := scene.NewCamera(
-		&focalPoint{
-			position: physics.Vector{X: 0, Y: 0},
-		},
+		&focalPoint{},
 		physics.Vector{X: 800, Y: 800},
 	)
 

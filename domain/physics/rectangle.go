@@ -51,11 +51,11 @@ func (r Rectangle) Height() float64 {
 }
 
 func (r Rectangle) Contains(x, y float64) bool {
-	if x <= r.MinPoint.X || x >= r.MaxPoint.X {
+	if x < r.MinPoint.X || x > r.MaxPoint.X {
 		return false
 	}
 
-	if y <= r.MinPoint.Y || y >= r.MaxPoint.Y {
+	if y < r.MinPoint.Y || y > r.MaxPoint.Y {
 		return false
 	}
 
@@ -63,13 +63,16 @@ func (r Rectangle) Contains(x, y float64) bool {
 }
 
 func (r Rectangle) Intersects(s Rectangle) bool {
-	// check if X positions are out of bounds
-	if r.MinPoint.X > s.MaxPoint.X || r.MaxPoint.X < s.MinPoint.X {
+	d1x := s.MinPoint.X - r.MaxPoint.X
+	d1y := s.MinPoint.Y - r.MaxPoint.Y
+	d2x := r.MinPoint.X - s.MaxPoint.X
+	d2y := r.MinPoint.Y - s.MaxPoint.Y
+
+	if d1x > 0.0 || d1y > 0.0 {
 		return false
 	}
 
-	// check if Y positions are out of bounds
-	if r.MinPoint.Y > s.MaxPoint.Y || r.MaxPoint.Y < s.MinPoint.Y {
+	if d2x > 0.0 || d2y > 0.0 {
 		return false
 	}
 
@@ -103,4 +106,16 @@ func (r Rectangle) Vertex3() Vector {
 
 func (r Rectangle) Vertex4() Vector {
 	return r.MinPoint
+}
+
+func (r Rectangle) Scale(c float64) Rectangle {
+	scaledWidth := r.Width() * c
+	scaledHeight := r.Height() * c
+
+	return NewRectangle(
+		r.MinPoint.X-(scaledWidth/2),
+		r.MinPoint.Y-(scaledHeight/2),
+		r.MaxPoint.X+(scaledWidth/2),
+		r.MaxPoint.Y+(scaledHeight/2),
+	)
 }

@@ -1,15 +1,14 @@
 package scene
 
-import "github.com/maladroitthief/entree/domain/physics"
-
 type FocalPoint interface {
-	Position() physics.Vector
+	Position() (x, y float64)
 }
 
 type focalPoint struct {
-	position physics.Vector
+	x float64
+	y float64
 }
 
-func (fp *focalPoint) Position() physics.Vector {
-	return fp.position
+func (fp *focalPoint) Position() (x, y float64) {
+	return fp.x, fp.y
 }

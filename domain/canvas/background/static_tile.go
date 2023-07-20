@@ -2,27 +2,20 @@ package background
 
 import (
 	"github.com/maladroitthief/entree/domain/canvas"
-	"github.com/maladroitthief/entree/domain/physics"
 )
 
-const (
-	SpriteSize = 16
-)
 
 func StaticTile(x, y float64, sheet, sprite string) canvas.Entity {
-	return &backgroundEntity{
-		size:         physics.Vector{X: SpriteSize, Y: SpriteSize},
-		position:     physics.Vector{X: x, Y: y},
-		offset:       physics.Vector{X: 0, Y: 0},
-		scale:        canvas.DefaultScale,
-		sheet:        sheet,
-		sprite:       sprite,
-		orientationX: canvas.Neutral,
-		orientationY: canvas.South,
-		input:        &backgroundInput{},
-		physics:      &backgroundPhysics{},
-		graphics:     &backgroundGraphics{},
-	}
+  e := canvas.NewEntity()
+  e.SetX(x)
+  e.SetY(y)
+  e.SetSheet(sheet)
+  e.SetSprite(sprite)
+  e.SetInputComponent(&backgroundInput{})
+  e.SetPhysicsComponent(&backgroundPhysics{})
+  e.SetGraphicsComponent(&backgroundGraphics{})
+  
+  return e
 }
 
 type backgroundInput struct{}

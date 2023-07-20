@@ -25,7 +25,8 @@ func NewTitleScene(state *GameState) *TitleScene {
 	}
 	ts.camera = NewCamera(
 		&focalPoint{
-			position: physics.Vector{X: 0, Y: 0},
+      x: 0,
+      y: 0,
 		},
 		physics.Vector{X: float64(ts.width), Y: float64(ts.height)},
 	)

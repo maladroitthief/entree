@@ -3,22 +3,24 @@ package canvas
 import "github.com/maladroitthief/entree/domain/physics"
 
 type Canvas struct {
-	entities []Entity
-	x        int
-	y        int
-	size     int
-	bounds   [4]physics.Rectangle
-	quadTree *physics.QuadTree[Entity]
+	entities    []Entity
+	x           int
+	y           int
+	size        int
+	bounds      [4]physics.Rectangle
+	spatialHash *physics.SpatialHash[Entity]
+	// quadTree    *physics.QuadTree[Entity]
 }
 
 func NewCanvas(x, y, size int) *Canvas {
 	c := &Canvas{
-		x:    x,
-		y:    y,
-		size: size,
-		quadTree: physics.NewQuadTree[Entity](
-			0, physics.NewRectangle(0, 0, float64(x*size), float64(y*size)),
-		),
+		x:           x,
+		y:           y,
+		size:        size,
+		spatialHash: physics.NewSpatialHash[Entity](144, 144),
+		// quadTree: physics.NewQuadTree[Entity](
+		// 	0, physics.NewRectangle(0, 0, float64(x*size), float64(y*size)),
+		// ),
 	}
 	c.createBounds()
 
@@ -30,16 +32,14 @@ func (c *Canvas) AddEntity(e Entity) {
 }
 
 func (c *Canvas) Update() {
-	// dump the quadtree and rebuild it
-	c.quadTree.Clear()
-	for _, entity := range c.entities {
-		c.quadTree.Insert(
-			physics.NewQuadTreeItem(
-				entity,
-				physics.Bounds(entity.Position(), entity.Size()),
-			),
-		)
-	}
+	// c.quadTree.Clear()
+	// for _, entity := range c.entities {
+	// 	c.quadTree.Insert(entity, entity.Bounds())
+	// }
+  c.spatialHash.Drop()
+  for _, entity := range c.entities {
+		c.spatialHash.Insert(entity, entity.Bounds())
+  }
 }
 
 func (c *Canvas) Entities() []Entity {
@@ -50,7 +50,8 @@ func (c *Canvas) Collisions(e Entity, r physics.Rectangle) []Entity {
 	results := []Entity{}
 
 	// Broad phase
-	candidates := c.quadTree.Get(r)
+	// candidates := c.quadTree.Get(r)
+	candidates := c.spatialHash.SearchNeighbors(e.X(), e.Y())
 
 	// Narrow phase
 	for _, candidate := range candidates {

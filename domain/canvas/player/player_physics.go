@@ -69,8 +69,10 @@ func (p *PlayerPhysicsComponent) resolveVelocity() {
 }
 
 func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Entity) {
-	newPosition := e.Position().Add(p.Velocity)
-	newBounds := physics.Bounds(newPosition, e.Size())
+
+	newPosition := physics.Vector{X: e.X(), Y: e.Y()}.Add(p.Velocity)
+	sizeX, sizeY := e.Size()
+	newBounds := physics.Bounds(newPosition, physics.Vector{X: sizeX, Y: sizeY})
 	collisions := c.Collisions(e, newBounds)
 
 	for _, oob := range c.Bounds() {
@@ -78,7 +80,9 @@ func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Enti
 	}
 
 	if len(collisions) == 0 {
-		e.SetPosition(newPosition)
+		e.SetX(newPosition.X)
+		e.SetY(newPosition.Y)
+
 		return
 	}
 
@@ -86,7 +90,8 @@ func (p *PlayerPhysicsComponent) resolvePosition(c *canvas.Canvas, e canvas.Enti
 		newPosition = canvas.CollisionVector(e, ce.Bounds(), p.DeltaPosition, newPosition)
 	}
 
-	e.SetPosition(newPosition)
+  e.SetX(newPosition.X)
+  e.SetY(newPosition.Y)
 }
 
 func (p *PlayerPhysicsComponent) limitVelocity() {

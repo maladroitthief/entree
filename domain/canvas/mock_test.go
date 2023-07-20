@@ -6,6 +6,13 @@ import (
 )
 
 type EntityMock struct {
+	x            float64
+	y            float64
+	z            float64
+	sizeX        float64
+	sizeY        float64
+	offsetX      float64
+	offsetY      float64
 	position     physics.Vector
 	size         physics.Vector
 	offset       physics.Vector
@@ -36,40 +43,81 @@ func (e *EntityMock) Send(msg, val string) {
 	}
 }
 
-func (e *EntityMock) Position() physics.Vector {
-	return e.position
+func (e *EntityMock) SetPosition(x, y float64) {
+	e.SetX(x)
+	e.SetY(y)
 }
 
-func (e *EntityMock) SetPosition(v physics.Vector) {
-	e.position = v
+func (e *EntityMock) X() float64 {
+	return e.x * e.Scale()
 }
 
-func (e *EntityMock) Size() physics.Vector {
-	return e.size
+func (e *EntityMock) SetX(x float64) {
+	e.x = x / e.Scale()
+}
+func (e *EntityMock) Y() float64 {
+	return e.y * e.Scale()
 }
 
-func (e *EntityMock) SetSize(v physics.Vector) {
-	e.size = v
+func (e *EntityMock) SetY(y float64) {
+	e.y = y / e.Scale()
 }
 
-func (e *EntityMock) Offset() physics.Vector {
-	return e.offset
+func (e *EntityMock) Z() float64 {
+	return e.z
+}
+
+func (e *EntityMock) SetZ(z float64) {
+	e.z = z
+}
+
+func (e *EntityMock) Position() (x, y float64) {
+	return e.X(), e.Y()
+}
+
+func (e *EntityMock) Size() (x, y float64) {
+	scale := e.Scale()
+
+	return e.sizeX * scale, e.sizeY * scale
+}
+
+func (e *EntityMock) SetSize(x, y float64) {
+	e.sizeX = x / e.Scale()
+	e.sizeY = y / e.Scale()
+}
+
+func (e *EntityMock) Offset() (x, y float64) {
+	scale := e.Scale()
+
+	return e.offsetX * scale, e.offsetY * scale
+}
+
+func (e *EntityMock) SetOffset(x, y float64) {
+	e.offsetX = x / e.Scale()
+	e.offsetY = y / e.Scale()
 }
 
 func (e *EntityMock) Bounds() physics.Rectangle {
+	if e.bounds == (physics.Rectangle{}) {
+		e.SetBounds()
+	}
+
 	return e.bounds
 }
 
 func (e *EntityMock) SetBounds() {
-	e.bounds = physics.NewRectangle(
-		e.Position().X,
-		e.Position().Y,
-		e.Position().X+e.Size().X,
-		e.Position().Y+e.Size().Y,
+	sizeX, sizeY := e.Size()
+	e.bounds = physics.Bounds(
+		physics.Vector{X: e.X(), Y: e.Y()},
+		physics.Vector{X: sizeX, Y: sizeY},
 	)
 }
 
 func (e *EntityMock) Scale() float64 {
+	if e.scale <= 0 {
+		e.scale = 1
+	}
+
 	return e.scale
 }
 
@@ -131,10 +179,6 @@ func (e *EntityMock) SetOrientationY(o canvas.OrientationY) {
 
 func (e *EntityMock) Components() []canvas.Component {
 	return e.components
-}
-
-func (e *EntityMock) SetComponents(c []canvas.Component) {
-	e.components = c
 }
 
 func (e *EntityMock) InputComponent() canvas.InputComponent {
