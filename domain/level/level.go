@@ -40,16 +40,24 @@ func NewLevel(rf RoomFactory, bf BlockFactory, player canvas.Entity) *Level {
 		width:        DefaultLevelWidth,
 		height:       DefaultLevelHeight,
 	}
+	return l
+}
 
+func (l *Level) SetSize(width, height int) {
+	l.width = width
+	l.height = height
+}
+
+func (l *Level) Size() (width, height int) {
+	return l.width, l.height
+}
+
+func (l *Level) GenerateRooms() {
 	l.Rooms = make([][]Room, l.height)
 	for i := range l.Rooms {
 		l.Rooms[i] = make([]Room, l.width)
 	}
 
-	return l
-}
-
-func (l *Level) GenerateRooms() {
 	currentX := rand.Intn(l.width)
 	currentY := 0
 	l.Rooms[currentY][currentX] = l.roomFactory.Exit()
@@ -98,8 +106,8 @@ func (l *Level) fillRemainingRooms() {
 }
 
 func (l *Level) Render(c *canvas.Canvas) {
-  for y := 0; y < len(l.Rooms); y++ {
-    for x := 0; x < len(l.Rooms[y]); x++ {
+	for y := 0; y < len(l.Rooms); y++ {
+		for x := 0; x < len(l.Rooms[y]); x++ {
 			for i, block := range l.Rooms[y][x].layout {
 				switch block {
 				case Player:
@@ -115,12 +123,12 @@ func (l *Level) Render(c *canvas.Canvas) {
 
 func xPosition(x, blockIndex int) float64 {
 	return float64(
-    (x * RoomWidth * BlockSize) + (blockIndex % 9) * BlockSize,
-  ) + BlockSize / 2
+		(x*RoomWidth*BlockSize)+(blockIndex%9)*BlockSize,
+	) + BlockSize/2
 }
 
 func yPosition(y, blockIndex int) float64 {
 	return float64(
-    (y * RoomHeight * BlockSize) + (blockIndex / 9) * BlockSize,
-  ) + BlockSize / 2
+		(y*RoomHeight*BlockSize)+(blockIndex/9)*BlockSize,
+	) + BlockSize/2
 }

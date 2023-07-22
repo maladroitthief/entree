@@ -22,13 +22,21 @@ type GameScene struct {
 
 func NewGameScene(state *GameState) *GameScene {
 	gs := &GameScene{
-		columns:         64,
-		rows:            64,
+		columns:         6,
+		rows:            6,
 		cellSize:        16,
 		backgroundColor: state.Theme.Green(),
 	}
-	gs.middleground = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
-	gs.background = canvas.NewCanvas(gs.columns, gs.rows, gs.cellSize)
+	gs.middleground = canvas.NewCanvas(
+    gs.columns*level.RoomWidth,
+    gs.rows*level.RoomHeight,
+    gs.cellSize,
+  )
+	gs.background = canvas.NewCanvas(
+    gs.columns*level.RoomWidth,
+    gs.rows*level.RoomHeight,
+    gs.cellSize,
+  )
 
 	player := player.NewPilot(player.NewPlayerInputComponent(state.InputSvc))
 	gs.middleground.AddEntity(player)
@@ -43,7 +51,7 @@ func NewGameScene(state *GameState) *GameScene {
 
 	gs.camera = NewCamera(
 		player,
-		physics.Vector{X: 800, Y: 800},
+		physics.Vector{X: 200, Y: 200},
 	)
 
 	return gs
@@ -69,7 +77,10 @@ func (s *GameScene) Update(state *GameState) error {
 }
 
 func (s *GameScene) GetCanvasSize() (width, height int) {
-	return s.columns * s.cellSize, s.rows * s.cellSize
+  width = s.columns * level.RoomWidth * s.cellSize
+  height = s.rows * level.RoomHeight * s.cellSize
+
+  return width, height
 }
 
 func (s *GameScene) GetCanvasGrid() (rows, columns int) {
