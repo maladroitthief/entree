@@ -6,7 +6,7 @@ import (
 	"image"
 	_ "image/png"
 
-	"github.com/maladroitthief/entree/domain/sprite"
+	"github.com/maladroitthief/entree/pkg/content"
 )
 
 var (
@@ -14,13 +14,13 @@ var (
 	pilotSheet []byte
 )
 
-func PilotSheet() (sprite.SpriteSheet, error) {
+func PilotSheet() (*content.SpriteSheet, error) {
 	image, _, err := image.Decode(bytes.NewBuffer(pilotSheet))
 	if err != nil {
 		return nil, err
 	}
 
-	ss, err := sprite.NewSpriteSheet(
+	ss, err := content.NewSpriteSheet(
 		"pilot",
 		image,
 		8,
@@ -32,11 +32,11 @@ func PilotSheet() (sprite.SpriteSheet, error) {
 		return nil, err
 	}
 
-	sprites := []sprite.Sprite{}
+	sprites := []content.Sprite{}
 	sprites = append(sprites, SpriteArray("idle_front", 1, 1, 6)...)
-	sprites = append(sprites, SpriteArray("idle_front_side", 2, 1, 4)...)
+	sprites = append(sprites, SpriteArray("idle_front_side", 2, 1, 6)...)
 	sprites = append(sprites, SpriteArray("idle_back", 3, 1, 6)...)
-	sprites = append(sprites, SpriteArray("idle_back_side", 4, 1, 4)...)
+	sprites = append(sprites, SpriteArray("idle_back_side", 4, 1, 6)...)
 	sprites = append(sprites, SpriteArray("move_front", 5, 1, 6)...)
 	sprites = append(sprites, SpriteArray("move_front_side", 6, 1, 6)...)
 	sprites = append(sprites, SpriteArray("move_back", 7, 1, 6)...)

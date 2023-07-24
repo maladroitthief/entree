@@ -6,7 +6,7 @@ import (
 	"image"
 	_ "image/png"
 
-	"github.com/maladroitthief/entree/domain/sprite"
+	"github.com/maladroitthief/entree/pkg/content"
 )
 
 var (
@@ -14,13 +14,13 @@ var (
 	testSheet []byte
 )
 
-func TestSheet() (sprite.SpriteSheet, error) {
+func TestSheet() (*content.SpriteSheet, error) {
 	image, _, err := image.Decode(bytes.NewBuffer(testSheet))
 	if err != nil {
 		return nil, err
 	}
 
-	ss, err := sprite.NewSpriteSheet(
+	ss, err := content.NewSpriteSheet(
 		"test",
 		image,
 		22,
@@ -32,7 +32,7 @@ func TestSheet() (sprite.SpriteSheet, error) {
 		return nil, err
 	}
 
-	sprites := []sprite.Sprite{}
+	sprites := []content.Sprite{}
 	sprites = append(sprites, Sprite("blank", 1, 1))
 	sprites = append(sprites, Sprite("small_gravel", 1, 2))
 	sprites = append(sprites, Sprite("big_gravel", 1, 3))
