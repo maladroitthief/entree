@@ -58,6 +58,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	level.GenerateRooms()
 	level.Render(gs.world)
 
+  gs.physics.Load(gs.world)
 	gs.camera = NewCamera(
 		data.Vector{X: 0, Y: 0},
 		data.Vector{X: 200, Y: 200},

@@ -42,13 +42,18 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 	return s
 }
 
-func (s *PhysicsServer) Update(e *core.ECS) {
+func (s *PhysicsServer) Load(e *core.ECS) {
 	s.spatialHash.Drop()
 	physics := e.GetAllPhysics()
 
 	for _, p := range physics {
 		s.spatialHash.Insert(p, p.Bounds)
 	}
+}
+
+func (s *PhysicsServer) Update(e *core.ECS) {
+  s.Load(e)
+	physics := e.GetAllPhysics()
 
 	for _, p := range physics {
 		p = UpdateVelocity(p)
@@ -64,13 +69,13 @@ func (s *PhysicsServer) Collisions(
 
 	results := []attribute.Physics{}
 	candidates := s.spatialHash.SearchNeighbors(p.Position.X, p.Position.Y)
-	for _, candidate := range candidates {
-		if p == candidate {
+  for i := 0; i < len(candidates); i++{
+		if p == candidates[i] {
 			continue
 		}
 
-		if r.Intersects(candidate.Bounds) {
-			results = append(results, candidate)
+		if r.Intersects(candidates[i].Bounds) {
+			results = append(results, candidates[i])
 		}
 	}
 
@@ -135,6 +140,7 @@ func (s *PhysicsServer) UpdatePosition(
 
 	if len(collisions) == 0 {
 		p.Position = nextPosition
+		s.spatialHash.Update(p, p.Bounds, nextBounds)
 
 		return p
 	}
@@ -147,6 +153,7 @@ func (s *PhysicsServer) UpdatePosition(
 	}
 
 	p.Position = nextPosition
+  s.spatialHash.Update(p, p.Bounds, nextBounds)
 
 	return p
 }

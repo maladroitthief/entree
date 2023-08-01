@@ -1,8 +1,8 @@
 package data
 
 import (
-	"fmt"
 	"math"
+	"strings"
 )
 
 var (
@@ -20,16 +20,18 @@ var (
 )
 
 type SpatialHash[T comparable] struct {
-	Cells      map[string]Cell[T]
+	sb         strings.Builder
+	Cells      map[[2]float64]Cell[T]
 	ChunkSizeX float64
 	ChunkSizeY float64
 }
 
 func NewSpatialHash[T comparable](sizeX, sizeY float64) *SpatialHash[T] {
 	return &SpatialHash[T]{
+		sb:         strings.Builder{},
 		ChunkSizeX: sizeX,
 		ChunkSizeY: sizeY,
-		Cells:      make(map[string]Cell[T]),
+		Cells:      make(map[[2]float64]Cell[T]),
 	}
 }
 
@@ -43,6 +45,23 @@ func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
 	}
 
 	h.Cells[centerIndex] = cell.Insert(val, bounds)
+}
+
+func (h *SpatialHash[T]) Update(val T, oldBounds, newBounds Rectangle) {
+	h.Delete(val, oldBounds)
+	h.Insert(val, newBounds)
+}
+
+func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
+	center := bounds.Center()
+	centerIndex := h.toIndex(center.X, center.Y)
+	cell, ok := h.Cells[centerIndex]
+
+	if !ok {
+		cell = NewCell[T]()
+	}
+
+	h.Cells[centerIndex] = cell.Delete(val, bounds)
 }
 
 func (h *SpatialHash[T]) Search(x, y float64) []T {
@@ -75,17 +94,11 @@ func (h *SpatialHash[T]) Drop() {
 	}
 }
 
-func (h *SpatialHash[T]) toChunk(x, y float64) (xPos, yPos float64) {
-	xPos = math.Round(x/h.ChunkSizeX) * h.ChunkSizeX
-	yPos = math.Round(y/h.ChunkSizeY) * h.ChunkSizeY
+func (h *SpatialHash[T]) toIndex(x, y float64) [2]float64 {
+  xIndex := math.Round(x/h.ChunkSizeX) * h.ChunkSizeX
+  yIndex := math.Round(y/h.ChunkSizeY) * h.ChunkSizeY
 
-	return xPos, yPos
-}
-
-func (h *SpatialHash[T]) toIndex(x, y float64) string {
-	xPos, yPos := h.toChunk(x, y)
-
-	return fmt.Sprintf("%v,%v", xPos, yPos)
+  return [2]float64{xIndex, yIndex}
 }
 
 type Cell[T comparable] struct {
@@ -99,9 +112,10 @@ func NewCell[T comparable]() Cell[T] {
 }
 
 func (c Cell[T]) Get() []T {
-	items := []T{}
-	for _, item := range c.items {
-		items = append(items, item.item)
+	items := make([]T, len(c.items))
+
+	for i := 0; i < len(c.items); i++ {
+		items[i] = c.items[i].item
 	}
 
 	return items
@@ -115,6 +129,19 @@ func (c Cell[T]) Insert(item T, bounds Rectangle) Cell[T] {
 			bounds: bounds,
 		},
 	)
+
+	return c
+}
+
+func (c Cell[T]) Delete(item T, bounds Rectangle) Cell[T] {
+	for i := 0; i < len(c.items); i++ {
+		if c.items[i].item != item {
+			continue
+		}
+
+		c.items[i] = c.items[len(c.items)-1]
+		c.items = c.items[:len(c.items)-1]
+	}
 
 	return c
 }
