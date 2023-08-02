@@ -114,7 +114,11 @@ func (l *Level) Render(e *core.ECS) {
 					l.blockFactory.AddPlayer(e, l.player, xPosition(x, i), yPosition(y, i))
 				case EmptySpace:
 				case Solid:
-					l.blockFactory.AddWall(e, xPosition(x, i), yPosition(y, i))
+					l.blockFactory.AddSolid(e, xPosition(x, i), yPosition(y, i))
+        case Solid50:
+					l.blockFactory.AddSolid50(e, xPosition(x, i), yPosition(y, i))
+        case Obstacle:
+					l.blockFactory.AddObstacle(e, xPosition(x, i), yPosition(y, i))
 				}
 			}
 		}
