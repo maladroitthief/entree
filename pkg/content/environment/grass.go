@@ -1,22 +1,34 @@
 package environment
 
 import (
+	"math/rand"
+
 	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
-func Wall(e *core.ECS, x, y float64) core.Entity {
+var (
+	grassSprites = []string{
+		"grass",
+		"flowers",
+		"tall_grass",
+	}
+)
+
+func Grass(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
 	physics := attribute.NewPhysics(
 		data.Vector{X: x, Y: y},
-		1,
+		0,
 		data.Vector{X: 16, Y: 16},
 	)
-	physics.CollisionType = attribute.Immovable
+	physics.CollisionType = attribute.Impeding
+  physics.ImpedingRate = 0.2
 
-	animation := attribute.NewAnimation("test", "wall")
+	sprite := grassSprites[rand.Intn(len(grassSprites))]
+	animation := attribute.NewAnimation("test", sprite)
 	animation.Static = true
 
 	entity := e.NewEntity()

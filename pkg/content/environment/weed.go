@@ -5,8 +5,7 @@ import (
 	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
-
-func Wall(e *core.ECS, x, y float64) core.Entity {
+func Weeds(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
 	physics := attribute.NewPhysics(
@@ -14,9 +13,10 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 		1,
 		data.Vector{X: 16, Y: 16},
 	)
-	physics.CollisionType = attribute.Immovable
+	physics.CollisionType = attribute.Impeding
+  physics.ImpedingRate = 0.6
 
-	animation := attribute.NewAnimation("test", "wall")
+  animation := attribute.NewAnimation("test", "weeds")
 	animation.Static = true
 
 	entity := e.NewEntity()

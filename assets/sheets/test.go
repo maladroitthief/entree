@@ -41,7 +41,7 @@ func TestSheet() (*content.SpriteSheet, error) {
 	sprites = append(sprites, Sprite("grass", 1, 6))
 	sprites = append(sprites, Sprite("flowers", 1, 7))
 	sprites = append(sprites, Sprite("tall_grass", 1, 8))
-	sprites = append(sprites, Sprite("tall_grass", 1, 8))
+	sprites = append(sprites, Sprite("weeds", 3, 1))
 
 	sprites = append(sprites, Sprite("wall_group_north_west", 17, 1))
 	sprites = append(sprites, Sprite("wall_group_north", 17, 2))

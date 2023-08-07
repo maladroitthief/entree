@@ -5,10 +5,6 @@ type GenerationalIndex struct {
 	generation int
 }
 
-func (g GenerationalIndex) Index() int {
-	return g.index
-}
-
 type allocatorEntry struct {
 	isLive     bool
 	generation int
