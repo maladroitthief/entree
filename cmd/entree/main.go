@@ -55,11 +55,11 @@ func main() {
 }
 
 func loadSpriteSheets(g *ui.GraphicsServer) {
-	pilotSheet, err := sheets.PilotSheet()
+	heroSheet, err := sheets.HeroSheet()
 	if err != nil {
-		log.Fatal("main", "pilot_sheet", err)
+		log.Fatal("main", "hero_sheet", err)
 	}
-	g.LoadSpriteSheet(pilotSheet)
+	g.LoadSpriteSheet(heroSheet)
 
 	testSheet, err := sheets.TestSheet()
 	if err != nil {

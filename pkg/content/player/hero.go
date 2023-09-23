@@ -6,8 +6,8 @@ import (
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
-func NewPilot(e *core.ECS) core.Entity{
-  ai := attribute.NewAI(attribute.Input)
+func NewHero(e *core.ECS) core.Entity {
+	ai := attribute.NewAI(attribute.Input)
 	state := attribute.NewState()
 
 	physics := attribute.NewPhysics(
@@ -17,7 +17,7 @@ func NewPilot(e *core.ECS) core.Entity{
 	)
 	physics.Offset = data.Vector{X: 0, Y: -6}
 
-	animation := attribute.NewAnimation("pilot", "idle_front_1")
+	animation := attribute.NewAnimation("hero", "idle_front_1")
 	animation.VariantMax = 6
 
 	entity := e.NewEntity()
@@ -26,5 +26,5 @@ func NewPilot(e *core.ECS) core.Entity{
 	entity = e.AddPhysics(entity, physics)
 	entity = e.AddAnimation(entity, animation)
 
-  return entity
+	return entity
 }

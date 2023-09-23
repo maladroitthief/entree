@@ -47,7 +47,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewPilot(gs.world)
+	player := player.NewHero(gs.world)
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
