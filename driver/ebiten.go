@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -94,29 +95,36 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	entities := state.GetAllEntities()
-	for _, entity := range entities {
-		err := e.DrawEntity(screen, state, entity)
+	animations := state.GetAllAnimations()
+	sort.Slice(
+		animations,
+		func(i, j int) bool { return animations[i].ZLayer < animations[j].ZLayer },
+	)
+
+	for _, animation := range animations {
+		err := e.DrawAnimation(screen, state, animation)
 		if err != nil {
-			e.log.Error("Draw", entity, err)
+			e.log.Error("Draw", animation, err)
 		}
 	}
+
 	e.Render(screen)
 	e.DrawDebug(screen)
 }
 
-func (e *EbitenGame) DrawEntity(
+func (e *EbitenGame) DrawAnimation(
 	screen *ebiten.Image,
 	world *core.ECS,
-	entity core.Entity,
+	animation attribute.Animation,
 ) (err error) {
+  entity, entityErr := world.GetEntity(animation.EntityId)
 	state, stateErr := world.GetState(entity.Id)
-	animation, animationErr := world.GetAnimation(entity.Id)
 	physics, physicsErr := world.GetPhysics(entity.Id)
 
-	if animationErr != nil {
+	if entityErr != nil {
 		return nil
 	}
+
 	if physicsErr != nil {
 		return nil
 	}
@@ -152,17 +160,6 @@ func (e *EbitenGame) DrawEntity(
 		physics.Position.Y+physics.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
-
-	// vector.StrokeRect(
-	// 	e.canvas,
-	// 	float32(physics.Bounds.MinPoint.X),
-	// 	float32(physics.Bounds.MinPoint.Y),
-	// 	float32(physics.Bounds.Width()),
-	// 	float32(physics.Bounds.Height()),
-	// 	1,
-	// 	e.theme.Red(),
-	// 	false,
-	// )
 
 	return nil
 }

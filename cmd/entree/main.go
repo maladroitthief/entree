@@ -8,11 +8,10 @@ import (
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/driver"
 	"github.com/maladroitthief/entree/pkg/ui"
-	"github.com/pkg/profile"
 )
 
 func main() {
-	defer profile.Start().Stop()
+	// defer profile.Start().Stop()
 
 	log := logs.NewLogrusLogger()
 	settingsRepo := driver.NewSettingsRepository("settings.json")

@@ -10,6 +10,7 @@ const (
 type Animation struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
+	ZLayer   float64
 
 	Static      bool
 	Speed       float64
@@ -19,12 +20,13 @@ type Animation struct {
 	Sprite      string
 }
 
-func NewAnimation(sheet, sprite string) Animation {
+func NewAnimation(sheet, sprite string, z float64) Animation {
 	return Animation{
 		Speed:       DefaultSpeed,
 		Variant:     1,
 		VariantMax:  1,
 		SpriteSheet: sheet,
 		Sprite:      sprite,
+		ZLayer:      z,
 	}
 }

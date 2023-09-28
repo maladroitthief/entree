@@ -21,14 +21,13 @@ func Grass(e *core.ECS, x, y float64) core.Entity {
 
 	physics := attribute.NewPhysics(
 		data.Vector{X: x, Y: y},
-		0,
 		data.Vector{X: 16, Y: 16},
 	)
 	physics.CollisionType = attribute.Impeding
   physics.ImpedingRate = 0.2
 
 	sprite := grassSprites[rand.Intn(len(grassSprites))]
-	animation := attribute.NewAnimation("test", sprite)
+	animation := attribute.NewAnimation("test", sprite, 0.25)
 	animation.Static = true
 
 	entity := e.NewEntity()

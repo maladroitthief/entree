@@ -2,7 +2,6 @@ package driver
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 
 	"github.com/maladroitthief/entree/pkg/ui"
@@ -54,7 +53,7 @@ func (r *SettingsRepository) GetSettings() (Settings, error) {
 		return Settings{}, err
 	}
 
-	jsonContent, err := ioutil.ReadFile(r.filePath)
+	jsonContent, err := os.ReadFile(r.filePath)
 	if err != nil {
 		return Settings{}, err
 	}
@@ -76,7 +75,7 @@ func (r *SettingsRepository) SetSettings(s Settings) error {
 		return err
 	}
 
-	return ioutil.WriteFile(r.filePath, jsonContent, 0644)
+	return os.WriteFile(r.filePath, jsonContent, 0644)
 }
 
 func (r *SettingsRepository) unmarshalSettings(m SettingsModel) Settings {

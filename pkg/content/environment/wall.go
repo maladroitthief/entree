@@ -11,12 +11,11 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 
 	physics := attribute.NewPhysics(
 		data.Vector{X: x, Y: y},
-		1,
 		data.Vector{X: 16, Y: 16},
 	)
 	physics.CollisionType = attribute.Immovable
 
-	animation := attribute.NewAnimation("test", "wall")
+	animation := attribute.NewAnimation("test", "wall", 0.4)
 	animation.Static = true
 
 	entity := e.NewEntity()

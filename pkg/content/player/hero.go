@@ -12,12 +12,11 @@ func NewHero(e *core.ECS) core.Entity {
 
 	physics := attribute.NewPhysics(
 		data.Vector{X: 100, Y: 100},
-		1,
 		data.Vector{X: 12, Y: 18},
 	)
 	physics.Offset = data.Vector{X: 0, Y: -6}
 
-	animation := attribute.NewAnimation("hero", "idle_front_1")
+	animation := attribute.NewAnimation("hero", "idle_front_1", 0.5)
 	animation.VariantMax = 6
 
 	entity := e.NewEntity()

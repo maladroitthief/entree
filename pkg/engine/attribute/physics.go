@@ -20,7 +20,6 @@ type Physics struct {
 	EntityId data.GenerationalIndex
 
 	Position      data.Vector
-	ZLevel        int
 	Velocity      data.Vector
 	MaxVelocity   float64
 	Mass          float64
@@ -33,10 +32,9 @@ type Physics struct {
 	ImpedingRate  float64
 }
 
-func NewPhysics(position data.Vector, z int, size data.Vector) Physics {
+func NewPhysics(position data.Vector, size data.Vector) Physics {
 	return Physics{
 		Position:      position,
-		ZLevel:        z,
 		Velocity:      data.Vector{X: 0, Y: 0},
 		MaxVelocity:   BaseMaxVelocity,
 		Mass:          BaseMass,
