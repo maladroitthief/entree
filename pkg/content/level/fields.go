@@ -18,11 +18,11 @@ func FieldBlockFactory() level.BlockFactory {
 
 func (bf *fieldBlocks) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
 	// TODO: Handle this error
-	physics, _ := e.GetPhysics(p.Id)
-	physics.Position.X = x
-	physics.Position.Y = y
+	position, _ := e.GetPosition(p.Id)
+	position.Position.X = x
+	position.Position.Y = y
 
-	e.SetPhysics(physics)
+	e.SetPosition(position)
 }
 
 func (bf *fieldBlocks) AddSolidBlock(e *core.ECS, x, y float64) {

@@ -17,7 +17,7 @@ type PhysicsServer struct {
 	y           float64
 	size        float64
 	bounds      [4]data.Rectangle
-	spatialHash *data.SpatialHash[attribute.Physics]
+	spatialHash *data.SpatialHash[attribute.Dimension]
 }
 
 func NewPhysicsServer(x, y, size float64) *PhysicsServer {
@@ -25,7 +25,7 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[attribute.Physics](32, 32),
+		spatialHash: data.NewSpatialHash[attribute.Dimension](32, 32),
 	}
 
 	xSize := x * size
@@ -44,107 +44,127 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 
 func (s *PhysicsServer) Load(e *core.ECS) {
 	s.spatialHash.Drop()
-	physics := e.GetAllPhysics()
+	dimensions := e.GetAllPosition()
 
-	for _, p := range physics {
-		s.spatialHash.Insert(p, p.Bounds)
+	for _, d := range dimensions {
+		s.spatialHash.Insert(d, d.Bounds)
 	}
 }
 
 func (s *PhysicsServer) Update(e *core.ECS) {
 	s.Load(e)
-	physics := e.GetAllPhysics()
+	movements := e.GetAllMovement()
 
-	for _, p := range physics {
-		p = UpdateVelocity(p)
-		p = s.UpdatePosition(e, p)
-		e.SetPhysics(p)
+	for _, m := range movements {
+		m = UpdateMovement(m)
+		s.UpdatePosition(e, m)
 	}
 }
 
-func UpdateVelocity(p attribute.Physics) attribute.Physics {
-	p.Velocity = p.Velocity.ScaleXY(p.Acceleration.X, p.Acceleration.Y)
-	if math.Signbit(p.Acceleration.X) != math.Signbit(p.Velocity.X) {
-		p.Velocity.X = 0
+func UpdateMovement(m attribute.Movement) attribute.Movement {
+	m.Velocity = m.Velocity.ScaleXY(m.Acceleration.X, m.Acceleration.Y)
+	if math.Signbit(m.Acceleration.X) != math.Signbit(m.Velocity.X) {
+		m.Velocity.X = 0
 	}
 
-	if math.Signbit(p.Acceleration.Y) != math.Signbit(p.Velocity.Y) {
-		p.Velocity.Y = 0
+	if math.Signbit(m.Acceleration.Y) != math.Signbit(m.Velocity.Y) {
+		m.Velocity.Y = 0
 	}
 
-	p.Velocity = p.Velocity.Add(p.Acceleration.Scale(p.Mass))
+	m.Velocity = m.Velocity.Add(m.Acceleration.Scale(m.Mass))
 	direction := data.Vector{X: 1, Y: 1}
 
-	if p.Velocity.X < 0 {
+	if m.Velocity.X < 0 {
 		direction.X = -1
 	}
 
-	if p.Velocity.Y < 0 {
+	if m.Velocity.Y < 0 {
 		direction.Y = -1
 	}
 
-	if math.Abs(p.Velocity.X) > p.MaxVelocity {
-		p.Velocity.X = p.MaxVelocity
+	if math.Abs(m.Velocity.X) > m.MaxVelocity {
+		m.Velocity.X = m.MaxVelocity
 	}
 
-	if math.Abs(p.Velocity.Y) > p.MaxVelocity {
-		p.Velocity.Y = p.MaxVelocity
+	if math.Abs(m.Velocity.Y) > m.MaxVelocity {
+		m.Velocity.Y = m.MaxVelocity
 	}
 
-	p.Velocity = p.Velocity.ScaleXY(direction.X, direction.Y)
+	m.Velocity = m.Velocity.ScaleXY(direction.X, direction.Y)
 
-	m := p.Velocity.Magnitude()
-	if m > p.MaxVelocity {
-		p.Velocity = p.Velocity.Scale(p.MaxVelocity / m)
+	magnitude := m.Velocity.Magnitude()
+	if magnitude > m.MaxVelocity {
+		m.Velocity = m.Velocity.Scale(m.MaxVelocity / magnitude)
 	}
 
-	return p
+	return m
 }
 
-func DeltaPosition(p attribute.Physics) data.Vector {
-	return p.Position.Add(p.Velocity)
+func DeltaPosition(p attribute.Position, m attribute.Movement) data.Vector {
+	return p.Position.Add(m.Velocity)
 }
 
-func DeltaBounds(p attribute.Physics) data.Rectangle {
-	return data.Bounds(DeltaPosition(p), p.Size)
+func DeltaBounds(p attribute.Position, m attribute.Movement, d attribute.Dimension) data.Rectangle {
+	return data.Bounds(DeltaPosition(p, m), d.Size)
 }
 
 func (s *PhysicsServer) UpdatePosition(
 	e *core.ECS,
-	p attribute.Physics,
-) attribute.Physics {
+	m attribute.Movement,
+) {
 
-	collisions := s.Collisions(p, DeltaBounds(p))
+	p, err := e.GetPosition(m.EntityId)
+	if err != nil {
+		return
+	}
+
+	d, err := e.GetDimension(m.EntityId)
+	if err != nil {
+		return
+	}
+
+	c, err := e.GetCollider(m.EntityId)
+	if err != nil {
+		p.Position = DeltaPosition(p, m)
+		s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+		e.SetPosition(p)
+		e.SetMovement(m)
+		return
+	}
+
+	collisions := s.Collisions(p, DeltaBounds(p, m, d))
 	for _, oob := range s.bounds[:] {
-		p = CheckOOBCollision(p, oob)
+		p = CheckOOBCollision(p, m, d, oob)
 	}
 
 	if len(collisions) == 0 {
-		p.Position = DeltaPosition(p)
-		s.spatialHash.Update(p, p.Bounds, DeltaBounds(p))
-
-		return p
+		p.Position = DeltaPosition(p, m)
+		s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+		e.SetPosition(p)
+		e.SetMovement(m)
+		return
 	}
 
-	for _, ce := range collisions {
-		p = HandleCollision(p, ce)
+	for _, collision := range collisions {
+		p, m = HandleCollision(e, p, m, d, c, collision)
 	}
 
-	p.Position = DeltaPosition(p)
-	s.spatialHash.Update(p, p.Bounds, DeltaBounds(p))
-
-	return p
+	p.Position = DeltaPosition(p, m)
+	s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+	e.SetPosition(p)
+	e.SetMovement(m)
+	return
 }
 
 func (s *PhysicsServer) Collisions(
-	p attribute.Physics,
+	p attribute.Position,
 	r data.Rectangle,
-) []attribute.Physics {
+) []attribute.Dimension {
 
-	results := []attribute.Physics{}
+	results := []attribute.Dimension{}
 	candidates := s.spatialHash.SearchNeighbors(p.Position.X, p.Position.Y)
 	for i := 0; i < len(candidates); i++ {
-		if p == candidates[i] {
+		if p.EntityId == candidates[i].EntityId {
 			continue
 		}
 
@@ -157,88 +177,99 @@ func (s *PhysicsServer) Collisions(
 }
 
 func CheckOOBCollision(
-	p attribute.Physics,
+	p attribute.Position,
+	m attribute.Movement,
+	d attribute.Dimension,
 	r data.Rectangle,
-) attribute.Physics {
-	if p.Acceleration.X == 0 && p.Acceleration.Y == 0 {
+) attribute.Position {
+	if m.Acceleration.X == 0 && m.Acceleration.Y == 0 {
 		return p
 	}
 
-	deltaPosition := DeltaPosition(p)
+	deltaPosition := DeltaPosition(p, m)
 	xBounds := data.Bounds(
 		data.Vector{X: deltaPosition.X, Y: p.Position.Y},
-		p.Size,
+		d.Size,
 	)
 	yBounds := data.Bounds(
 		data.Vector{X: p.Position.X, Y: deltaPosition.Y},
-		p.Size,
+		d.Size,
 	)
 	xCollision := r.Intersects(xBounds)
 	yCollision := r.Intersects(yBounds)
 
-	if xCollision && p.Acceleration.X > 0 {
-		p.Position.X = r.MinPoint.X - p.Size.X/2 - CollisionBuffer
-		p.Velocity.X = 0
-	} else if xCollision && p.Acceleration.X < 0 {
-		p.Position.X = r.MaxPoint.X + p.Size.X/2 + CollisionBuffer
-		p.Velocity.X = 0
+	if xCollision && m.Acceleration.X > 0 {
+		p.Position.X = r.MinPoint.X - d.Size.X/2 - CollisionBuffer
+		m.Velocity.X = 0
+	} else if xCollision && m.Acceleration.X < 0 {
+		p.Position.X = r.MaxPoint.X + d.Size.X/2 + CollisionBuffer
+		m.Velocity.X = 0
 	}
 
-	if yCollision && p.Acceleration.Y > 0 {
-		p.Position.Y = r.MinPoint.Y - p.Size.Y/2 - CollisionBuffer
-		p.Velocity.Y = 0
-	} else if yCollision && p.Acceleration.Y < 0 {
-		p.Position.Y = r.MaxPoint.Y + p.Size.Y/2 + CollisionBuffer
-		p.Velocity.Y = 0
+	if yCollision && m.Acceleration.Y > 0 {
+		p.Position.Y = r.MinPoint.Y - d.Size.Y/2 - CollisionBuffer
+		m.Velocity.Y = 0
+	} else if yCollision && m.Acceleration.Y < 0 {
+		p.Position.Y = r.MaxPoint.Y + d.Size.Y/2 + CollisionBuffer
+		m.Velocity.Y = 0
 	}
 
 	return p
 }
 
 func HandleCollision(
-	p attribute.Physics,
-	ce attribute.Physics,
-) attribute.Physics {
+	e *core.ECS,
+	p attribute.Position,
+	m attribute.Movement,
+	d attribute.Dimension,
+	c attribute.Collider,
+	_d attribute.Dimension,
+) (attribute.Position, attribute.Movement) {
 
-	xCollision := ce.Bounds.Intersects(
+	xCollision := _d.Bounds.Intersects(
 		data.Bounds(
-			data.Vector{X: DeltaPosition(p).X, Y: p.Position.Y},
-			p.Size,
+			data.Vector{X: DeltaPosition(p, m).X, Y: p.Position.Y},
+			d.Size,
 		),
 	)
-	yCollision := ce.Bounds.Intersects(
+	yCollision := _d.Bounds.Intersects(
 		data.Bounds(
-			data.Vector{X: p.Position.X, Y: DeltaPosition(p).Y},
-			p.Size,
+			data.Vector{X: p.Position.X, Y: DeltaPosition(p, m).Y},
+			d.Size,
 		),
 	)
 
-	switch ce.CollisionType {
+	_c, err := e.GetCollider(_d.EntityId)
+	if err != nil {
+		return p, m
+	}
+
+	switch _c.ColliderType {
 	case attribute.Immovable:
-		if xCollision && p.Acceleration.X > 0 {
-			p.Position.X = ce.Bounds.MinPoint.X - p.Size.X/2 - CollisionBuffer
-			p.Velocity.X = 0
-		} else if xCollision && p.Acceleration.X < 0 {
-			p.Position.X = ce.Bounds.MaxPoint.X + p.Size.X/2 + CollisionBuffer
-			p.Velocity.X = 0
+		if xCollision && m.Acceleration.X > 0 {
+			p.Position.X = _d.Bounds.MinPoint.X - d.Size.X/2 - CollisionBuffer
+			m.Velocity.X = 0
+		} else if xCollision && m.Acceleration.X < 0 {
+			p.Position.X = _d.Bounds.MaxPoint.X + d.Size.X/2 + CollisionBuffer
+			m.Velocity.X = 0
 		}
 
-		if yCollision && p.Acceleration.Y > 0 {
-			p.Position.Y = ce.Bounds.MinPoint.Y - p.Size.Y/2 - CollisionBuffer
-			p.Velocity.Y = 0
-		} else if yCollision && p.Acceleration.Y < 0 {
-			p.Position.Y = ce.Bounds.MaxPoint.Y + p.Size.Y/2 + CollisionBuffer
-			p.Velocity.Y = 0
+		if yCollision && m.Acceleration.Y > 0 {
+			p.Position.Y = _d.Bounds.MinPoint.Y - d.Size.Y/2 - CollisionBuffer
+			m.Velocity.Y = 0
+		} else if yCollision && m.Acceleration.Y < 0 {
+			p.Position.Y = _d.Bounds.MaxPoint.Y + d.Size.Y/2 + CollisionBuffer
+			m.Velocity.Y = 0
 		}
 	case attribute.Impeding:
 		if xCollision {
-			p.Velocity = p.Velocity.ScaleX(1 - ce.ImpedingRate)
+			m.Velocity = m.Velocity.ScaleX(1 - _c.ImpedingRate)
 		}
 		if yCollision {
-			p.Velocity = p.Velocity.ScaleY(1 - ce.ImpedingRate)
+			m.Velocity = m.Velocity.ScaleY(1 - _c.ImpedingRate)
 		}
 	case attribute.Moveable:
 	}
 
-	return p
+	return p, m
 }

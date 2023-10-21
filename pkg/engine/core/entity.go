@@ -6,8 +6,11 @@ type Entity struct {
 	Id          data.GenerationalIndex
 	AIId        data.GenerationalIndex
 	StateId     data.GenerationalIndex
-	PhysicsId   data.GenerationalIndex
+	MovementId  data.GenerationalIndex
 	AnimationId data.GenerationalIndex
+	PositionId  data.GenerationalIndex
+	DimensionId data.GenerationalIndex
+	ColliderId  data.GenerationalIndex
 }
 
 func (e *ECS) NewEntity() Entity {

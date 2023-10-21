@@ -25,43 +25,95 @@ func (s *AIServer) Update(e *core.ECS, inputs []core.Input) {
 	}
 }
 
+type aiAttributes struct {
+	movement attribute.Movement
+	state   attribute.State
+}
+
 func ProcessInput(e *core.ECS, ai attribute.AI, inputs []core.Input) {
 	state, err := e.GetState(ai.EntityId)
 	if err != nil {
 		return
 	}
 
-	physics, err := e.GetPhysics(ai.EntityId)
+	movement, err := e.GetMovement(ai.EntityId)
 	if err != nil {
 		return
 	}
 
-	if physics.Acceleration.X == 0 && physics.Acceleration.Y != 0 {
-		state.OrientationX = attribute.Neutral
+	attr := aiAttributes{movement: movement, state: state}
+
+	movementInputs := []core.Input{}
+	actionInputs := []core.Input{}
+	for _, input := range inputs {
+		switch input {
+		case core.MoveUp:
+			movementInputs = append(movementInputs, core.MoveUp)
+		case core.MoveDown:
+			movementInputs = append(movementInputs, core.MoveDown)
+		case core.MoveRight:
+			movementInputs = append(movementInputs, core.MoveRight)
+		case core.MoveLeft:
+			movementInputs = append(movementInputs, core.MoveLeft)
+		case core.Dodge:
+			actionInputs = append(actionInputs, core.Dodge)
+		}
 	}
-	physics.Acceleration.X, physics.Acceleration.Y = 0, 0
+
+	attr = handleActionInputs(actionInputs, attr)
+	attr = handleMovementInputs(movementInputs, attr)
+
+	e.SetMovement(attr.movement)
+	e.SetState(attr.state)
+}
+
+func handleActionInputs(inputs []core.Input, a aiAttributes) aiAttributes {
+	for _, input := range inputs {
+		switch input {
+		case core.Dodge:
+			a.state.State = attribute.Dodge
+		}
+	}
+
+	return a
+}
+
+func handleMovementInputs(inputs []core.Input, a aiAttributes) aiAttributes {
+	if a.movement.Acceleration.X == 0 && a.movement.Acceleration.Y != 0 {
+		a.state.OrientationX = attribute.Neutral
+	}
+
+	if a.state.State == attribute.Dodge &&
+		a.state.Counter <= attribute.DodgeDuration {
+		return a
+	}
+
+	a.movement.Acceleration.X, a.movement.Acceleration.Y = 0, 0
+
+	if len(inputs) == 0 {
+		a.state.State = attribute.Idle
+	}
 
 	for _, input := range inputs {
 		switch input {
 		case core.MoveUp:
-			state.State = "move"
-			state.OrientationY = attribute.North
-			physics.Acceleration.Y = -1
+			a.state.State = attribute.Move
+			a.state.OrientationY = attribute.North
+			a.movement.Acceleration.Y = -1
 		case core.MoveDown:
-			state.State = "move"
-			state.OrientationY = attribute.South
-			physics.Acceleration.Y = 1
+			a.state.State = attribute.Move
+			a.state.OrientationY = attribute.South
+			a.movement.Acceleration.Y = 1
 		case core.MoveRight:
-			state.State = "move"
-			state.OrientationX = attribute.East
-			physics.Acceleration.X = 1
+			a.state.State = attribute.Move
+			a.state.OrientationX = attribute.East
+			a.movement.Acceleration.X = 1
 		case core.MoveLeft:
-			state.State = "move"
-			state.OrientationX = attribute.West
-			physics.Acceleration.X = -1
+			a.state.State = attribute.Move
+			a.state.OrientationX = attribute.West
+			a.movement.Acceleration.X = -1
 		}
 	}
 
-  e.SetPhysics(physics)
-	e.SetState(state)
+	return a
 }

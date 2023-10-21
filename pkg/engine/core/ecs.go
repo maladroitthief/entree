@@ -19,8 +19,14 @@ type ECS struct {
 	ai                 data.GenerationalIndexArray[attribute.AI]
 	stateAllocator     *data.GenerationalIndexAllocator
 	state              data.GenerationalIndexArray[attribute.State]
-	physicsAllocator   *data.GenerationalIndexAllocator
-	physics            data.GenerationalIndexArray[attribute.Physics]
+	movementAllocator  *data.GenerationalIndexAllocator
+	movement           data.GenerationalIndexArray[attribute.Movement]
+	positionAllocator  *data.GenerationalIndexAllocator
+	position           data.GenerationalIndexArray[attribute.Position]
+	dimensionAllocator *data.GenerationalIndexAllocator
+	dimension          data.GenerationalIndexArray[attribute.Dimension]
+	colliderAllocator  *data.GenerationalIndexAllocator
+	collider           data.GenerationalIndexArray[attribute.Collider]
 	animationAllocator *data.GenerationalIndexAllocator
 	animation          data.GenerationalIndexArray[attribute.Animation]
 }
@@ -33,8 +39,14 @@ func NewECS() *ECS {
 		ai:                 data.NewGenerationalIndexArray[attribute.AI](),
 		stateAllocator:     data.NewGenerationalIndexAllocator(),
 		state:              data.NewGenerationalIndexArray[attribute.State](),
-		physicsAllocator:   data.NewGenerationalIndexAllocator(),
-		physics:            data.NewGenerationalIndexArray[attribute.Physics](),
+		movementAllocator:  data.NewGenerationalIndexAllocator(),
+		movement:           data.NewGenerationalIndexArray[attribute.Movement](),
+		positionAllocator:  data.NewGenerationalIndexAllocator(),
+		position:           data.NewGenerationalIndexArray[attribute.Position](),
+		dimensionAllocator: data.NewGenerationalIndexAllocator(),
+		dimension:          data.NewGenerationalIndexArray[attribute.Dimension](),
+		colliderAllocator:  data.NewGenerationalIndexAllocator(),
+		collider:           data.NewGenerationalIndexArray[attribute.Collider](),
 		animationAllocator: data.NewGenerationalIndexAllocator(),
 		animation:          data.NewGenerationalIndexArray[attribute.Animation](),
 	}

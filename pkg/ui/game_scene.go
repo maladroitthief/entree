@@ -47,7 +47,8 @@ func NewGameScene(state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewHero(gs.world)
+	// player := player.NewHero(gs.world)
+	player := player.NewFederico(gs.world)
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
@@ -58,7 +59,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	level.GenerateRooms()
 	level.Render(gs.world)
 
-  gs.physics.Load(gs.world)
+	gs.physics.Load(gs.world)
 	gs.camera = NewCamera(
 		data.Vector{X: 0, Y: 0},
 		data.Vector{X: 200, Y: 200},
@@ -109,7 +110,7 @@ func (s *GameScene) BackgroundColor() color.Color {
 }
 
 func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.world.GetPhysics(s.cameraFocus.Id)
+	cameraPosition, err := s.world.GetPosition(s.cameraFocus.Id)
 	if err != nil {
 		s.log.Error("GameScene.GetCamera", cameraPosition, err)
 	}

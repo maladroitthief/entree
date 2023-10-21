@@ -60,6 +60,12 @@ func loadSpriteSheets(g *ui.GraphicsServer) {
 	}
 	g.LoadSpriteSheet(heroSheet)
 
+	federicoSheet, err := sheets.FedericoSheet()
+	if err != nil {
+		log.Fatal("main", "federico_sheet", err)
+	}
+	g.LoadSpriteSheet(federicoSheet)
+
 	testSheet, err := sheets.TestSheet()
 	if err != nil {
 		log.Fatal("main", "test_sheet", err)

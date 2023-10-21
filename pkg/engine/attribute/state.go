@@ -11,10 +11,16 @@ const (
 	East
 	South OrientationY = iota
 	North
+
+	Idle  = "idle"
+	Move  = "move"
+	Dodge = "dodge"
+
+	DodgeDuration = 40
 )
 
 type State struct {
-  Id data.GenerationalIndex
+	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
 
 	State        string
@@ -25,7 +31,7 @@ type State struct {
 
 func NewState() State {
 	return State{
-		State:        "idle",
+		State:        Idle,
 		Counter:      0,
 		OrientationX: Neutral,
 		OrientationY: South,

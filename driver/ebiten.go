@@ -117,15 +117,20 @@ func (e *EbitenGame) DrawAnimation(
 	world *core.ECS,
 	animation attribute.Animation,
 ) (err error) {
-  entity, entityErr := world.GetEntity(animation.EntityId)
+	entity, entityErr := world.GetEntity(animation.EntityId)
 	state, stateErr := world.GetState(entity.Id)
-	physics, physicsErr := world.GetPhysics(entity.Id)
+  position, positionErr := world.GetPosition(entity.Id)
+  dimension, dimensionErr := world.GetDimension(entity.Id)
 
 	if entityErr != nil {
 		return nil
 	}
 
-	if physicsErr != nil {
+	if positionErr != nil {
+		return nil
+	}
+
+	if dimensionErr != nil {
 		return nil
 	}
 
@@ -147,7 +152,7 @@ func (e *EbitenGame) DrawAnimation(
 	)
 
 	// Scale the sprite
-	e.spriteOptions.GeoM.Scale(physics.Scale, physics.Scale)
+	e.spriteOptions.GeoM.Scale(dimension.Scale, dimension.Scale)
 
 	// Flip the sprite if moving west
 	if stateErr == nil && state.OrientationX == attribute.West {
@@ -156,8 +161,8 @@ func (e *EbitenGame) DrawAnimation(
 
 	// Position the sprite and draw it
 	e.spriteOptions.GeoM.Translate(
-		physics.Position.X+physics.Offset.X,
-		physics.Position.Y+physics.Offset.Y,
+		position.Position.X+dimension.Offset.X,
+		position.Position.Y+dimension.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
