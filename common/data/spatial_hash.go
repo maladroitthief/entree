@@ -35,33 +35,31 @@ func NewSpatialHash[T comparable](sizeX, sizeY float64) *SpatialHash[T] {
 	}
 }
 
-func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
-	center := bounds.Center()
-	centerIndex := h.toIndex(center.X, center.Y)
-	cell, ok := h.Cells[centerIndex]
+func (h *SpatialHash[T]) Insert(val T, position Vector) {
+	positionIndex := h.toIndex(position.X, position.Y)
+	cell, ok := h.Cells[positionIndex]
 
 	if !ok {
 		cell = NewCell[T]()
 	}
 
-	h.Cells[centerIndex] = cell.Insert(val, bounds)
+	h.Cells[positionIndex] = cell.Insert(val, position)
 }
 
-func (h *SpatialHash[T]) Update(val T, oldBounds, newBounds Rectangle) {
-	h.Delete(val, oldBounds)
-	h.Insert(val, newBounds)
+func (h *SpatialHash[T]) Update(val T, oldPosition, newPosition Vector) {
+	h.Delete(val, oldPosition)
+	h.Insert(val, newPosition)
 }
 
-func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
-	center := bounds.Center()
-	centerIndex := h.toIndex(center.X, center.Y)
-	cell, ok := h.Cells[centerIndex]
+func (h *SpatialHash[T]) Delete(val T, position Vector) {
+	positionIndex := h.toIndex(position.X, position.Y)
+	cell, ok := h.Cells[positionIndex]
 
 	if !ok {
 		cell = NewCell[T]()
 	}
 
-	h.Cells[centerIndex] = cell.Delete(val, bounds)
+	h.Cells[positionIndex] = cell.Delete(val, position)
 }
 
 func (h *SpatialHash[T]) Search(x, y float64) []T {
@@ -95,10 +93,10 @@ func (h *SpatialHash[T]) Drop() {
 }
 
 func (h *SpatialHash[T]) toIndex(x, y float64) [2]float64 {
-  xIndex := math.Round(x/h.ChunkSizeX) * h.ChunkSizeX
-  yIndex := math.Round(y/h.ChunkSizeY) * h.ChunkSizeY
+	xIndex := math.Round(x/h.ChunkSizeX) * h.ChunkSizeX
+	yIndex := math.Round(y/h.ChunkSizeY) * h.ChunkSizeY
 
-  return [2]float64{xIndex, yIndex}
+	return [2]float64{xIndex, yIndex}
 }
 
 type Cell[T comparable] struct {
@@ -121,19 +119,19 @@ func (c Cell[T]) Get() []T {
 	return items
 }
 
-func (c Cell[T]) Insert(item T, bounds Rectangle) Cell[T] {
+func (c Cell[T]) Insert(item T, position Vector) Cell[T] {
 	c.items = append(
 		c.items,
 		CellItem[T]{
-			item:   item,
-			bounds: bounds,
+			item:     item,
+			position: position,
 		},
 	)
 
 	return c
 }
 
-func (c Cell[T]) Delete(item T, bounds Rectangle) Cell[T] {
+func (c Cell[T]) Delete(item T, position Vector) Cell[T] {
 	for i := 0; i < len(c.items); i++ {
 		if c.items[i].item != item {
 			continue
@@ -152,6 +150,6 @@ func (c Cell[T]) Drop() Cell[T] {
 }
 
 type CellItem[T comparable] struct {
-	bounds Rectangle
-	item   T
+	position Vector
+	item     T
 }

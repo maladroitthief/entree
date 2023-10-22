@@ -17,7 +17,7 @@ type PhysicsServer struct {
 	y           float64
 	size        float64
 	bounds      [4]data.Rectangle
-	spatialHash *data.SpatialHash[attribute.Dimension]
+	spatialHash *data.SpatialHash[attribute.Position]
 }
 
 func NewPhysicsServer(x, y, size float64) *PhysicsServer {
@@ -25,7 +25,7 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[attribute.Dimension](32, 32),
+		spatialHash: data.NewSpatialHash[attribute.Position](32, 32),
 	}
 
 	xSize := x * size
@@ -44,10 +44,10 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 
 func (s *PhysicsServer) Load(e *core.ECS) {
 	s.spatialHash.Drop()
-	dimensions := e.GetAllPosition()
+	positions := e.GetAllPosition()
 
-	for _, d := range dimensions {
-		s.spatialHash.Insert(d, d.Bounds)
+	for _, p := range positions {
+		s.spatialHash.Insert(p, p.Position)
 	}
 }
 
@@ -125,21 +125,23 @@ func (s *PhysicsServer) UpdatePosition(
 
 	c, err := e.GetCollider(m.EntityId)
 	if err != nil {
-		p.Position = DeltaPosition(p, m)
-		s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+		deltaP := DeltaPosition(p, m)
+		s.spatialHash.Update(p, p.Position, deltaP)
+		p.Position = deltaP
 		e.SetPosition(p)
 		e.SetMovement(m)
 		return
 	}
 
-	collisions := s.Collisions(p, DeltaBounds(p, m, d))
+	collisions := s.Collisions(e, p, DeltaBounds(p, m, d))
 	for _, oob := range s.bounds[:] {
 		p = CheckOOBCollision(p, m, d, oob)
 	}
 
 	if len(collisions) == 0 {
-		p.Position = DeltaPosition(p, m)
-		s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+		deltaP := DeltaPosition(p, m)
+		s.spatialHash.Update(p, p.Position, deltaP)
+		p.Position = deltaP
 		e.SetPosition(p)
 		e.SetMovement(m)
 		return
@@ -149,14 +151,16 @@ func (s *PhysicsServer) UpdatePosition(
 		p, m = HandleCollision(e, p, m, d, c, collision)
 	}
 
-	p.Position = DeltaPosition(p, m)
-	s.spatialHash.Update(d, d.Bounds, DeltaBounds(p, m, d))
+	deltaP := DeltaPosition(p, m)
+	s.spatialHash.Update(p, p.Position, deltaP)
+	p.Position = deltaP
 	e.SetPosition(p)
 	e.SetMovement(m)
 	return
 }
 
 func (s *PhysicsServer) Collisions(
+	e *core.ECS,
 	p attribute.Position,
 	r data.Rectangle,
 ) []attribute.Dimension {
@@ -168,8 +172,13 @@ func (s *PhysicsServer) Collisions(
 			continue
 		}
 
-		if r.Intersects(candidates[i].Bounds) {
-			results = append(results, candidates[i])
+		_d, err := e.GetDimension(candidates[i].EntityId)
+		if err != nil {
+			continue
+		}
+
+		if r.Intersects(_d.Bounds) {
+			results = append(results, _d)
 		}
 	}
 
