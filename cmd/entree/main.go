@@ -54,12 +54,6 @@ func main() {
 }
 
 func loadSpriteSheets(g *ui.GraphicsServer) {
-	heroSheet, err := sheets.HeroSheet()
-	if err != nil {
-		log.Fatal("main", "hero_sheet", err)
-	}
-	g.LoadSpriteSheet(heroSheet)
-
 	federicoSheet, err := sheets.FedericoSheet()
 	if err != nil {
 		log.Fatal("main", "federico_sheet", err)

@@ -39,9 +39,14 @@ func (s *AnimationServer) Update(e *core.ECS) {
 			spriteName = spriteName + "_side"
 		}
 
-		speed := float64(state.Counter) / (a.Speed / float64(a.VariantMax))
+		speed := float64(a.Counter) / (a.Speed / float64(a.VariantMax))
 		a.Variant = int(speed)%a.VariantMax + 1
 		a.Sprite = fmt.Sprintf("%s_%d", spriteName, a.Variant)
+		if int(speed) >= a.VariantMax {
+			a.Counter = 0
+		} else {
+			a.Counter++
+		}
 		e.SetAnimation(a)
 	}
 }
