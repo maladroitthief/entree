@@ -10,9 +10,10 @@ import (
 
 var (
 	grassSprites = []string{
-		"grass",
-		"flowers",
-		"tall_grass",
+		"grass_1",
+		"grass_2",
+		"grass_3",
+		"grass_4",
 	}
 )
 
@@ -20,20 +21,16 @@ func Grass(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
 	position := attribute.NewPosition(data.Vector{X: x, Y: y})
-	dimension := attribute.NewDimension(position.Position, data.Vector{X: 16, Y: 16})
-	collider := attribute.NewCollider()
-	collider.ColliderType = attribute.Impeding
-	collider.ImpedingRate = 0.2
+	dimension := attribute.NewDimension(position.Position, data.Vector{X: 32, Y: 32})
 
 	sprite := grassSprites[rand.Intn(len(grassSprites))]
-	animation := attribute.NewAnimation("test", sprite, 0.25)
+	animation := attribute.NewAnimation("tiles", sprite, 0.25)
 	animation.Static = true
 
 	entity := e.NewEntity()
 	entity = e.AddState(entity, state)
 	entity = e.AddPosition(entity, position)
 	entity = e.AddDimension(entity, dimension)
-	entity = e.AddCollider(entity, collider)
 	entity = e.AddAnimation(entity, animation)
 
 	return entity

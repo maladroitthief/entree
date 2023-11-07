@@ -41,7 +41,7 @@ func NewEbitenDriver(
 		width:         0,
 		height:        0,
 		title:         "",
-		theme:         &theme.TokyoNight{},
+		theme:         &theme.Endesga32{},
 		scale:         1,
 		spriteOptions: &ebiten.DrawImageOptions{},
 		spriteSheets:  make(map[string]*ebiten.Image),

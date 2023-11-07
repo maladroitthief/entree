@@ -3,7 +3,7 @@ package attribute
 import "github.com/maladroitthief/entree/common/data"
 
 const (
-	DefaultSize  = 16
+	DefaultSize  = 32
 	DefaultSpeed = 60
 )
 

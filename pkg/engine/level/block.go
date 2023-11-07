@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	BlockSize  = 16
+	BlockSize  = 32
 	Player     = '@'
 	EmptySpace = '0'
 	Solid      = '1'

@@ -78,7 +78,7 @@ func NewSceneManager(
 		graphics: g,
 		input:    i,
 		window:   w,
-		theme:    &theme.TokyoNight{},
+		theme:    &theme.Endesga32{},
 	}
 
 	err := m.GoTo(NewTitleScene(m.sceneState()))

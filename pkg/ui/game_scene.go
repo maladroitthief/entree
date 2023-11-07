@@ -32,7 +32,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs := &GameScene{
 		columns:         6,
 		rows:            6,
-		cellSize:        16,
+		cellSize:        32,
 		world:           core.NewECS(),
 		log:             state.log,
 		backgroundColor: state.theme.Green(),

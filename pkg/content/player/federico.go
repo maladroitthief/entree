@@ -16,7 +16,7 @@ func NewFederico(e *core.ECS) core.Entity {
 	dimension.Offset = data.Vector{X: 0, Y: -6}
 	collider := attribute.NewCollider()
 
-	animation := attribute.NewAnimation("federico", "idle_front_1", 0.5)
+	animation := attribute.NewAnimation("federico", "idle_front_1", 0.8)
 	animation.VariantMax = 6
 
 	entity := e.NewEntity()

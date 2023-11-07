@@ -10,11 +10,11 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
 	position := attribute.NewPosition(data.Vector{X: x, Y: y})
-	dimension := attribute.NewDimension(position.Position, data.Vector{X: 16, Y: 16})
+	dimension := attribute.NewDimension(position.Position, data.Vector{X: 32, Y: 32})
 	collider := attribute.NewCollider()
 	collider.ColliderType = attribute.Immovable
 
-	animation := attribute.NewAnimation("test", "wall", 0.4)
+	animation := attribute.NewAnimation("tiles", "rock_1", 0.4)
 	animation.Static = true
 
 	entity := e.NewEntity()

@@ -21,7 +21,7 @@ func NewTitleScene(state *SceneState) *TitleScene {
 	ts := &TitleScene{
 		width:           800,
 		height:          800,
-		cellSize:        16,
+		cellSize:        32,
 		log:             state.log,
 		backgroundColor: state.theme.Black(),
 	}

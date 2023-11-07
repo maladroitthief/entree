@@ -60,9 +60,9 @@ func loadSpriteSheets(g *ui.GraphicsServer) {
 	}
 	g.LoadSpriteSheet(federicoSheet)
 
-	testSheet, err := sheets.TestSheet()
+	tilesSheet, err := sheets.TilesSheet()
 	if err != nil {
-		log.Fatal("main", "test_sheet", err)
+		log.Fatal("main", "tiles_sheet", err)
 	}
-	g.LoadSpriteSheet(testSheet)
+	g.LoadSpriteSheet(tilesSheet)
 }
