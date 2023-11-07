@@ -61,7 +61,8 @@ func NewGameScene(state *SceneState) *GameScene {
 
 	gs.physics.Load(gs.world)
 	gs.camera = NewCamera(
-		data.Vector{X: 0, Y: 0},
+		0,
+		0,
 		data.Vector{X: 200, Y: 200},
 	)
 
@@ -115,6 +116,7 @@ func (s *GameScene) GetCamera() *Camera {
 		s.log.Error("GameScene.GetCamera", cameraPosition, err)
 	}
 
-	s.camera.Position = cameraPosition.Position
+	s.camera.X = cameraPosition.X
+	s.camera.Y = cameraPosition.Y
 	return s.camera
 }

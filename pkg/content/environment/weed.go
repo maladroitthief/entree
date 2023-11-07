@@ -9,13 +9,16 @@ import (
 func Weeds(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
-	position := attribute.NewPosition(data.Vector{X: x, Y: y})
-	dimension := attribute.NewDimension(position.Position, data.Vector{X: 32, Y: 32})
+	position := attribute.NewPosition(x, y, 1.25)
+	dimension := attribute.NewDimension(
+		data.Vector{X: position.X, Y: position.Y},
+		data.Vector{X: 32, Y: 32},
+	)
 	collider := attribute.NewCollider()
 	collider.ColliderType = attribute.Impeding
 	collider.ImpedingRate = 0.6
 
-	animation := attribute.NewAnimation("tiles", "weeds_1", 0.25)
+	animation := attribute.NewAnimation("tiles", "weeds_1")
 	animation.Static = true
 
 	entity := e.NewEntity()

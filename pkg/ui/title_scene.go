@@ -27,10 +27,8 @@ func NewTitleScene(state *SceneState) *TitleScene {
 	}
 
 	ts.camera = NewCamera(
-		data.Vector{
-			X: 0,
-			Y: 0,
-		},
+		0,
+		0,
 		data.Vector{X: float64(ts.width), Y: float64(ts.height)},
 	)
 

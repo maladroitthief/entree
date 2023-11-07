@@ -5,12 +5,14 @@ import "github.com/maladroitthief/entree/common/data"
 type Camera struct {
 	ViewPort data.Vector
 	Zoom     float64
-	Position data.Vector
+	X        float64
+	Y        float64
 }
 
-func NewCamera(position data.Vector, viewPort data.Vector) *Camera {
+func NewCamera(x, y float64, viewPort data.Vector) *Camera {
 	return &Camera{
-		Position: position,
+		X:        x,
+		Y:        y,
 		ViewPort: viewPort,
 		Zoom:     5,
 	}

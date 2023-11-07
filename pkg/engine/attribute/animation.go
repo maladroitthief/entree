@@ -10,7 +10,6 @@ const (
 type Animation struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
-	ZLayer   float64
 
 	Counter     int
 	Static      bool
@@ -21,7 +20,7 @@ type Animation struct {
 	Sprite      string
 }
 
-func NewAnimation(sheet, sprite string, z float64) Animation {
+func NewAnimation(sheet, sprite string) Animation {
 	return Animation{
 		Speed:       DefaultSpeed,
 		Counter:     0,
@@ -29,6 +28,5 @@ func NewAnimation(sheet, sprite string, z float64) Animation {
 		VariantMax:  1,
 		SpriteSheet: sheet,
 		Sprite:      sprite,
-		ZLayer:      z,
 	}
 }

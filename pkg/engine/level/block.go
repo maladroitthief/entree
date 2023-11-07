@@ -35,8 +35,8 @@ func NewBlockFactory() BlockFactory {
 func (bf *blockFactory) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
 	// TODO: Handle this error
 	position, _ := e.GetPosition(p.Id)
-	position.Position.X = x
-	position.Position.Y = y
+	position.X = x
+	position.Y = y
 
 	e.SetPosition(position)
 }

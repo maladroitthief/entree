@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -95,16 +96,21 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	animations := state.GetAllAnimations()
+	positions := state.GetAllPosition()
 	sort.Slice(
-		animations,
-		func(i, j int) bool { return animations[i].ZLayer < animations[j].ZLayer },
+		positions,
+		func(i, j int) bool {
+			if math.Ceil(positions[i].Z) != math.Ceil(positions[j].Z) {
+				return positions[i].Z < positions[j].Z
+			}
+			return positions[i].Y < positions[j].Y
+		},
 	)
 
-	for _, animation := range animations {
-		err := e.DrawAnimation(screen, state, animation)
+	for _, position := range positions {
+		err := e.DrawAnimation(screen, state, position)
 		if err != nil {
-			e.log.Error("Draw", animation, err)
+			e.log.Error("Draw", position, err)
 		}
 	}
 
@@ -115,18 +121,18 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 func (e *EbitenGame) DrawAnimation(
 	screen *ebiten.Image,
 	world *core.ECS,
-	animation attribute.Animation,
+	position attribute.Position,
 ) (err error) {
-	entity, entityErr := world.GetEntity(animation.EntityId)
+	entity, entityErr := world.GetEntity(position.EntityId)
 	state, stateErr := world.GetState(entity.Id)
-  position, positionErr := world.GetPosition(entity.Id)
-  dimension, dimensionErr := world.GetDimension(entity.Id)
+	animation, animationErr := world.GetAnimation(entity.Id)
+	dimension, dimensionErr := world.GetDimension(entity.Id)
 
 	if entityErr != nil {
 		return nil
 	}
 
-	if positionErr != nil {
+	if animationErr != nil {
 		return nil
 	}
 
@@ -161,8 +167,8 @@ func (e *EbitenGame) DrawAnimation(
 
 	// Position the sprite and draw it
 	e.spriteOptions.GeoM.Translate(
-		position.Position.X+dimension.Offset.X,
-		position.Position.Y+dimension.Offset.Y,
+		position.X+dimension.Offset.X,
+		position.Y+dimension.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
@@ -172,8 +178,7 @@ func (e *EbitenGame) DrawAnimation(
 func (e *EbitenGame) Render(screen *ebiten.Image) {
 	m := ebiten.GeoM{}
 	c := e.scene.GetCamera()
-	position := c.Position
-	m.Translate(-position.X, -position.Y)
+	m.Translate(-c.X, -c.Y)
 
 	// Scale around the center
 	zoom := c.Zoom

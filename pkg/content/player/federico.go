@@ -10,13 +10,16 @@ func NewFederico(e *core.ECS) core.Entity {
 	ai := attribute.NewAI(attribute.Input)
 	state := attribute.NewState()
 
-	position := attribute.NewPosition(data.Vector{X: 100, Y: 100})
+	position := attribute.NewPosition(100, 100, 1.6)
 	movement := attribute.NewMovement()
-	dimension := attribute.NewDimension(position.Position, data.Vector{X: 12, Y: 18})
+	dimension := attribute.NewDimension(
+		data.Vector{X: position.X, Y: position.Y},
+		data.Vector{X: 12, Y: 18},
+	)
 	dimension.Offset = data.Vector{X: 0, Y: -6}
 	collider := attribute.NewCollider()
 
-	animation := attribute.NewAnimation("federico", "idle_front_1", 0.8)
+	animation := attribute.NewAnimation("federico", "idle_front_1")
 	animation.VariantMax = 6
 
 	entity := e.NewEntity()

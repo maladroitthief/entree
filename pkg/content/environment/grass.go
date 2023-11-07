@@ -20,11 +20,14 @@ var (
 func Grass(e *core.ECS, x, y float64) core.Entity {
 	state := attribute.NewState()
 
-	position := attribute.NewPosition(data.Vector{X: x, Y: y})
-	dimension := attribute.NewDimension(position.Position, data.Vector{X: 32, Y: 32})
+	position := attribute.NewPosition(x, y, 0.25)
+	dimension := attribute.NewDimension(
+		data.Vector{X: position.X, Y: position.Y},
+		data.Vector{X: 32, Y: 32},
+	)
 
 	sprite := grassSprites[rand.Intn(len(grassSprites))]
-	animation := attribute.NewAnimation("tiles", sprite, 0.25)
+	animation := attribute.NewAnimation("tiles", sprite)
 	animation.Static = true
 
 	entity := e.NewEntity()

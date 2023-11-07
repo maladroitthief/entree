@@ -6,11 +6,15 @@ type Position struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
 
-	Position data.Vector
+	X float64
+	Y float64
+	Z float64
 }
 
-func NewPosition(position data.Vector) Position {
+func NewPosition(x, y, z float64) Position {
 	return Position{
-		Position: position,
+		X: x,
+		Y: y,
+		Z: z,
 	}
 }
