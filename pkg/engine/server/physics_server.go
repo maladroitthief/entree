@@ -16,7 +16,7 @@ type PhysicsServer struct {
 	x           float64
 	y           float64
 	size        float64
-	bounds      [4]data.Rectangle
+	bounds      [4]attribute.Dimension
 	spatialHash *data.SpatialHash[attribute.Position]
 }
 
@@ -31,13 +31,25 @@ func NewPhysicsServer(x, y, size float64) *PhysicsServer {
 	xSize := x * size
 	ySize := y * size
 	// North
-	s.bounds[0] = data.NewRectangle(-size, 0, xSize+size, -size)
+	s.bounds[0] = attribute.NewDimension(
+		data.Vector{X: xSize / 2, Y: -size / 2},
+		data.Vector{X: xSize, Y: size},
+	)
 	// South
-	s.bounds[1] = data.NewRectangle(-size, ySize, xSize+size, ySize+size)
+	s.bounds[1] = attribute.NewDimension(
+		data.Vector{X: xSize / 2, Y: ySize + size/2},
+		data.Vector{X: xSize, Y: size},
+	)
 	// East
-	s.bounds[2] = data.NewRectangle(xSize, ySize+size, xSize+size, -size)
+	s.bounds[2] = attribute.NewDimension(
+		data.Vector{X: xSize + size/2, Y: ySize / 2},
+		data.Vector{X: size, Y: ySize},
+	)
 	// West
-	s.bounds[3] = data.NewRectangle(-size, ySize+size, 0, -size)
+	s.bounds[3] = attribute.NewDimension(
+		data.Vector{X: -size / 2, Y: ySize / 2},
+		data.Vector{X: size, Y: ySize},
+	)
 
 	return s
 }
@@ -192,37 +204,40 @@ func CheckOOBCollision(
 	p attribute.Position,
 	m attribute.Movement,
 	d attribute.Dimension,
-	r data.Rectangle,
+	_d attribute.Dimension,
 ) attribute.Position {
 	if m.Acceleration.X == 0 && m.Acceleration.Y == 0 {
 		return p
 	}
 
-	deltaPosition := DeltaPosition(p, m)
-	xBounds := data.Bounds(
-		data.Vector{X: deltaPosition.X, Y: p.Y},
-		d.Size,
+	xCollision := _d.Bounds.Intersects(
+		data.Bounds(
+			data.Vector{X: DeltaPosition(p, m).X, Y: p.Y},
+			d.Size,
+		),
 	)
-	yBounds := data.Bounds(
-		data.Vector{X: p.X, Y: deltaPosition.Y},
-		d.Size,
+	yCollision := _d.Bounds.Intersects(
+		data.Bounds(
+			data.Vector{X: p.X, Y: DeltaPosition(p, m).Y},
+			d.Size,
+		),
 	)
-	xCollision := r.Intersects(xBounds)
-	yCollision := r.Intersects(yBounds)
 
+	// TODO: Why does this work
+	OOBBuffer := 4.0
 	if xCollision && m.Acceleration.X > 0 {
-		p.X = r.MinPoint.X - d.Size.X/2 - CollisionBuffer
+		p.X = _d.Bounds.MinPoint.X - d.Size.X/2 - OOBBuffer
 		m.Velocity.X = 0
 	} else if xCollision && m.Acceleration.X < 0 {
-		p.X = r.MaxPoint.X + d.Size.X/2 + CollisionBuffer
+		p.X = _d.Bounds.MaxPoint.X + d.Size.X/2 + OOBBuffer
 		m.Velocity.X = 0
 	}
 
 	if yCollision && m.Acceleration.Y > 0 {
-		p.Y = r.MinPoint.Y - d.Size.Y/2 - CollisionBuffer
+		p.Y = _d.Bounds.MinPoint.Y - d.Size.Y/2 - OOBBuffer
 		m.Velocity.Y = 0
 	} else if yCollision && m.Acceleration.Y < 0 {
-		p.Y = r.MaxPoint.Y + d.Size.Y/2 + CollisionBuffer
+		p.Y = _d.Bounds.MaxPoint.Y + d.Size.Y/2 + OOBBuffer
 		m.Velocity.Y = 0
 	}
 

@@ -39,6 +39,7 @@ func TilesSheet() (*content.SpriteSheet, error) {
 	sprites = append(sprites, Sprite("grass_2", 1, 3))
 	sprites = append(sprites, Sprite("grass_3", 1, 4))
 	sprites = append(sprites, Sprite("grass_4", 1, 5))
+	sprites = append(sprites, Sprite("weeds_1", 1, 6))
 
 	for _, s := range sprites {
 		err = ss.AddSprite(s)
