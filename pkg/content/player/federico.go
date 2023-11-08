@@ -14,7 +14,7 @@ func NewFederico(e *core.ECS) core.Entity {
 	movement := attribute.NewMovement()
 	dimension := attribute.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},
-		data.Vector{X: 12, Y: 12},
+		data.Vector{X: 16, Y: 16},
 	)
 	dimension.Offset = data.Vector{X: 0, Y: -6}
 	collider := attribute.NewCollider()

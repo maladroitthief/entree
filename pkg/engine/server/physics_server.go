@@ -148,7 +148,7 @@ func (s *PhysicsServer) UpdatePosition(
 
 	collisions := s.Collisions(e, p, DeltaBounds(p, m, d))
 	for _, oob := range s.bounds[:] {
-		p = CheckOOBCollision(p, m, d, oob)
+		p, m = checkOOBCollision(p, m, d, oob)
 	}
 
 	if len(collisions) == 0 {
@@ -200,14 +200,14 @@ func (s *PhysicsServer) Collisions(
 	return results
 }
 
-func CheckOOBCollision(
+func checkOOBCollision(
 	p attribute.Position,
 	m attribute.Movement,
 	d attribute.Dimension,
 	_d attribute.Dimension,
-) attribute.Position {
+) (attribute.Position, attribute.Movement) {
 	if m.Acceleration.X == 0 && m.Acceleration.Y == 0 {
-		return p
+		return p, m
 	}
 
 	xCollision := _d.Bounds.Intersects(
@@ -223,25 +223,23 @@ func CheckOOBCollision(
 		),
 	)
 
-	// TODO: Why does this work
-	OOBBuffer := 4.0
 	if xCollision && m.Acceleration.X > 0 {
-		p.X = _d.Bounds.MinPoint.X - d.Size.X/2 - OOBBuffer
+		p.X = _d.Bounds.MinPoint.X - d.Size.X/2 - CollisionBuffer
 		m.Velocity.X = 0
 	} else if xCollision && m.Acceleration.X < 0 {
-		p.X = _d.Bounds.MaxPoint.X + d.Size.X/2 + OOBBuffer
+		p.X = _d.Bounds.MaxPoint.X + d.Size.X/2 + CollisionBuffer
 		m.Velocity.X = 0
 	}
 
 	if yCollision && m.Acceleration.Y > 0 {
-		p.Y = _d.Bounds.MinPoint.Y - d.Size.Y/2 - OOBBuffer
+		p.Y = _d.Bounds.MinPoint.Y - d.Size.Y/2 - CollisionBuffer
 		m.Velocity.Y = 0
 	} else if yCollision && m.Acceleration.Y < 0 {
-		p.Y = _d.Bounds.MaxPoint.Y + d.Size.Y/2 + OOBBuffer
+		p.Y = _d.Bounds.MaxPoint.Y + d.Size.Y/2 + CollisionBuffer
 		m.Velocity.Y = 0
 	}
 
-	return p
+	return p, m
 }
 
 func HandleCollision(
@@ -253,6 +251,11 @@ func HandleCollision(
 	_d attribute.Dimension,
 ) (attribute.Position, attribute.Movement) {
 
+	_c, err := e.GetCollider(_d.EntityId)
+	if err != nil {
+		return p, m
+	}
+
 	xCollision := _d.Bounds.Intersects(
 		data.Bounds(
 			data.Vector{X: DeltaPosition(p, m).X, Y: p.Y},
@@ -265,11 +268,6 @@ func HandleCollision(
 			d.Size,
 		),
 	)
-
-	_c, err := e.GetCollider(_d.EntityId)
-	if err != nil {
-		return p, m
-	}
 
 	switch _c.ColliderType {
 	case attribute.Immovable:
