@@ -62,6 +62,34 @@ func (h *SpatialHash[T]) Delete(val T, position Vector) {
 	h.Cells[positionIndex] = cell.Delete(val, position)
 }
 
+func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
+	delta := w.Subtract(v)
+	nX, nY := math.Abs(delta.X), math.Abs(delta.Y)
+	signX, signY := 1.0, 1.0
+	if delta.X <= 0 {
+		signX = -1
+	}
+	if delta.Y <= 0 {
+		signY = -1
+	}
+	vector := v.Clone()
+	vectors := []Vector{vector.Clone()}
+
+	i, j := 0.0, 0.0
+	for i < nX || j < nY {
+		if (1+2*i)*nY < (1+2*j)*nX {
+			vector.X += signX
+			i++
+		} else {
+			vector.Y += signY
+			j++
+		}
+		vectors = append(vectors, vector.Clone())
+	}
+
+	return vectors
+}
+
 func (h *SpatialHash[T]) Search(x, y float64) []T {
 	i := h.toIndex(x, y)
 

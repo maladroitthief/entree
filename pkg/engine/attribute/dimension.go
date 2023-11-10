@@ -9,7 +9,7 @@ type Dimension struct {
 	Size   data.Vector
 	Scale  float64
 	Offset data.Vector
-	Bounds data.Rectangle
+	Bounds data.Polygon
 }
 
 func NewDimension(position data.Vector, size data.Vector) Dimension {
@@ -17,7 +17,6 @@ func NewDimension(position data.Vector, size data.Vector) Dimension {
 		Size:   size,
 		Scale:  1,
 		Offset: data.Vector{X: 0, Y: 0},
-    // TODO support other bound types
-		Bounds: data.Bounds(position, size),
+		Bounds: data.NewRectangle(position, size.X, size.Y).ToPolygon(),
 	}
 }

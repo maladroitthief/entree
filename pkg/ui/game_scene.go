@@ -47,7 +47,6 @@ func NewGameScene(state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	// player := player.NewHero(gs.world)
 	player := player.NewFederico(gs.world)
 	gs.cameraFocus = player
 
