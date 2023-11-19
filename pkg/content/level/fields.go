@@ -3,10 +3,12 @@ package level
 import (
 	"math/rand"
 
+	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
 )
+
 type fieldBlocks struct {
 }
 
@@ -19,10 +21,13 @@ func FieldBlockFactory() level.BlockFactory {
 func (bf *fieldBlocks) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
 	// TODO: Handle this error
 	position, _ := e.GetPosition(p.Id)
+	dimension, _ := e.GetDimension(p.Id)
 	position.X = x
 	position.Y = y
+	dimension.Bounds = dimension.Bounds.SetPosition(data.Vector{X: x, Y: y})
 
 	e.SetPosition(position)
+	e.SetDimension(dimension)
 }
 
 func (bf *fieldBlocks) AddSolidBlock(e *core.ECS, x, y float64) {

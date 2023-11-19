@@ -71,14 +71,14 @@ func (g *GenerationalIndexAllocator) IsLive(i GenerationalIndex) bool {
 	return true
 }
 
-type ArrayEntry[T comparable] struct {
+type ArrayEntry[T any] struct {
 	value      T
 	generation int
 }
 
-type GenerationalIndexArray[T comparable] []ArrayEntry[T]
+type GenerationalIndexArray[T any] []ArrayEntry[T]
 
-func NewGenerationalIndexArray[T comparable]() GenerationalIndexArray[T] {
+func NewGenerationalIndexArray[T any]() GenerationalIndexArray[T] {
 	return GenerationalIndexArray[T]{}
 }
 

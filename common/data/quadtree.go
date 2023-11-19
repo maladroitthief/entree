@@ -61,8 +61,7 @@ func (q *QuadTree[T]) split() {
 	q.quadrants[0] = NewQuadTree[T](
 		q.level+1,
 		NewRectangle(
-			q.bounds.MinPoint.X,
-			q.bounds.MinPoint.Y,
+			Vector{X: q.bounds.Position.X - q.halfWidth(), Y: q.bounds.Position.Y - q.halfHeight()},
 			q.halfWidth(),
 			q.halfHeight(),
 		),
@@ -70,28 +69,25 @@ func (q *QuadTree[T]) split() {
 	q.quadrants[1] = NewQuadTree[T](
 		q.level+1,
 		NewRectangle(
-			q.bounds.MinPoint.X,
-			q.bounds.MinPoint.Y+q.halfHeight(),
-			q.bounds.MinPoint.X+q.halfWidth(),
-			q.bounds.MaxPoint.Y,
+			Vector{X: q.bounds.Position.X - q.halfWidth(), Y: q.bounds.Position.Y + q.halfHeight()},
+			q.halfWidth(),
+			q.halfHeight(),
 		),
 	)
 	q.quadrants[2] = NewQuadTree[T](
 		q.level+1,
 		NewRectangle(
-			q.bounds.MinPoint.X+q.halfWidth(),
-			q.bounds.MinPoint.Y+q.halfHeight(),
-			q.bounds.MaxPoint.X,
-			q.bounds.MaxPoint.Y,
+			Vector{X: q.bounds.Position.X + q.halfWidth(), Y: q.bounds.Position.Y + q.halfHeight()},
+			q.halfWidth(),
+			q.halfHeight(),
 		),
 	)
 	q.quadrants[3] = NewQuadTree[T](
 		q.level+1,
 		NewRectangle(
-			q.bounds.MinPoint.X+q.halfWidth(),
-			q.bounds.MinPoint.Y,
-			q.bounds.MaxPoint.X,
-			q.bounds.MinPoint.Y+q.halfHeight(),
+			Vector{X: q.bounds.Position.X + q.halfWidth(), Y: q.bounds.Position.Y - q.halfHeight()},
+			q.halfWidth(),
+			q.halfHeight(),
 		),
 	)
 }
@@ -151,7 +147,7 @@ func (q *QuadTree[T]) InclusiveIndexes(r Rectangle) []int {
 }
 
 func (q *QuadTree[T]) Insert(item T, bounds Rectangle) {
-  qi := NewQuadTreeItem[T](item, bounds)
+	qi := NewQuadTreeItem[T](item, bounds)
 
 	if q.quadrants[0] != nil {
 		index := q.Index(qi.bounds)
@@ -202,9 +198,9 @@ func (q *QuadTree[T]) Get(r Rectangle) []T {
 }
 
 func (q *QuadTree[T]) halfHeight() float64 {
-	return q.bounds.Height() / 2
+	return q.bounds.Height / 2
 }
 
 func (q *QuadTree[T]) halfWidth() float64 {
-	return q.bounds.Width() / 2
+	return q.bounds.Width / 2
 }
