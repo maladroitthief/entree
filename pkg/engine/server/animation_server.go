@@ -1,8 +1,6 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
@@ -28,6 +26,7 @@ func (s *AnimationServer) Update(e *core.ECS) {
 		if err != nil {
 			continue
 		}
+
 		spriteName := state.State
 		if state.OrientationY == attribute.South {
 			spriteName = spriteName + "_front"
@@ -39,10 +38,16 @@ func (s *AnimationServer) Update(e *core.ECS) {
 			spriteName = spriteName + "_side"
 		}
 
-		speed := float64(a.Counter) / (a.Speed / float64(a.VariantMax))
-		a.Variant = int(speed)%a.VariantMax + 1
-		a.Sprite = fmt.Sprintf("%s_%d", spriteName, a.Variant)
-		if int(speed) >= a.VariantMax {
+		sprites, ok := a.Sprites[spriteName]
+		if !ok {
+			continue
+		}
+
+		spritesCount := len(a.Sprites[spriteName])
+		speed := float64(a.Counter) / (a.Speed / float64(spritesCount))
+		a.Variant = int(speed) % spritesCount
+		a.Sprite = sprites[a.Variant]
+		if int(speed) >= spritesCount {
 			a.Counter = 0
 		} else {
 			a.Counter++

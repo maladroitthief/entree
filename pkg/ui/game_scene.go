@@ -41,6 +41,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.ai = server.NewAIServer()
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
+		state.log,
 		float64(gs.columns*level.RoomWidth),
 		float64(gs.rows*level.RoomHeight),
 		float64(gs.cellSize),
@@ -48,6 +49,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.animation = server.NewAnimationServer()
 
 	player := player.NewFederico(gs.world)
+	// player := enemy.NewOnyawn(gs.world)
 	gs.cameraFocus = player
 
 	level := level.NewLevel(

@@ -171,16 +171,16 @@ func (e *EbitenGame) DrawAnimation(
 		position.Y+dimension.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
-	vector.StrokeRect(
-		e.canvas,
-		float32(position.X-dimension.Size.X/2),
-		float32(position.Y-dimension.Size.Y/2),
-		float32(dimension.Size.X),
-		float32(dimension.Size.Y),
-		1,
-		e.theme.Red(),
-		false,
-	)
+	// vector.StrokeRect(
+	// 	e.canvas,
+	// 	float32(position.X-dimension.Size.X/2),
+	// 	float32(position.Y-dimension.Size.Y/2),
+	// 	float32(dimension.Size.X),
+	// 	float32(dimension.Size.Y),
+	// 	1,
+	// 	e.theme.Red(),
+	// 	false,
+	// )
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",

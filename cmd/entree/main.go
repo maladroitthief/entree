@@ -14,6 +14,7 @@ func main() {
 	// defer profile.Start().Stop()
 
 	log := logs.NewLogrusLogger()
+	// log.SetLevel("Debug")
 	settingsRepo := driver.NewSettingsRepository("settings.json")
 
 	graphicsServer, err := ui.NewGraphicsServer(log)
@@ -59,6 +60,12 @@ func loadSpriteSheets(g *ui.GraphicsServer) {
 		log.Fatal("main", "federico_sheet", err)
 	}
 	g.LoadSpriteSheet(federicoSheet)
+
+	onyawnSheet, err := sheets.OnyawnSheet()
+	if err != nil {
+		log.Fatal("main", "onyawn_sheet", err)
+	}
+	g.LoadSpriteSheet(onyawnSheet)
 
 	tilesSheet, err := sheets.TilesSheet()
 	if err != nil {
