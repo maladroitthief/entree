@@ -14,7 +14,7 @@ func main() {
 	// defer profile.Start().Stop()
 
 	log := logs.NewLogrusLogger()
-	// log.SetLevel("Debug")
+	log.SetLevel("Debug")
 	settingsRepo := driver.NewSettingsRepository("settings.json")
 
 	graphicsServer, err := ui.NewGraphicsServer(log)

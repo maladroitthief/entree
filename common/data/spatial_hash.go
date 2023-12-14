@@ -70,6 +70,7 @@ func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
 }
 
 func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
+	set := map[T]struct{}{}
 	items := []T{}
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
 	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
@@ -77,7 +78,13 @@ func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
 
 	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
 		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			items = append(items, h.Cells[x][y].Get()...)
+			for _, item := range h.Cells[x][y].Get() {
+				_, ok := set[item]
+				if !ok {
+					set[item] = struct{}{}
+					items = append(items, item)
+				}
+			}
 		}
 	}
 
