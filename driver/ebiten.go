@@ -157,9 +157,6 @@ func (e *EbitenGame) DrawAnimation(
 		-float64(sprite.Bounds().Size().Y)/2,
 	)
 
-	// Scale the sprite
-	e.spriteOptions.GeoM.Scale(dimension.Scale, dimension.Scale)
-
 	// Flip the sprite if moving west
 	if stateErr == nil && state.OrientationX == attribute.West {
 		e.spriteOptions.GeoM.Scale(-1, 1)
@@ -171,16 +168,18 @@ func (e *EbitenGame) DrawAnimation(
 		position.Y+dimension.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
-	// vector.StrokeRect(
-	// 	e.canvas,
-	// 	float32(position.X-dimension.Size.X/2),
-	// 	float32(position.Y-dimension.Size.Y/2),
-	// 	float32(dimension.Size.X),
-	// 	float32(dimension.Size.Y),
-	// 	1,
-	// 	e.theme.Red(),
-	// 	false,
-	// )
+
+	bounds := dimension.Bounds()
+	vector.StrokeRect(
+		e.canvas,
+		float32(bounds.Position.X-bounds.Width/2),
+		float32(bounds.Position.Y-bounds.Height/2),
+		float32(bounds.Width),
+		float32(bounds.Height),
+		1,
+		e.theme.Red(),
+		false,
+	)
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",

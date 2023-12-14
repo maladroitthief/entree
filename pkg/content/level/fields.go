@@ -24,7 +24,7 @@ func (bf *fieldBlocks) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
 	dimension, _ := e.GetDimension(p.Id)
 	position.X = x
 	position.Y = y
-	dimension.Bounds = dimension.Bounds.SetPosition(data.Vector{X: x, Y: y})
+	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: x, Y: y})
 
 	e.SetPosition(position)
 	e.SetDimension(dimension)

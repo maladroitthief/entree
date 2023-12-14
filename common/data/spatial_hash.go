@@ -5,20 +5,6 @@ import (
 	"strings"
 )
 
-var (
-	directions = [][2]float64{
-		{-1, -1},
-		{-1, 0},
-		{-1, 1},
-		{0, -1},
-		{0, 0},
-		{0, 1},
-		{1, -1},
-		{1, 0},
-		{1, 1},
-	}
-)
-
 type SpatialHash[T comparable] struct {
 	sb        strings.Builder
 	Cells     [][]Cell[T]
@@ -56,13 +42,12 @@ func (h *SpatialHash[T]) Size() int {
 
 func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
-	xMinIndex, yMinIndex := h.toIndex(minPoint.X, minPoint.Y)
-	xMaxIndex, yMaxIndex := h.toIndex(maxPoint.X, maxPoint.Y)
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
 
 	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
 		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			cell := h.Cells[x][y]
-			h.Cells[x][y] = cell.Insert(val)
+			h.Cells[x][y] = h.Cells[x][y].Insert(val)
 		}
 	}
 }
@@ -74,59 +59,26 @@ func (h *SpatialHash[T]) Update(val T, oldBounds, newBounds Rectangle) {
 
 func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
-	xMinIndex, yMinIndex := h.toIndex(minPoint.X, minPoint.Y)
-	xMaxIndex, yMaxIndex := h.toIndex(maxPoint.X, maxPoint.Y)
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
 
 	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
 		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			cell := h.Cells[x][y]
-			h.Cells[x][y] = cell.Delete(val)
+			h.Cells[x][y] = h.Cells[x][y].Delete(val)
 		}
 	}
 }
 
-func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
-	delta := w.Subtract(v)
-	nX, nY := math.Abs(delta.X), math.Abs(delta.Y)
-	signX, signY := 1.0, 1.0
-	if delta.X <= 0 {
-		signX = -1
-	}
-	if delta.Y <= 0 {
-		signY = -1
-	}
-	vector := v.Clone()
-	vectors := []Vector{vector.Clone()}
-
-	i, j := 0.0, 0.0
-	for i < nX || j < nY {
-		if (1+2*i)*nY < (1+2*j)*nX {
-			vector.X += signX
-			i++
-		} else {
-			vector.Y += signY
-			j++
-		}
-		vectors = append(vectors, vector.Clone())
-	}
-
-	return vectors
-}
-
-func (h *SpatialHash[T]) Search(x, y float64) []T {
-	xIndex, yIndex := h.toIndex(x, y)
-	cell := h.Cells[xIndex][yIndex]
-
-	return cell.Get()
-}
-
-func (h *SpatialHash[T]) SearchNeighbors(x, y float64) []T {
+func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
 	items := []T{}
-	for _, direction := range directions {
-		i := x + direction[0]*h.ChunkSize
-		j := y + direction[1]*h.ChunkSize
+	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
 
-		items = append(items, h.Search(i, j)...)
+	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
+		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
+			items = append(items, h.Cells[x][y].Get()...)
+		}
 	}
 
 	return items
@@ -138,7 +90,7 @@ func (h *SpatialHash[T]) Drop() {
 	}
 }
 
-func (h *SpatialHash[T]) toIndex(x, y float64) (xIndex, yIndex int) {
+func (h *SpatialHash[T]) getCellIndex(x, y float64) (xIndex, yIndex int) {
 	xIndex = int(math.Round(x / h.ChunkSize))
 	yIndex = int(math.Round(y / h.ChunkSize))
 
@@ -148,21 +100,6 @@ func (h *SpatialHash[T]) toIndex(x, y float64) (xIndex, yIndex int) {
 	yIndex = min(yIndex, h.Y-1)
 
 	return xIndex, yIndex
-}
-
-func (h *SpatialHash[T]) toIndices(x, y float64) [][2]int {
-	indices := [][2]int{}
-
-	xIndex := int(math.Round(x / h.ChunkSize))
-	yIndex := int(math.Round(y / h.ChunkSize))
-
-	xIndex = max(xIndex, 0)
-	xIndex = min(xIndex, h.X-1)
-	yIndex = max(yIndex, 0)
-	yIndex = min(yIndex, h.Y-1)
-	indices = append(indices, [2]int{xIndex, yIndex})
-
-	return indices
 }
 
 type Cell[T comparable] struct {
@@ -209,4 +146,32 @@ func (c Cell[T]) Delete(item T) Cell[T] {
 
 type CellItem[T comparable] struct {
 	item T
+}
+
+func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
+	delta := w.Subtract(v)
+	nX, nY := math.Abs(delta.X), math.Abs(delta.Y)
+	signX, signY := 1.0, 1.0
+	if delta.X <= 0 {
+		signX = -1
+	}
+	if delta.Y <= 0 {
+		signY = -1
+	}
+	vector := v.Clone()
+	vectors := []Vector{vector.Clone()}
+
+	i, j := 0.0, 0.0
+	for i < nX || j < nY {
+		if (1+2*i)*nY < (1+2*j)*nX {
+			vector.X += signX
+			i++
+		} else {
+			vector.Y += signY
+			j++
+		}
+		vectors = append(vectors, vector.Clone())
+	}
+
+	return vectors
 }

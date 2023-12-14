@@ -161,11 +161,12 @@ func (p Polygon) calcBounds() Rectangle {
 	minHeight, maxHeight := math.MaxFloat64, 0.0
 	minWidth, maxWidth := math.MaxFloat64, 0.0
 
-	for i := 0; i < len(p.Vectors); i++ {
-		minWidth = min(minWidth, p.Vectors[i].X)
-		maxWidth = min(maxWidth, p.Vectors[i].X)
-		minHeight = min(minHeight, p.Vectors[i].Y)
-		maxHeight = max(maxHeight, p.Vectors[i].Y)
+	for i := 0; i < len(p.CalcVectors); i++ {
+		minWidth = min(minWidth, p.CalcVectors[i].X)
+		maxWidth = max(maxWidth, p.CalcVectors[i].X)
+
+		minHeight = min(minHeight, p.CalcVectors[i].Y)
+		maxHeight = max(maxHeight, p.CalcVectors[i].Y)
 	}
 
 	return NewRectangle(p.Position, maxWidth-minWidth, maxHeight-minHeight)

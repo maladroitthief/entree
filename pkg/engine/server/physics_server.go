@@ -28,7 +28,7 @@ func NewPhysicsServer(log logs.Logger, x, y, size float64) *PhysicsServer {
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
+		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 33),
 		oob:         OOB(x, y, size),
 	}
 
@@ -44,7 +44,7 @@ func (s *PhysicsServer) Load(e *core.ECS) {
 		if err != nil {
 			continue
 		}
-		s.spatialHash.Insert(entity, dimension.Bounds.Bounds)
+		s.spatialHash.Insert(entity, dimension.Bounds())
 	}
 }
 
@@ -57,11 +57,11 @@ func DeltaPositionXY(p attribute.Position, x, y float64) data.Vector {
 }
 
 func DeltaBounds(d attribute.Dimension, v data.Vector) data.Polygon {
-	return d.Bounds.Add(v)
+	return d.Polygon.Add(v)
 }
 
 func DeltaBoundsXY(d attribute.Dimension, x, y float64) data.Polygon {
-	return d.Bounds.Add(data.Vector{X: x, Y: y})
+	return d.Polygon.Add(data.Vector{X: x, Y: y})
 }
 
 func (s *PhysicsServer) Update(e *core.ECS) {
@@ -165,13 +165,13 @@ func (s *PhysicsServer) updateAttributes(
 	}
 
 	deltaPosition := DeltaPosition(p, m.Velocity)
-	oldBounds := d.Bounds.Bounds
+	oldBounds := d.Polygon.Bounds
 
 	p.X = deltaPosition.X
 	p.Y = deltaPosition.Y
-	d.Bounds = d.Bounds.SetPosition(deltaPosition)
+	d.Polygon = d.Polygon.SetPosition(deltaPosition)
 
-	s.spatialHash.Update(entity, oldBounds, d.Bounds.Bounds)
+	s.spatialHash.Update(entity, oldBounds, d.Bounds())
 
 	e.SetPosition(p)
 	e.SetMovement(m)
@@ -186,14 +186,15 @@ func (s *PhysicsServer) Collisions(
 ) []attribute.Dimension {
 	s.log.Debug("Start", "PhysicsServer.Collisions()")
 	results := []attribute.Dimension{}
-	entities := s.spatialHash.SearchNeighbors(p.X, p.Y)
+	entities := s.spatialHash.FindNear(d.Bounds())
+	s.log.Debug("entities length", len(entities))
 	for i := 0; i < len(entities); i++ {
 		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {
 			continue
 		}
 
-		_, intersects := DeltaBounds(d, m.Velocity).Intersects(_d.Bounds)
+		_, intersects := DeltaBounds(d, m.Velocity).Intersects(_d.Polygon)
 		if intersects {
 			results = append(results, _d)
 		}
@@ -218,20 +219,20 @@ func HandleCollision(
 
 	switch _c.ColliderType {
 	case attribute.Immovable:
-		xMTV, xCollision := _d.Bounds.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
+		xMTV, xCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
 		if xCollision && m.Acceleration.X != 0 {
 			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
 			p.X = translation.X
 			m.Velocity.X = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
 
-		yMTV, yCollision := _d.Bounds.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
+		yMTV, yCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
 		if yCollision && m.Acceleration.Y != 0 {
 			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
 			p.Y = translation.Y
 			m.Velocity.Y = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
 	case attribute.Impeding:
 		m.Velocity = m.Velocity.Scale(1 - _c.ImpedingRate)
@@ -251,20 +252,20 @@ func (s *PhysicsServer) HandleOOB(
 ) (attribute.Position, attribute.Movement, attribute.Dimension) {
 	s.log.Debug("PhysicsServer", "HandleOOB")
 	for _, oob := range s.oob {
-		xMTV, xCollision := oob.Bounds.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
+		xMTV, xCollision := oob.Polygon.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
 		if xCollision && m.Acceleration.X != 0 {
 			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
 			p.X = translation.X
 			m.Velocity.X = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
 
-		yMTV, yCollision := oob.Bounds.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
+		yMTV, yCollision := oob.Polygon.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
 		if yCollision && m.Acceleration.Y != 0 {
 			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
 			p.Y = translation.Y
 			m.Velocity.Y = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
 	}
 
