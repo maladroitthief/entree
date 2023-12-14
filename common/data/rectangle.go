@@ -6,11 +6,11 @@ type Rectangle struct {
 	Width    float64
 }
 
-func NewRectangle(position Vector, x, y float64) Rectangle {
+func NewRectangle(position Vector, w, h float64) Rectangle {
 	return Rectangle{
 		Position: position,
-		Width:    x,
-		Height:   y,
+		Width:    w,
+		Height:   h,
 	}
 }
 

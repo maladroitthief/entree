@@ -1,7 +1,9 @@
 package logs
 
 type Logger interface {
-  Info(message string, args interface{})
-  Error(methodName string, args interface{}, err error)
-  Fatal(methodName string, args interface{}, err error)
+	SetLevel(level string)
+	Debug(message string, context interface{})
+	Info(message string, context interface{})
+	Error(method string, context interface{}, err error)
+	Fatal(method string, context interface{}, err error)
 }

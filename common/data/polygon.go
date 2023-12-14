@@ -10,6 +10,7 @@ type Polygon struct {
 	Vectors     []Vector
 	CalcVectors []Vector
 	Planes      []Plane
+	Bounds      Rectangle
 }
 
 // NewPolygon accepts an array of vectors in CCW rotation
@@ -25,6 +26,7 @@ func NewPolygon(position Vector, vectors []Vector) Polygon {
 func (p Polygon) Update() Polygon {
 	p.CalcVectors = p.calcVectors()
 	p.Planes = p.calcPlanes()
+	p.Bounds = p.calcBounds()
 	return p
 }
 
@@ -153,4 +155,18 @@ func (p Polygon) calcPlanes() []Plane {
 	planes[len(planes)-1] = NewPlane(p.CalcVectors[len(planes)-1], p.CalcVectors[0])
 
 	return planes
+}
+
+func (p Polygon) calcBounds() Rectangle {
+	minHeight, maxHeight := math.MaxFloat64, 0.0
+	minWidth, maxWidth := math.MaxFloat64, 0.0
+
+	for i := 0; i < len(p.Vectors); i++ {
+		minWidth = min(minWidth, p.Vectors[i].X)
+		maxWidth = min(maxWidth, p.Vectors[i].X)
+		minHeight = min(minHeight, p.Vectors[i].Y)
+		maxHeight = max(maxHeight, p.Vectors[i].Y)
+	}
+
+	return NewRectangle(p.Position, maxWidth-minWidth, maxHeight-minHeight)
 }

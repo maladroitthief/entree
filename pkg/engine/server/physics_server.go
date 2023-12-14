@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
@@ -13,31 +14,37 @@ const (
 )
 
 type PhysicsServer struct {
+	log         logs.Logger
 	x           float64
 	y           float64
 	size        float64
-	spatialHash *data.SpatialHash[attribute.Position]
+	spatialHash *data.SpatialHash[core.Entity]
 	oob         [4]attribute.Dimension
 }
 
-func NewPhysicsServer(x, y, size float64) *PhysicsServer {
+func NewPhysicsServer(log logs.Logger, x, y, size float64) *PhysicsServer {
 	s := &PhysicsServer{
+		log:         log,
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[attribute.Position](32, 32),
+		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
 		oob:         OOB(x, y, size),
 	}
 
+	s.log.Debug("NewPhysicsServer()", nil)
 	return s
 }
 
 func (s *PhysicsServer) Load(e *core.ECS) {
 	s.spatialHash.Drop()
-	positions := e.GetAllPosition()
-
-	for _, p := range positions {
-		s.spatialHash.Insert(p, data.Vector{X: p.X, Y: p.Y})
+	entities := e.GetAllEntities()
+	for _, entity := range entities {
+		dimension, err := e.GetDimension(entity.DimensionId)
+		if err != nil {
+			continue
+		}
+		s.spatialHash.Insert(entity, dimension.Bounds.Bounds)
 	}
 }
 
@@ -58,16 +65,18 @@ func DeltaBoundsXY(d attribute.Dimension, x, y float64) data.Polygon {
 }
 
 func (s *PhysicsServer) Update(e *core.ECS) {
+	s.log.Debug("PhysicsServer", "Update()")
 	s.Load(e)
 	movements := e.GetAllMovement()
 
 	for _, m := range movements {
-		m = UpdateMovement(m)
+		m = s.UpdateMovement(m)
 		s.UpdatePosition(e, m)
 	}
 }
 
-func UpdateMovement(m attribute.Movement) attribute.Movement {
+func (s *PhysicsServer) UpdateMovement(m attribute.Movement) attribute.Movement {
+	s.log.Debug("PhysicsServer", "UpdateMovement()")
 	m.Velocity = m.Velocity.ScaleXY(m.Acceleration.X, m.Acceleration.Y)
 	if math.Signbit(m.Acceleration.X) != math.Signbit(m.Velocity.X) {
 		m.Velocity.X = 0
@@ -111,6 +120,7 @@ func (s *PhysicsServer) UpdatePosition(
 	m attribute.Movement,
 ) {
 
+	s.log.Debug("PhysicsServer", "UpdatePosition()")
 	p, err := e.GetPosition(m.EntityId)
 	if err != nil {
 		return
@@ -149,11 +159,19 @@ func (s *PhysicsServer) updateAttributes(
 	m attribute.Movement,
 	d attribute.Dimension,
 ) {
+	entity, err := e.GetEntity(p.EntityId)
+	if err != nil {
+		return
+	}
+
 	deltaPosition := DeltaPosition(p, m.Velocity)
-	s.spatialHash.Update(p, data.Vector{X: p.X, Y: p.Y}, deltaPosition)
+	oldBounds := d.Bounds.Bounds
+
 	p.X = deltaPosition.X
 	p.Y = deltaPosition.Y
 	d.Bounds = d.Bounds.SetPosition(deltaPosition)
+
+	s.spatialHash.Update(entity, oldBounds, d.Bounds.Bounds)
 
 	e.SetPosition(p)
 	e.SetMovement(m)
@@ -166,15 +184,11 @@ func (s *PhysicsServer) Collisions(
 	m attribute.Movement,
 	d attribute.Dimension,
 ) []attribute.Dimension {
-
+	s.log.Debug("Start", "PhysicsServer.Collisions()")
 	results := []attribute.Dimension{}
-	candidates := s.spatialHash.SearchNeighbors(p.X, p.Y)
-	for i := 0; i < len(candidates); i++ {
-		if p.EntityId == candidates[i].EntityId {
-			continue
-		}
-
-		_d, err := e.GetDimension(candidates[i].EntityId)
+	entities := s.spatialHash.SearchNeighbors(p.X, p.Y)
+	for i := 0; i < len(entities); i++ {
+		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {
 			continue
 		}
@@ -221,6 +235,8 @@ func HandleCollision(
 		}
 	case attribute.Impeding:
 		m.Velocity = m.Velocity.Scale(1 - _c.ImpedingRate)
+		// fmt.Printf("Impede Velocity: %+v\n", m.Velocity)
+		// fmt.Printf("Impede Rate: %+v\n", _c.ImpedingRate)
 	case attribute.Moveable:
 	}
 
@@ -233,7 +249,7 @@ func (s *PhysicsServer) HandleOOB(
 	m attribute.Movement,
 	d attribute.Dimension,
 ) (attribute.Position, attribute.Movement, attribute.Dimension) {
-
+	s.log.Debug("PhysicsServer", "HandleOOB")
 	for _, oob := range s.oob {
 		xMTV, xCollision := oob.Bounds.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
 		if xCollision && m.Acceleration.X != 0 {
