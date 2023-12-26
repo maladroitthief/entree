@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -8,10 +10,25 @@ import (
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/driver"
 	"github.com/maladroitthief/entree/pkg/ui"
+	"github.com/pkg/profile"
 )
 
 func main() {
-	// defer profile.Start().Stop()
+	mode := flag.String("profile", "", "enable profiling mode, one of [cpu, mem, mutex, block]")
+	flag.Parse()
+
+	switch *mode {
+	case "cpu":
+		defer profile.Start(profile.ProfilePath("."), profile.CPUProfile).Stop()
+	case "mem":
+		defer profile.Start(profile.ProfilePath("."), profile.MemProfile).Stop()
+	case "mutex":
+		defer profile.Start(profile.ProfilePath("."), profile.MutexProfile).Stop()
+	case "block":
+		defer profile.Start(profile.ProfilePath("."), profile.BlockProfile).Stop()
+	default:
+		// do nothing
+	}
 
 	log := logs.NewLogrusLogger()
 	log.SetLevel("Debug")
@@ -43,15 +60,24 @@ func main() {
 		log.Fatal("main", "sceneManager", err)
 	}
 
-	ebitenDriver, err := driver.NewEbitenDriver(log, sceneManager)
+	ctx := context.Background()
+	err = runGame(ctx, log, sceneManager)
 	if err != nil {
 		log.Fatal("main", nil, err)
+	}
+}
+
+func runGame(ctx context.Context, log logs.Logger, sceneManager *ui.SceneManager) error {
+	ebitenDriver, err := driver.NewEbitenDriver(ctx, log, sceneManager)
+	if err != nil {
+		return err
 	}
 
 	err = ebiten.RunGame(ebitenDriver)
 	if err != nil {
-		log.Fatal("main", nil, err)
+		return err
 	}
+	return nil
 }
 
 func loadSpriteSheets(g *ui.GraphicsServer) {

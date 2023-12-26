@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
@@ -53,4 +54,8 @@ func (bf *fieldBlocks) AddObstacle(e *core.ECS, x, y float64) {
 	} else {
 		environment.Grass(e, x, y)
 	}
+}
+
+func (bf *fieldBlocks) AddEnemy(e *core.ECS, x, y float64) {
+	enemy.NewOnyawn(e, x, y)
 }

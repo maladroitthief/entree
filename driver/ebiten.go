@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sort"
@@ -18,6 +19,7 @@ import (
 )
 
 type EbitenGame struct {
+	ctx   context.Context
 	log   logs.Logger
 	scene *ui.SceneManager
 
@@ -33,10 +35,12 @@ type EbitenGame struct {
 }
 
 func NewEbitenDriver(
+	ctx context.Context,
 	log logs.Logger,
 	scene *ui.SceneManager,
 ) (*EbitenGame, error) {
 	e := &EbitenGame{
+		ctx:           ctx,
 		log:           log,
 		scene:         scene,
 		width:         0,
@@ -53,37 +57,45 @@ func NewEbitenDriver(
 
 	err := e.WindowHandler()
 
+	ebiten.SetVsyncEnabled(true)
+	ebiten.SetTPS(ebiten.SyncWithFPS)
+
 	return e, err
 }
 
 func (e *EbitenGame) Update() (err error) {
 	// check for screen resizing
-	err = e.WindowHandler()
-	if err != nil {
+	select {
+	case <-e.ctx.Done():
+		return ebiten.Termination
+	default:
+		err = e.WindowHandler()
+		if err != nil {
+			return err
+		}
+		e.CanvasHandler()
+
+		cursorX, cursorY := ebiten.CursorPosition()
+
+		pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
+		keys := []string{}
+		for _, key := range pressedKeys {
+			keys = append(keys, key.String())
+		}
+
+		inputState := ui.InputState{
+			Cursor: data.Vector{X: float64(cursorX), Y: float64(cursorY)},
+			Keys:   keys,
+		}
+
+		err = e.scene.Update(inputState)
+
+		if err == ui.Termination {
+			return ebiten.Termination
+		}
+
 		return err
 	}
-	e.CanvasHandler()
-
-	cursorX, cursorY := ebiten.CursorPosition()
-
-	pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
-	keys := []string{}
-	for _, key := range pressedKeys {
-		keys = append(keys, key.String())
-	}
-
-	inputState := ui.InputState{
-		Cursor: data.Vector{X: float64(cursorX), Y: float64(cursorY)},
-		Keys:   keys,
-	}
-
-	err = e.scene.Update(inputState)
-
-	if err == ui.Termination {
-		return ebiten.Termination
-	}
-
-	return err
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
@@ -169,17 +181,17 @@ func (e *EbitenGame) DrawAnimation(
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
-	bounds := dimension.Bounds()
-	vector.StrokeRect(
-		e.canvas,
-		float32(bounds.Position.X-bounds.Width/2),
-		float32(bounds.Position.Y-bounds.Height/2),
-		float32(bounds.Width),
-		float32(bounds.Height),
-		1,
-		e.theme.Red(),
-		false,
-	)
+	// bounds := dimension.Bounds()
+	// vector.StrokeRect(
+	// 	e.canvas,
+	// 	float32(bounds.Position.X-bounds.Width/2),
+	// 	float32(bounds.Position.Y-bounds.Height/2),
+	// 	float32(bounds.Width),
+	// 	float32(bounds.Height),
+	// 	1,
+	// 	e.theme.Red(),
+	// 	false,
+	// )
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",

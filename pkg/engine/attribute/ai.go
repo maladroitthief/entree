@@ -2,10 +2,10 @@ package attribute
 
 import "github.com/maladroitthief/entree/common/data"
 
-type Behavior int
+type BehaviorType int
 
 const (
-	None Behavior = iota
+	None BehaviorType = iota
 	Input
 )
 
@@ -13,11 +13,15 @@ type AI struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
 
-	Behavior Behavior
+	BehaviorType BehaviorType
+
+	RootBehavior   data.GenerationalIndex
+	ActiveBehavior data.GenerationalIndex
+	ActiveSequence bool
 }
 
-func NewAI(b Behavior) AI {
+func NewAI(b BehaviorType) AI {
 	return AI{
-		Behavior: b,
+		BehaviorType: b,
 	}
 }

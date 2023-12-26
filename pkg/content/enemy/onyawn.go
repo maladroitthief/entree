@@ -6,11 +6,11 @@ import (
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
-func NewOnyawn(e *core.ECS) core.Entity {
+func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
 	ai := attribute.NewAI(attribute.Input)
 	state := attribute.NewState()
 
-	position := attribute.NewPosition(100, 100, 1.6)
+	position := attribute.NewPosition(x, y, 1.6)
 	movement := attribute.NewMovement()
 	dimension := attribute.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},

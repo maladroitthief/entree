@@ -18,7 +18,7 @@ func (s *AIServer) Update(e *core.ECS, inputs []core.Input) {
 	ais := e.GetAllAI()
 
 	for _, ai := range ais {
-		switch ai.Behavior {
+		switch ai.BehaviorType {
 		case attribute.Input:
 			ProcessInput(e, ai, inputs)
 		}

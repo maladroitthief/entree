@@ -5,6 +5,7 @@ import "github.com/maladroitthief/entree/common/data"
 type Entity struct {
 	Id          data.GenerationalIndex
 	AIId        data.GenerationalIndex
+	BehaviorId  data.GenerationalIndex
 	StateId     data.GenerationalIndex
 	MovementId  data.GenerationalIndex
 	AnimationId data.GenerationalIndex

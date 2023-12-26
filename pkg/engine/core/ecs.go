@@ -17,6 +17,8 @@ type ECS struct {
 	entities           data.GenerationalIndexArray[Entity]
 	aiAllocator        *data.GenerationalIndexAllocator
 	ai                 data.GenerationalIndexArray[attribute.AI]
+	behaviorAllocator  *data.GenerationalIndexAllocator
+	behavior           data.GenerationalIndexArray[attribute.Behavior]
 	stateAllocator     *data.GenerationalIndexAllocator
 	state              data.GenerationalIndexArray[attribute.State]
 	movementAllocator  *data.GenerationalIndexAllocator
@@ -37,6 +39,8 @@ func NewECS() *ECS {
 		entities:           data.NewGenerationalIndexArray[Entity](),
 		aiAllocator:        data.NewGenerationalIndexAllocator(),
 		ai:                 data.NewGenerationalIndexArray[attribute.AI](),
+		behaviorAllocator:  data.NewGenerationalIndexAllocator(),
+		behavior:           data.NewGenerationalIndexArray[attribute.Behavior](),
 		stateAllocator:     data.NewGenerationalIndexAllocator(),
 		state:              data.NewGenerationalIndexArray[attribute.State](),
 		movementAllocator:  data.NewGenerationalIndexAllocator(),
