@@ -13,7 +13,6 @@ import (
 	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/ui"
 )
@@ -133,7 +132,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 func (e *EbitenGame) DrawAnimation(
 	screen *ebiten.Image,
 	world *core.ECS,
-	position attribute.Position,
+	position core.Position,
 ) (err error) {
 	entity, entityErr := world.GetEntity(position.EntityId)
 	state, stateErr := world.GetState(entity.Id)
@@ -170,7 +169,7 @@ func (e *EbitenGame) DrawAnimation(
 	)
 
 	// Flip the sprite if moving west
-	if stateErr == nil && state.OrientationX == attribute.West {
+	if stateErr == nil && state.OrientationX == core.West {
 		e.spriteOptions.GeoM.Scale(-1, 1)
 	}
 
@@ -181,17 +180,17 @@ func (e *EbitenGame) DrawAnimation(
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
-	// bounds := dimension.Bounds()
-	// vector.StrokeRect(
-	// 	e.canvas,
-	// 	float32(bounds.Position.X-bounds.Width/2),
-	// 	float32(bounds.Position.Y-bounds.Height/2),
-	// 	float32(bounds.Width),
-	// 	float32(bounds.Height),
-	// 	1,
-	// 	e.theme.Red(),
-	// 	false,
-	// )
+	bounds := dimension.Bounds()
+	vector.StrokeRect(
+		e.canvas,
+		float32(bounds.Position.X-bounds.Width/2),
+		float32(bounds.Position.Y-bounds.Height/2),
+		float32(bounds.Width),
+		float32(bounds.Height),
+		1,
+		e.theme.Red(),
+		false,
+	)
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",

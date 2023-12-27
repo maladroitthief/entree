@@ -2,26 +2,51 @@ package core
 
 import (
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
-func (e *ECS) AddAI(entity Entity, a attribute.AI) Entity {
-	aiId := e.aiAllocator.Allocate()
+type BehaviorType int
 
-	a.Id = aiId
-	a.EntityId = entity.Id
-	entity.AIId = aiId
+const (
+	None BehaviorType = iota
+	Player
+	Computer
+)
 
-	e.ai = e.ai.Set(aiId, a)
+type AI struct {
+	Id       data.GenerationalIndex
+	EntityId data.GenerationalIndex
+
+	BehaviorType BehaviorType
+
+	RootBehavior   data.GenerationalIndex
+	ActiveBehavior data.GenerationalIndex
+	ActiveSequence bool
+}
+
+func (e *ECS) NewAI(b BehaviorType) AI {
+	ai := AI{
+		Id:           e.aiAllocator.Allocate(),
+		BehaviorType: b,
+	}
+	e.ai.Set(ai.Id, ai)
+
+	return ai
+}
+
+func (e *ECS) BindAI(entity Entity, ai AI) Entity {
+	ai.EntityId = entity.Id
+	entity.AIId = ai.Id
+
+	e.ai = e.ai.Set(ai.Id, ai)
 	e.entities = e.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetAI(entityId data.GenerationalIndex) (attribute.AI, error) {
+func (e *ECS) GetAI(entityId data.GenerationalIndex) (AI, error) {
 	entity, err := e.GetEntity(entityId)
 	if err != nil {
-		return attribute.AI{}, err
+		return AI{}, err
 	}
 
 	ai := e.ai.Get(entity.AIId)
@@ -32,10 +57,10 @@ func (e *ECS) GetAI(entityId data.GenerationalIndex) (attribute.AI, error) {
 	return ai, nil
 }
 
-func (e *ECS) GetAllAI() []attribute.AI {
+func (e *ECS) GetAllAI() []AI {
 	return e.ai.GetAll(e.aiAllocator)
 }
 
-func (e *ECS) SetAI(ai attribute.AI) {
+func (e *ECS) SetAI(ai AI) {
 	e.ai = e.ai.Set(ai.Id, ai)
 }

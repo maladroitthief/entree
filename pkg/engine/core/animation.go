@@ -1,30 +1,73 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
-func (e *ECS) AddAnimation(entity Entity, a attribute.Animation) Entity {
-	animationId := e.animationAllocator.Allocate()
+const (
+	DefaultSize  = 32
+	DefaultSpeed = 60
+)
 
-	a.Id = animationId
-	a.EntityId = entity.Id
-	entity.AnimationId = animationId
+type Animation struct {
+	Id       data.GenerationalIndex
+	EntityId data.GenerationalIndex
 
-	e.animation = e.animation.Set(animationId, a)
+	Counter     int
+	Static      bool
+	Speed       float64
+	Variant     int
+	VariantMax  int
+	SpriteSheet string
+	Sprite      string
+	Sprites     map[string][]string
+}
+
+func (e *ECS) NewAnimation(sheet, defaultSprite string) Animation {
+	animation := Animation{
+		Id:          e.animationAllocator.Allocate(),
+		Speed:       DefaultSpeed,
+		Counter:     0,
+		Variant:     1,
+		VariantMax:  1,
+		SpriteSheet: sheet,
+		Sprite:      defaultSprite,
+		Sprites:     map[string][]string{},
+	}
+	e.animations.Set(animation.Id, animation)
+
+	return animation
+}
+
+func SpriteArray(spriteName string, count int) []string {
+	results := make([]string, count)
+
+	for i := 0; i < count; i++ {
+		results[i] = fmt.Sprintf("%s_%d", spriteName, i+1)
+	}
+
+	return results
+}
+
+func (e *ECS) BindAnimation(entity Entity, animation Animation) Entity {
+	animation.EntityId = entity.Id
+	entity.AnimationId = animation.Id
+
+	e.animations = e.animations.Set(animation.Id, animation)
 	e.entities = e.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetAnimation(entityId data.GenerationalIndex) (attribute.Animation, error) {
+func (e *ECS) GetAnimation(entityId data.GenerationalIndex) (Animation, error) {
 	entity, err := e.GetEntity(entityId)
 	if err != nil {
-		return attribute.Animation{}, err
+		return Animation{}, err
 	}
 
-	animation := e.animation.Get(entity.AnimationId)
+	animation := e.animations.Get(entity.AnimationId)
 	if !e.animationAllocator.IsLive(animation.Id) {
 		return animation, ErrAttributeNotFound
 	}
@@ -32,11 +75,10 @@ func (e *ECS) GetAnimation(entityId data.GenerationalIndex) (attribute.Animation
 	return animation, nil
 }
 
-func (e *ECS) GetAllAnimations() []attribute.Animation {
-	return e.animation.GetAll(e.animationAllocator)
+func (e *ECS) GetAllAnimations() []Animation {
+	return e.animations.GetAll(e.animationAllocator)
 }
 
-func (e *ECS) SetAnimation(animation attribute.Animation) {
-	e.animation = e.animation.Set(animation.Id, animation)
+func (e *ECS) SetAnimation(animation Animation) {
+	e.animations = e.animations.Set(animation.Id, animation)
 }
-

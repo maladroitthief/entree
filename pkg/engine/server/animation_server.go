@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -28,13 +27,13 @@ func (s *AnimationServer) Update(e *core.ECS) {
 		}
 
 		spriteName := state.State
-		if state.OrientationY == attribute.South {
+		if state.OrientationY == core.South {
 			spriteName = spriteName + "_front"
 		} else {
 			spriteName = spriteName + "_back"
 		}
 
-		if state.OrientationX != attribute.Neutral {
+		if state.OrientationX != core.Neutral {
 			spriteName = spriteName + "_side"
 		}
 

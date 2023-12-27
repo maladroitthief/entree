@@ -2,29 +2,55 @@ package core
 
 import (
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
-func (e *ECS) AddCollider(entity Entity, p attribute.Collider) Entity {
-	colliderId := e.colliderAllocator.Allocate()
+type ColliderType int
 
-	p.Id = colliderId
-	p.EntityId = entity.Id
-	entity.ColliderId = colliderId
+const (
+	Immovable ColliderType = iota
+	Moveable
+	Impeding
 
-	e.collider = e.collider.Set(colliderId, p)
+	BaseImpedingRate = 0.35
+	MaxImpedingRate  = 1.0
+)
+
+type Collider struct {
+	Id       data.GenerationalIndex
+	EntityId data.GenerationalIndex
+
+	ColliderType ColliderType
+	ImpedingRate float64
+}
+
+func (e *ECS) NewCollider() Collider {
+	collider := Collider{
+		Id:           e.colliderAllocator.Allocate(),
+		ColliderType: Moveable,
+		ImpedingRate: BaseImpedingRate,
+	}
+	e.colliders.Set(collider.Id, collider)
+
+	return collider
+}
+
+func (e *ECS) BindCollider(entity Entity, collider Collider) Entity {
+	collider.EntityId = entity.Id
+	entity.ColliderId = collider.Id
+
+	e.colliders = e.colliders.Set(collider.Id, collider)
 	e.entities = e.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetCollider(entityId data.GenerationalIndex) (attribute.Collider, error) {
+func (e *ECS) GetCollider(entityId data.GenerationalIndex) (Collider, error) {
 	entity, err := e.GetEntity(entityId)
 	if err != nil {
-		return attribute.Collider{}, err
+		return Collider{}, err
 	}
 
-	collider := e.collider.Get(entity.ColliderId)
+	collider := e.colliders.Get(entity.ColliderId)
 	if !e.colliderAllocator.IsLive(collider.Id) {
 		return collider, ErrAttributeNotFound
 	}
@@ -32,10 +58,10 @@ func (e *ECS) GetCollider(entityId data.GenerationalIndex) (attribute.Collider, 
 	return collider, nil
 }
 
-func (e *ECS) GetAllCollider() []attribute.Collider {
-	return e.collider.GetAll(e.colliderAllocator)
+func (e *ECS) GetAllCollider() []Collider {
+	return e.colliders.GetAll(e.colliderAllocator)
 }
 
-func (e *ECS) SetCollider(collider attribute.Collider) {
-	e.collider = e.collider.Set(collider.Id, collider)
+func (e *ECS) SetCollider(collider Collider) {
+	e.colliders = e.colliders.Set(collider.Id, collider)
 }

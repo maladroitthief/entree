@@ -41,6 +41,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.ai = server.NewAIServer()
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
+		gs.world,
 		state.log,
 		float64(gs.columns*level.RoomWidth),
 		float64(gs.rows*level.RoomHeight),

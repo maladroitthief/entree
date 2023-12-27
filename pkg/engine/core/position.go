@@ -2,29 +2,46 @@ package core
 
 import (
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
-func (e *ECS) AddPosition(entity Entity, p attribute.Position) Entity {
-	positionId := e.positionAllocator.Allocate()
+type Position struct {
+	Id       data.GenerationalIndex
+	EntityId data.GenerationalIndex
 
-	p.Id = positionId
-	p.EntityId = entity.Id
-	entity.PositionId = positionId
+	X float64
+	Y float64
+	Z float64
+}
 
-	e.position = e.position.Set(positionId, p)
+func (e *ECS) NewPosition(x, y, z float64) Position {
+	position := Position{
+		Id: e.positionAllocator.Allocate(),
+		X:  x,
+		Y:  y,
+		Z:  z,
+	}
+	e.positions.Set(position.Id, position)
+
+	return position
+}
+
+func (e *ECS) BindPosition(entity Entity, position Position) Entity {
+	position.EntityId = entity.Id
+	entity.PositionId = position.Id
+
+	e.positions = e.positions.Set(position.Id, position)
 	e.entities = e.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetPosition(entityId data.GenerationalIndex) (attribute.Position, error) {
+func (e *ECS) GetPosition(entityId data.GenerationalIndex) (Position, error) {
 	entity, err := e.GetEntity(entityId)
 	if err != nil {
-		return attribute.Position{}, err
+		return Position{}, err
 	}
 
-	position := e.position.Get(entity.PositionId)
+	position := e.positions.Get(entity.PositionId)
 	if !e.positionAllocator.IsLive(position.Id) {
 		return position, ErrAttributeNotFound
 	}
@@ -32,10 +49,10 @@ func (e *ECS) GetPosition(entityId data.GenerationalIndex) (attribute.Position, 
 	return position, nil
 }
 
-func (e *ECS) GetAllPosition() []attribute.Position {
-	return e.position.GetAll(e.positionAllocator)
+func (e *ECS) GetAllPosition() []Position {
+	return e.positions.GetAll(e.positionAllocator)
 }
 
-func (e *ECS) SetPosition(position attribute.Position) {
-	e.position = e.position.Set(position.Id, position)
+func (e *ECS) SetPosition(position Position) {
+	e.positions = e.positions.Set(position.Id, position)
 }

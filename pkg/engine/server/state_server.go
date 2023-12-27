@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -18,7 +17,7 @@ func (s *StateServer) Update(e *core.ECS) {
 	states := e.GetAllStates()
 
 	for _, state := range states {
-		if state.State == attribute.Idle {
+		if state.State == core.Idling {
 			state.Counter = 0
 		} else {
 			state.Counter++
