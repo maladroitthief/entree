@@ -18,7 +18,6 @@ type PhysicsServer struct {
 	y           float64
 	size        float64
 	spatialHash *data.SpatialHash[core.Entity]
-	oob         [4]core.Dimension
 }
 
 func NewPhysicsServer(e *core.ECS, log logs.Logger, x, y, size float64) *PhysicsServer {
@@ -28,7 +27,6 @@ func NewPhysicsServer(e *core.ECS, log logs.Logger, x, y, size float64) *Physics
 		y:           y,
 		size:        size,
 		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 33),
-		oob:         OOB(e, x, y, size),
 	}
 
 	s.log.Debug("NewPhysicsServer()", nil)
@@ -136,8 +134,6 @@ func (s *PhysicsServer) UpdatePosition(
 		return
 	}
 
-	p, m, d = s.HandleOOB(e, p, m, d)
-
 	collisions := s.Collisions(e, p, m, d)
 	if len(collisions) == 0 {
 		s.updateAttributes(e, p, m, d)
@@ -190,6 +186,7 @@ func (s *PhysicsServer) Collisions(
 	for i := 0; i < len(entities); i++ {
 		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {
+			s.log.Error("dimension not found", "PhysicsServer.Collisions()", err)
 			continue
 		}
 
@@ -239,58 +236,4 @@ func HandleCollision(
 	}
 
 	return p, m, d
-}
-
-func (s *PhysicsServer) HandleOOB(
-	e *core.ECS,
-	p core.Position,
-	m core.Movement,
-	d core.Dimension,
-) (core.Position, core.Movement, core.Dimension) {
-	s.log.Debug("PhysicsServer", "HandleOOB")
-	for _, oob := range s.oob {
-		xMTV, xCollision := oob.Polygon.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
-		if xCollision && m.Acceleration.X != 0 {
-			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
-			p.X = translation.X
-			m.Velocity.X = 0
-			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
-		}
-
-		yMTV, yCollision := oob.Polygon.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
-		if yCollision && m.Acceleration.Y != 0 {
-			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
-			p.Y = translation.Y
-			m.Velocity.Y = 0
-			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
-		}
-	}
-
-	return p, m, d
-}
-
-func OOB(e *core.ECS, x, y, size float64) [4]core.Dimension {
-	entities := [4]core.Entity{}
-
-	xSize := x * size
-	ySize := y * size
-	positions := [4]data.Vector{
-		{X: xSize / 2, Y: -size / 2},
-		{X: xSize / 2, Y: ySize + size/2},
-		{X: xSize + size/2, Y: ySize / 2},
-		{X: -size / 2, Y: ySize / 2},
-	}
-	sizes := [4]data.Vector{
-		{X: xSize, Y: size},
-		{X: xSize, Y: size},
-		{X: size, Y: ySize},
-		{X: size, Y: ySize},
-	}
-
-	dimensions := [4]core.Dimension{}
-	for i := 0; i < len(entities); i++ {
-		dimensions[i] = e.NewDimension(positions[i], sizes[i])
-	}
-
-	return dimensions
 }

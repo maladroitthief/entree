@@ -180,17 +180,22 @@ func (e *EbitenGame) DrawAnimation(
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
-	bounds := dimension.Bounds()
-	vector.StrokeRect(
-		e.canvas,
-		float32(bounds.Position.X-bounds.Width/2),
-		float32(bounds.Position.Y-bounds.Height/2),
-		float32(bounds.Width),
-		float32(bounds.Height),
-		1,
-		e.theme.Red(),
-		false,
-	)
+	// bounds := dimension.Bounds()
+	// vector.StrokeRect(
+	// 	e.canvas,
+	// 	float32(bounds.Position.X-bounds.Width/2),
+	// 	float32(bounds.Position.Y-bounds.Height/2),
+	// 	float32(bounds.Width),
+	// 	float32(bounds.Height),
+	// 	1,
+	// 	e.theme.Red(),
+	// 	false,
+	// )
+	// msg := fmt.Sprintf(
+	// 	"[%v]",
+	// 	entity.Id,
+	// )
+	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",

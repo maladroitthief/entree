@@ -3,15 +3,13 @@ package level
 import (
 	"math/rand"
 
+	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 type Direction int
 
 const (
-	DefaultLevelWidth  = 6
-	DefaultLevelHeight = 6
-
 	North Direction = iota
 	South
 	East
@@ -32,13 +30,14 @@ type Level struct {
 	size         int
 }
 
-func NewLevel(rf RoomFactory, bf BlockFactory, player core.Entity) *Level {
+func NewLevel(rf RoomFactory, bf BlockFactory, player core.Entity, width, height, size int) *Level {
 	l := &Level{
 		roomFactory:  rf,
 		blockFactory: bf,
 		player:       player,
-		width:        DefaultLevelWidth,
-		height:       DefaultLevelHeight,
+		width:        width,
+		height:       height,
+		size:         size,
 	}
 	return l
 }
@@ -106,6 +105,7 @@ func (l *Level) fillRemainingRooms() {
 }
 
 func (l *Level) Render(e *core.ECS) {
+	l.SetOutOfBounds(e)
 	for y := 0; y < len(l.Rooms); y++ {
 		for x := 0; x < len(l.Rooms[y]); x++ {
 			for i, block := range l.Rooms[y][x].layout {
@@ -124,6 +124,36 @@ func (l *Level) Render(e *core.ECS) {
 				}
 			}
 		}
+	}
+}
+
+func (l *Level) SetOutOfBounds(e *core.ECS) {
+	entities := [4]core.Entity{}
+	size := float64(l.size)
+	xSize := float64(l.width) * size * RoomWidth
+	ySize := float64(l.height) * size * RoomHeight
+
+	positions := [4]data.Vector{
+		{X: xSize / 2, Y: -size / 2},
+		{X: xSize / 2, Y: ySize + size/2},
+		{X: xSize + size/2, Y: ySize / 2},
+		{X: -size / 2, Y: ySize / 2},
+	}
+	sizes := [4]data.Vector{
+		{X: xSize, Y: size},
+		{X: xSize, Y: size},
+		{X: size, Y: ySize},
+		{X: size, Y: ySize},
+	}
+
+	dimensions := [4]core.Dimension{}
+	for i := 0; i < len(entities); i++ {
+		dimensions[i] = e.NewDimension(positions[i], sizes[i])
+		collider := e.NewCollider()
+		collider.ColliderType = core.Immovable
+		entity := e.NewEntity()
+		entity = e.BindDimension(entity, dimensions[i])
+		entity = e.BindCollider(entity, collider)
 	}
 }
 

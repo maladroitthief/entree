@@ -30,8 +30,8 @@ type GameScene struct {
 
 func NewGameScene(state *SceneState) *GameScene {
 	gs := &GameScene{
-		columns:         6,
-		rows:            6,
+		columns:         1,
+		rows:            2,
 		cellSize:        32,
 		world:           core.NewECS(),
 		log:             state.log,
@@ -49,14 +49,16 @@ func NewGameScene(state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.world)
-	// player := enemy.NewOnyawn(gs.world)
+	player := player.NewFederico(gs.world, 0, 0)
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
 		level.NewBlockFactory(),
 		player,
+		gs.columns,
+		gs.rows,
+		gs.cellSize,
 	)
 	level.GenerateRooms()
 	level.Render(gs.world)
