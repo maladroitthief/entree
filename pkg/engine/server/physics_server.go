@@ -26,7 +26,7 @@ func NewPhysicsServer(e *core.ECS, log logs.Logger, x, y, size float64) *Physics
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 33),
+		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
 	}
 
 	s.log.Debug("NewPhysicsServer()", nil)
@@ -134,6 +134,8 @@ func (s *PhysicsServer) UpdatePosition(
 		return
 	}
 
+	p, m, d = s.HandleOutOfBounds(e, p, m, d)
+
 	collisions := s.Collisions(e, p, m, d)
 	if len(collisions) == 0 {
 		s.updateAttributes(e, p, m, d)
@@ -233,6 +235,36 @@ func HandleCollision(
 	case core.Impeding:
 		m.Velocity = m.Velocity.Scale(1 - _c.ImpedingRate)
 	case core.Moveable:
+	}
+
+	return p, m, d
+}
+
+func (s *PhysicsServer) HandleOutOfBounds(
+	e *core.ECS,
+	p core.Position,
+	m core.Movement,
+	d core.Dimension,
+) (core.Position, core.Movement, core.Dimension) {
+	sizeX := s.x * s.size
+	sizeY := s.y * s.size
+	center := data.Vector{X: sizeX / 2, Y: sizeY / 2}
+	oob := data.NewRectangle(center, sizeX, sizeY).ToPolygon()
+
+	xMTV, xContained := oob.ContainsPolygon(DeltaBoundsXY(d, m.Velocity.X, 0))
+	if !xContained && m.Acceleration.X != 0 {
+		translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
+		p.X = translation.X
+		m.Velocity.X = 0
+		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+	}
+
+	yMTV, yContained := oob.ContainsPolygon(DeltaBoundsXY(d, 0, m.Velocity.Y))
+	if !yContained && m.Acceleration.Y != 0 {
+		translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
+		p.Y = translation.Y
+		m.Velocity.Y = 0
+		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 	}
 
 	return p, m, d

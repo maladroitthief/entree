@@ -12,8 +12,8 @@ import (
 )
 
 type GameScene struct {
-	columns  int
-	rows     int
+	gridX    int
+	gridY    int
 	cellSize int
 
 	world     *core.ECS
@@ -30,8 +30,8 @@ type GameScene struct {
 
 func NewGameScene(state *SceneState) *GameScene {
 	gs := &GameScene{
-		columns:         1,
-		rows:            2,
+		gridX:           2,
+		gridY:           2,
 		cellSize:        32,
 		world:           core.NewECS(),
 		log:             state.log,
@@ -43,8 +43,8 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.physics = server.NewPhysicsServer(
 		gs.world,
 		state.log,
-		float64(gs.columns*level.RoomWidth),
-		float64(gs.rows*level.RoomHeight),
+		float64(gs.gridX*level.RoomWidth),
+		float64(gs.gridY*level.RoomHeight),
 		float64(gs.cellSize),
 	)
 	gs.animation = server.NewAnimationServer()
@@ -56,8 +56,8 @@ func NewGameScene(state *SceneState) *GameScene {
 		level.NewRoomFactory(),
 		level.NewBlockFactory(),
 		player,
-		gs.columns,
-		gs.rows,
+		gs.gridX,
+		gs.gridY,
 		gs.cellSize,
 	)
 	level.GenerateRooms()
@@ -92,14 +92,14 @@ func (s *GameScene) Update(state *SceneState) error {
 }
 
 func (s *GameScene) Size() (width, height int) {
-	width = s.columns * level.RoomWidth * s.cellSize
-	height = s.rows * level.RoomHeight * s.cellSize
+	width = s.gridX * level.RoomWidth * s.cellSize
+	height = s.gridY * level.RoomHeight * s.cellSize
 
 	return width, height
 }
 
 func (s *GameScene) GetCanvasGrid() (rows, columns int) {
-	return s.rows, s.columns
+	return s.gridY, s.gridX
 }
 
 func (s *GameScene) CellSize() int {

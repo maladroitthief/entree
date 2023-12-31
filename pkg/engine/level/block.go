@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	BlockSize  = 32
 	Player     = '@'
 	EmptySpace = '0'
 	Solid      = '1'

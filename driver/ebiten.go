@@ -3,6 +3,7 @@ package driver
 import (
 	"context"
 	"fmt"
+	"image/color"
 	"math"
 	"sort"
 
@@ -126,7 +127,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	}
 
 	e.Render(screen)
-	e.DrawDebug(screen)
+	e.DebugFPS(screen)
 }
 
 func (e *EbitenGame) DrawAnimation(
@@ -143,11 +144,13 @@ func (e *EbitenGame) DrawAnimation(
 		return nil
 	}
 
-	if animationErr != nil {
+	if dimensionErr != nil {
 		return nil
 	}
 
-	if dimensionErr != nil {
+	if animationErr != nil {
+		bounds := dimension.Bounds()
+		e.DebugBounds(bounds, e.theme.Blue())
 		return nil
 	}
 
@@ -191,6 +194,7 @@ func (e *EbitenGame) DrawAnimation(
 	// 	e.theme.Red(),
 	// 	false,
 	// )
+
 	// msg := fmt.Sprintf(
 	// 	"[%v]",
 	// 	entity.Id,
@@ -295,14 +299,14 @@ func (e *EbitenGame) CanvasHandler() {
 
 func (e *EbitenGame) DrawGrid() {
 	cellSize := e.scene.CellSize()
-	columns, rows := e.canvas.Bounds().Dx()/cellSize, e.canvas.Bounds().Dy()/cellSize
+	gridX, gridY := e.canvas.Bounds().Dx()/cellSize, e.canvas.Bounds().Dy()/cellSize
 
-	for i := 0; i <= rows; i++ {
+	for i := 0; i <= gridY; i++ {
 		vector.StrokeLine(
 			e.canvas,
 			0,
 			float32(i*cellSize),
-			float32(columns*cellSize),
+			float32(gridX*cellSize),
 			float32(i*cellSize),
 			1,
 			e.theme.Magenta(),
@@ -310,13 +314,13 @@ func (e *EbitenGame) DrawGrid() {
 		)
 	}
 
-	for i := 0; i <= columns; i++ {
+	for i := 0; i <= gridX; i++ {
 		vector.StrokeLine(
 			e.canvas,
 			float32(i*cellSize),
 			0,
 			float32(i*cellSize),
-			float32(rows*cellSize),
+			float32(gridY*cellSize),
 			1,
 			e.theme.Magenta(),
 			false,
@@ -324,13 +328,34 @@ func (e *EbitenGame) DrawGrid() {
 	}
 }
 
-func (e *EbitenGame) DrawDebug(screen *ebiten.Image) {
+func (e *EbitenGame) DebugFPS(screen *ebiten.Image) {
 	msg := fmt.Sprintf(
 		"TPS: %0.2f\nFPS: %0.2f",
 		ebiten.ActualTPS(),
 		ebiten.ActualFPS(),
 	)
 	ebitenutil.DebugPrint(screen, msg)
+}
+
+func (e *EbitenGame) DebugEntity(entity core.Entity, x, y int) {
+	msg := fmt.Sprintf(
+		"%v",
+		entity.Id,
+	)
+	ebitenutil.DebugPrintAt(e.canvas, msg, x, y)
+}
+
+func (e *EbitenGame) DebugBounds(bounds data.Rectangle, color color.Color) {
+	vector.StrokeRect(
+		e.canvas,
+		float32(bounds.Position.X-bounds.Width/2),
+		float32(bounds.Position.Y-bounds.Height/2),
+		float32(bounds.Width),
+		float32(bounds.Height),
+		1,
+		color,
+		false,
+	)
 }
 
 func SpriteKey(sheet, sprite string) string {
