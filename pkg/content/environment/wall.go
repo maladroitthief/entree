@@ -2,30 +2,29 @@ package environment
 
 import (
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 func Wall(e *core.ECS, x, y float64) core.Entity {
-	state := attribute.NewState()
+	state := e.NewState()
 
-	position := attribute.NewPosition(x, y, 1.4)
-	dimension := attribute.NewDimension(
+	position := e.NewPosition(x, y, 1.4)
+	dimension := e.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},
 		data.Vector{X: 32, Y: 32},
 	)
-	collider := attribute.NewCollider()
-	collider.ColliderType = attribute.Immovable
+	collider := e.NewCollider()
+	collider.ColliderType = core.Immovable
 
-	animation := attribute.NewAnimation("tiles", "rock_1")
+	animation := e.NewAnimation("tiles", "rock_1")
 	animation.Static = true
 
 	entity := e.NewEntity()
-	entity = e.AddState(entity, state)
-	entity = e.AddPosition(entity, position)
-	entity = e.AddDimension(entity, dimension)
-	entity = e.AddCollider(entity, collider)
-	entity = e.AddAnimation(entity, animation)
+	entity = e.BindState(entity, state)
+	entity = e.BindPosition(entity, position)
+	entity = e.BindDimension(entity, dimension)
+	entity = e.BindCollider(entity, collider)
+	entity = e.BindAnimation(entity, animation)
 
 	return entity
 }

@@ -5,61 +5,154 @@ import (
 	"strings"
 )
 
-var (
-	directions = [][2]float64{
-		{-1, -1},
-		{-1, 0},
-		{-1, 1},
-		{0, -1},
-		{0, 0},
-		{0, 1},
-		{1, -1},
-		{1, 0},
-		{1, 1},
-	}
-)
-
 type SpatialHash[T comparable] struct {
-	sb         strings.Builder
-	Cells      map[[2]float64]Cell[T]
-	ChunkSizeX float64
-	ChunkSizeY float64
+	sb        strings.Builder
+	Cells     [][]Cell[T]
+	X         int
+	Y         int
+	ChunkSize float64
 }
 
-func NewSpatialHash[T comparable](sizeX, sizeY float64) *SpatialHash[T] {
+func NewSpatialHash[T comparable](x, y int, size float64) *SpatialHash[T] {
+	cells := make([][]Cell[T], x)
+	for i := range cells {
+		cells[i] = make([]Cell[T], y)
+	}
+
 	return &SpatialHash[T]{
-		sb:         strings.Builder{},
-		ChunkSizeX: sizeX,
-		ChunkSizeY: sizeY,
-		Cells:      make(map[[2]float64]Cell[T]),
+		sb:        strings.Builder{},
+		X:         x,
+		Y:         y,
+		ChunkSize: size,
+		Cells:     cells,
 	}
 }
 
-func (h *SpatialHash[T]) Insert(val T, position Vector) {
-	positionIndex := h.toIndex(position.X, position.Y)
-	cell, ok := h.Cells[positionIndex]
+func (h *SpatialHash[T]) Size() int {
+	size := 0
 
-	if !ok {
-		cell = NewCell[T]()
+	for x := range h.Cells {
+		for y := range h.Cells[x] {
+			size += len(h.Cells[x][y].items)
+		}
 	}
 
-	h.Cells[positionIndex] = cell.Insert(val, position)
+	return size
 }
 
-func (h *SpatialHash[T]) Update(val T, oldPosition, newPosition Vector) {
-	h.Delete(val, oldPosition)
-	h.Insert(val, newPosition)
+func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
+	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
+
+	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
+		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
+			h.Cells[x][y] = h.Cells[x][y].Insert(val)
+		}
+	}
 }
 
-func (h *SpatialHash[T]) Delete(val T, position Vector) {
-	positionIndex := h.toIndex(position.X, position.Y)
-	cell, ok := h.Cells[positionIndex]
+func (h *SpatialHash[T]) Update(val T, oldBounds, newBounds Rectangle) {
+	h.Delete(val, oldBounds)
+	h.Insert(val, newBounds)
+}
 
-	if !ok {
-		cell = NewCell[T]()
+func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
+	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
+
+	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
+		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
+			h.Cells[x][y] = h.Cells[x][y].Delete(val)
+		}
+	}
+}
+
+func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
+	set := map[T]struct{}{}
+	items := []T{}
+	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
+	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
+
+	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
+		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
+			for _, item := range h.Cells[x][y].Get() {
+				_, ok := set[item]
+				if !ok {
+					set[item] = struct{}{}
+					items = append(items, item)
+				}
+			}
+		}
 	}
 
-	h.Cells[positionIndex] = cell.Delete(val, position)
+	return items
+}
+
+func (h *SpatialHash[T]) Drop() {
+	for i := range h.Cells {
+		h.Cells[i] = make([]Cell[T], h.Y)
+	}
+}
+
+func (h *SpatialHash[T]) getCellIndex(x, y float64) (xIndex, yIndex int) {
+	xIndex = int(math.Round(x / h.ChunkSize))
+	yIndex = int(math.Round(y / h.ChunkSize))
+
+	xIndex = max(xIndex, 0)
+	xIndex = min(xIndex, h.X-1)
+	yIndex = max(yIndex, 0)
+	yIndex = min(yIndex, h.Y-1)
+
+	return xIndex, yIndex
+}
+
+type Cell[T comparable] struct {
+	items []CellItem[T]
+}
+
+func NewCell[T comparable]() Cell[T] {
+	return Cell[T]{
+		items: make([]CellItem[T], 0),
+	}
+}
+
+func (c Cell[T]) Get() []T {
+	items := make([]T, len(c.items))
+
+	for i := 0; i < len(c.items); i++ {
+		items[i] = c.items[i].item
+	}
+
+	return items
+}
+
+func (c Cell[T]) Insert(item T) Cell[T] {
+	c.items = append(
+		c.items,
+		CellItem[T]{
+			item: item,
+		},
+	)
+	return c
+}
+
+func (c Cell[T]) Delete(item T) Cell[T] {
+	for i := 0; i < len(c.items); i++ {
+		if c.items[i].item != item {
+			continue
+		}
+		c.items[i] = c.items[len(c.items)-1]
+		c.items = c.items[:len(c.items)-1]
+	}
+
+	return c
+}
+
+type CellItem[T comparable] struct {
+	item T
 }
 
 func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
@@ -88,96 +181,4 @@ func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
 	}
 
 	return vectors
-}
-
-func (h *SpatialHash[T]) Search(x, y float64) []T {
-	i := h.toIndex(x, y)
-
-	cell, ok := h.Cells[i]
-	if !ok {
-		cell = NewCell[T]()
-		h.Cells[i] = cell
-	}
-
-	return cell.Get()
-}
-
-func (h *SpatialHash[T]) SearchNeighbors(x, y float64) []T {
-	items := []T{}
-	for _, direction := range directions {
-		i := x + direction[0]*h.ChunkSizeX
-		j := y + direction[1]*h.ChunkSizeY
-
-		items = append(items, h.Search(i, j)...)
-	}
-
-	return items
-}
-
-func (h *SpatialHash[T]) Drop() {
-	for k, c := range h.Cells {
-		h.Cells[k] = c.Drop()
-	}
-}
-
-func (h *SpatialHash[T]) toIndex(x, y float64) [2]float64 {
-	xIndex := math.Round(x/h.ChunkSizeX) * h.ChunkSizeX
-	yIndex := math.Round(y/h.ChunkSizeY) * h.ChunkSizeY
-
-	return [2]float64{xIndex, yIndex}
-}
-
-type Cell[T comparable] struct {
-	items []CellItem[T]
-}
-
-func NewCell[T comparable]() Cell[T] {
-	return Cell[T]{
-		items: make([]CellItem[T], 0),
-	}
-}
-
-func (c Cell[T]) Get() []T {
-	items := make([]T, len(c.items))
-
-	for i := 0; i < len(c.items); i++ {
-		items[i] = c.items[i].item
-	}
-
-	return items
-}
-
-func (c Cell[T]) Insert(item T, position Vector) Cell[T] {
-	c.items = append(
-		c.items,
-		CellItem[T]{
-			item:     item,
-			position: position,
-		},
-	)
-
-	return c
-}
-
-func (c Cell[T]) Delete(item T, position Vector) Cell[T] {
-	for i := 0; i < len(c.items); i++ {
-		if c.items[i].item != item {
-			continue
-		}
-
-		c.items[i] = c.items[len(c.items)-1]
-		c.items = c.items[:len(c.items)-1]
-	}
-
-	return c
-}
-
-func (c Cell[T]) Drop() Cell[T] {
-	c.items = c.items[:0]
-	return c
-}
-
-type CellItem[T comparable] struct {
-	position Vector
-	item     T
 }

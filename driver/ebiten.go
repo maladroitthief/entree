@@ -1,7 +1,9 @@
 package driver
 
 import (
+	"context"
 	"fmt"
+	"image/color"
 	"math"
 	"sort"
 
@@ -12,12 +14,12 @@ import (
 	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/ui"
 )
 
 type EbitenGame struct {
+	ctx   context.Context
 	log   logs.Logger
 	scene *ui.SceneManager
 
@@ -33,10 +35,12 @@ type EbitenGame struct {
 }
 
 func NewEbitenDriver(
+	ctx context.Context,
 	log logs.Logger,
 	scene *ui.SceneManager,
 ) (*EbitenGame, error) {
 	e := &EbitenGame{
+		ctx:           ctx,
 		log:           log,
 		scene:         scene,
 		width:         0,
@@ -53,37 +57,45 @@ func NewEbitenDriver(
 
 	err := e.WindowHandler()
 
+	ebiten.SetVsyncEnabled(true)
+	ebiten.SetTPS(ebiten.SyncWithFPS)
+
 	return e, err
 }
 
 func (e *EbitenGame) Update() (err error) {
 	// check for screen resizing
-	err = e.WindowHandler()
-	if err != nil {
+	select {
+	case <-e.ctx.Done():
+		return ebiten.Termination
+	default:
+		err = e.WindowHandler()
+		if err != nil {
+			return err
+		}
+		e.CanvasHandler()
+
+		cursorX, cursorY := ebiten.CursorPosition()
+
+		pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
+		keys := []string{}
+		for _, key := range pressedKeys {
+			keys = append(keys, key.String())
+		}
+
+		inputState := ui.InputState{
+			Cursor: data.Vector{X: float64(cursorX), Y: float64(cursorY)},
+			Keys:   keys,
+		}
+
+		err = e.scene.Update(inputState)
+
+		if err == ui.Termination {
+			return ebiten.Termination
+		}
+
 		return err
 	}
-	e.CanvasHandler()
-
-	cursorX, cursorY := ebiten.CursorPosition()
-
-	pressedKeys := inpututil.AppendPressedKeys([]ebiten.Key{})
-	keys := []string{}
-	for _, key := range pressedKeys {
-		keys = append(keys, key.String())
-	}
-
-	inputState := ui.InputState{
-		Cursor: data.Vector{X: float64(cursorX), Y: float64(cursorY)},
-		Keys:   keys,
-	}
-
-	err = e.scene.Update(inputState)
-
-	if err == ui.Termination {
-		return ebiten.Termination
-	}
-
-	return err
 }
 
 func (e *EbitenGame) Draw(screen *ebiten.Image) {
@@ -115,13 +127,13 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	}
 
 	e.Render(screen)
-	e.DrawDebug(screen)
+	e.DebugFPS(screen)
 }
 
 func (e *EbitenGame) DrawAnimation(
 	screen *ebiten.Image,
 	world *core.ECS,
-	position attribute.Position,
+	position core.Position,
 ) (err error) {
 	entity, entityErr := world.GetEntity(position.EntityId)
 	state, stateErr := world.GetState(entity.Id)
@@ -132,11 +144,13 @@ func (e *EbitenGame) DrawAnimation(
 		return nil
 	}
 
-	if animationErr != nil {
+	if dimensionErr != nil {
 		return nil
 	}
 
-	if dimensionErr != nil {
+	if animationErr != nil {
+		bounds := dimension.Bounds()
+		e.DebugBounds(bounds, e.theme.Blue())
 		return nil
 	}
 
@@ -157,11 +171,8 @@ func (e *EbitenGame) DrawAnimation(
 		-float64(sprite.Bounds().Size().Y)/2,
 	)
 
-	// Scale the sprite
-	e.spriteOptions.GeoM.Scale(dimension.Scale, dimension.Scale)
-
 	// Flip the sprite if moving west
-	if stateErr == nil && state.OrientationX == attribute.West {
+	if stateErr == nil && state.OrientationX == core.West {
 		e.spriteOptions.GeoM.Scale(-1, 1)
 	}
 
@@ -171,16 +182,24 @@ func (e *EbitenGame) DrawAnimation(
 		position.Y+dimension.Offset.Y,
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
-	vector.StrokeRect(
-		e.canvas,
-		float32(position.X-dimension.Size.X/2),
-		float32(position.Y-dimension.Size.Y/2),
-		float32(dimension.Size.X),
-		float32(dimension.Size.Y),
-		1,
-		e.theme.Red(),
-		false,
-	)
+
+	// bounds := dimension.Bounds()
+	// vector.StrokeRect(
+	// 	e.canvas,
+	// 	float32(bounds.Position.X-bounds.Width/2),
+	// 	float32(bounds.Position.Y-bounds.Height/2),
+	// 	float32(bounds.Width),
+	// 	float32(bounds.Height),
+	// 	1,
+	// 	e.theme.Red(),
+	// 	false,
+	// )
+
+	// msg := fmt.Sprintf(
+	// 	"[%v]",
+	// 	entity.Id,
+	// )
+	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
 
 	// msg := fmt.Sprintf(
 	// 	"[%0.2f, %0.2f]",
@@ -280,14 +299,14 @@ func (e *EbitenGame) CanvasHandler() {
 
 func (e *EbitenGame) DrawGrid() {
 	cellSize := e.scene.CellSize()
-	columns, rows := e.canvas.Bounds().Dx()/cellSize, e.canvas.Bounds().Dy()/cellSize
+	gridX, gridY := e.canvas.Bounds().Dx()/cellSize, e.canvas.Bounds().Dy()/cellSize
 
-	for i := 0; i <= rows; i++ {
+	for i := 0; i <= gridY; i++ {
 		vector.StrokeLine(
 			e.canvas,
 			0,
 			float32(i*cellSize),
-			float32(columns*cellSize),
+			float32(gridX*cellSize),
 			float32(i*cellSize),
 			1,
 			e.theme.Magenta(),
@@ -295,13 +314,13 @@ func (e *EbitenGame) DrawGrid() {
 		)
 	}
 
-	for i := 0; i <= columns; i++ {
+	for i := 0; i <= gridX; i++ {
 		vector.StrokeLine(
 			e.canvas,
 			float32(i*cellSize),
 			0,
 			float32(i*cellSize),
-			float32(rows*cellSize),
+			float32(gridY*cellSize),
 			1,
 			e.theme.Magenta(),
 			false,
@@ -309,13 +328,34 @@ func (e *EbitenGame) DrawGrid() {
 	}
 }
 
-func (e *EbitenGame) DrawDebug(screen *ebiten.Image) {
+func (e *EbitenGame) DebugFPS(screen *ebiten.Image) {
 	msg := fmt.Sprintf(
 		"TPS: %0.2f\nFPS: %0.2f",
 		ebiten.ActualTPS(),
 		ebiten.ActualFPS(),
 	)
 	ebitenutil.DebugPrint(screen, msg)
+}
+
+func (e *EbitenGame) DebugEntity(entity core.Entity, x, y int) {
+	msg := fmt.Sprintf(
+		"%v",
+		entity.Id,
+	)
+	ebitenutil.DebugPrintAt(e.canvas, msg, x, y)
+}
+
+func (e *EbitenGame) DebugBounds(bounds data.Rectangle, color color.Color) {
+	vector.StrokeRect(
+		e.canvas,
+		float32(bounds.Position.X-bounds.Width/2),
+		float32(bounds.Position.Y-bounds.Height/2),
+		float32(bounds.Width),
+		float32(bounds.Height),
+		1,
+		color,
+		false,
+	)
 }
 
 func SpriteKey(sheet, sprite string) string {

@@ -24,7 +24,7 @@ func FedericoSheet() (*content.SpriteSheet, error) {
 		"federico",
 		image,
 		8,
-		8,
+		6,
 		0,
 		32,
 	)

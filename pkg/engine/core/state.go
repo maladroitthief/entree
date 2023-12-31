@@ -2,29 +2,65 @@ package core
 
 import (
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
-func (e *ECS) AddState(entity Entity, s attribute.State) Entity {
-	stateId := e.stateAllocator.Allocate()
+type OrientationX int
+type OrientationY int
 
-	s.Id = stateId
-	s.EntityId = entity.Id
-	entity.StateId = stateId
+const (
+	Neutral OrientationX = iota
+	West
+	East
+	South OrientationY = iota
+	North
 
-	e.state = e.state.Set(stateId, s)
+	Idling  = "idle"
+	Moving  = "move"
+	Dodging = "dodge"
+
+	DodgeDuration = 40
+)
+
+type State struct {
+	Id       data.GenerationalIndex
+	EntityId data.GenerationalIndex
+
+	State        string
+	Counter      int
+	OrientationX OrientationX
+	OrientationY OrientationY
+}
+
+func (e *ECS) NewState() State {
+	state := State{
+		Id:           e.stateAllocator.Allocate(),
+		State:        Idling,
+		Counter:      0,
+		OrientationX: Neutral,
+		OrientationY: South,
+	}
+	e.states.Set(state.Id, state)
+
+	return state
+}
+
+func (e *ECS) BindState(entity Entity, state State) Entity {
+	state.EntityId = entity.Id
+	entity.StateId = state.Id
+
+	e.states = e.states.Set(state.Id, state)
 	e.entities = e.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetState(entityId data.GenerationalIndex) (attribute.State, error) {
+func (e *ECS) GetState(entityId data.GenerationalIndex) (State, error) {
 	entity, err := e.GetEntity(entityId)
 	if err != nil {
-		return attribute.State{}, err
+		return State{}, err
 	}
 
-	state := e.state.Get(entity.StateId)
+	state := e.states.Get(entity.StateId)
 	if !e.stateAllocator.IsLive(state.Id) {
 		return state, ErrAttributeNotFound
 	}
@@ -32,10 +68,10 @@ func (e *ECS) GetState(entityId data.GenerationalIndex) (attribute.State, error)
 	return state, nil
 }
 
-func (e *ECS) GetAllStates() []attribute.State {
-	return e.state.GetAll(e.stateAllocator)
+func (e *ECS) GetAllStates() []State {
+	return e.states.GetAll(e.stateAllocator)
 }
 
-func (e *ECS) SetState(state attribute.State) {
-	e.state = e.state.Set(state.Id, state)
+func (e *ECS) SetState(state State) {
+	e.states = e.states.Set(state.Id, state)
 }

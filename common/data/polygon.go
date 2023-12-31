@@ -10,6 +10,7 @@ type Polygon struct {
 	Vectors     []Vector
 	CalcVectors []Vector
 	Planes      []Plane
+	Bounds      Rectangle
 }
 
 // NewPolygon accepts an array of vectors in CCW rotation
@@ -25,6 +26,7 @@ func NewPolygon(position Vector, vectors []Vector) Polygon {
 func (p Polygon) Update() Polygon {
 	p.CalcVectors = p.calcVectors()
 	p.Planes = p.calcPlanes()
+	p.Bounds = p.calcBounds()
 	return p
 }
 
@@ -66,14 +68,33 @@ func (p Polygon) Add(v Vector) Polygon {
 	return q.Update()
 }
 
-func (p Polygon) Contains(v Vector) bool {
-	for _, plane := range p.Planes {
-		if plane.DistanceTo(v) > 0 {
-			return false
+func (p Polygon) ContainsVector(v Vector) bool {
+	rayCount := 0
+	for i := 0; i < len(p.CalcVectors); i++ {
+		j := (i + 1) % len(p.CalcVectors)
+		if intersectsRay(v, p.CalcVectors[i], p.CalcVectors[j]) {
+			rayCount++
 		}
 	}
+	return rayCount%2 == 1
+}
 
-	return true
+func intersectsRay(point, v1, v2 Vector) bool {
+	if v1.Y == v2.Y {
+		// Horizontal edge, Ray is vertical
+		return false
+	}
+
+	if point.Y == v1.Y || point.Y == v2.Y {
+		// Avoid edge cases
+		point.Y += 0.0001
+	}
+
+	if (point.Y > v1.Y && point.Y <= v2.Y) || (point.Y > v2.Y && point.Y <= v1.Y) {
+		x := v1.X + (point.Y-v1.Y)*(v2.X-v1.X)/(v2.Y-v1.Y)
+		return x > point.X
+	}
+	return false
 }
 
 func (p Polygon) Intersects(q Polygon) (Vector, bool) {
@@ -118,6 +139,51 @@ func (p Polygon) Intersects(q Polygon) (Vector, bool) {
 	return result, true
 }
 
+func (p Polygon) ContainsPolygon(q Polygon) (Vector, bool) {
+	normal := Vector{}
+	distance := math.MaxFloat64
+	contained := 1
+
+	for _, v := range q.CalcVectors {
+		if !p.ContainsVector(v) {
+			contained--
+		}
+	}
+
+	if contained == 1 {
+		return Vector{}, true
+	}
+
+	for _, plane := range p.Planes {
+		minP, maxP := projectVectors(plane.Normal, p.CalcVectors)
+		minQ, maxQ := projectVectors(plane.Normal, q.CalcVectors)
+
+		planeDistance := maxQ - minQ - math.Min(maxQ-minP, maxP-minQ)
+		if planeDistance < distance && planeDistance > 0 {
+			distance = planeDistance
+			normal = plane.Normal
+		}
+	}
+
+	for _, plane := range q.Planes {
+		minP, maxP := projectVectors(plane.Normal, p.CalcVectors)
+		minQ, maxQ := projectVectors(plane.Normal, q.CalcVectors)
+
+		planeDistance := maxQ - minQ - math.Min(maxQ-minP, maxP-minQ)
+		if planeDistance < distance && planeDistance > 0 {
+			distance = planeDistance
+			normal = plane.Normal
+		}
+	}
+
+	if normal.DotProduct(q.Position.Subtract(p.Position)) > 0 {
+		normal = normal.Invert()
+	}
+
+	result := normal.Scale(distance)
+	return result, false
+}
+
 func projectVectors(axis Vector, vectors []Vector) (min, max float64) {
 	min = math.MaxFloat64
 	max = -math.MaxFloat64
@@ -153,4 +219,19 @@ func (p Polygon) calcPlanes() []Plane {
 	planes[len(planes)-1] = NewPlane(p.CalcVectors[len(planes)-1], p.CalcVectors[0])
 
 	return planes
+}
+
+func (p Polygon) calcBounds() Rectangle {
+	minHeight, maxHeight := math.MaxFloat64, 0.0
+	minWidth, maxWidth := math.MaxFloat64, 0.0
+
+	for i := 0; i < len(p.CalcVectors); i++ {
+		minWidth = min(minWidth, p.CalcVectors[i].X)
+		maxWidth = max(maxWidth, p.CalcVectors[i].X)
+
+		minHeight = min(minHeight, p.CalcVectors[i].Y)
+		maxHeight = max(maxHeight, p.CalcVectors[i].Y)
+	}
+
+	return NewRectangle(p.Position, maxWidth-minWidth, maxHeight-minHeight)
 }

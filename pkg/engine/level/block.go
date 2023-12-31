@@ -4,17 +4,18 @@ import (
 	"math/rand"
 
 	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 const (
-	BlockSize  = 32
 	Player     = '@'
 	EmptySpace = '0'
 	Solid      = '1'
 	Solid50    = '2'
 	Obstacle   = '5'
+	Enemy      = 'e'
 )
 
 type BlockFactory interface {
@@ -22,6 +23,7 @@ type BlockFactory interface {
 	AddSolid(e *core.ECS, x, y float64)
 	AddSolid50(e *core.ECS, x, y float64)
 	AddObstacle(e *core.ECS, x, y float64)
+	AddEnemy(e *core.ECS, x, y float64)
 }
 
 type blockFactory struct {
@@ -39,7 +41,7 @@ func (bf *blockFactory) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
 	dimension, _ := e.GetDimension(p.Id)
 	position.X = x
 	position.Y = y
-	dimension.Bounds = dimension.Bounds.SetPosition(data.Vector{X: x, Y: y})
+	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: x, Y: y})
 
 	e.SetPosition(position)
 	e.SetDimension(dimension)
@@ -64,4 +66,8 @@ func (bf *blockFactory) AddObstacle(e *core.ECS, x, y float64) {
 	} else {
 		environment.Grass(e, x, y)
 	}
+}
+
+func (bf *blockFactory) AddEnemy(e *core.ECS, x, y float64) {
+	enemy.NewOnyawn(e, x, y)
 }

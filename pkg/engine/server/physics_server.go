@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
+	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -13,61 +13,67 @@ const (
 )
 
 type PhysicsServer struct {
+	log         logs.Logger
 	x           float64
 	y           float64
 	size        float64
-	spatialHash *data.SpatialHash[attribute.Position]
-	oob         [4]attribute.Dimension
+	spatialHash *data.SpatialHash[core.Entity]
 }
 
-func NewPhysicsServer(x, y, size float64) *PhysicsServer {
+func NewPhysicsServer(e *core.ECS, log logs.Logger, x, y, size float64) *PhysicsServer {
 	s := &PhysicsServer{
+		log:         log,
 		x:           x,
 		y:           y,
 		size:        size,
-		spatialHash: data.NewSpatialHash[attribute.Position](32, 32),
-		oob:         OOB(x, y, size),
+		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
 	}
 
+	s.log.Debug("NewPhysicsServer()", nil)
 	return s
 }
 
 func (s *PhysicsServer) Load(e *core.ECS) {
 	s.spatialHash.Drop()
-	positions := e.GetAllPosition()
-
-	for _, p := range positions {
-		s.spatialHash.Insert(p, data.Vector{X: p.X, Y: p.Y})
+	entities := e.GetAllEntities()
+	for _, entity := range entities {
+		dimension, err := e.GetDimension(entity.DimensionId)
+		if err != nil {
+			continue
+		}
+		s.spatialHash.Insert(entity, dimension.Bounds())
 	}
 }
 
-func DeltaPosition(p attribute.Position, v data.Vector) data.Vector {
+func DeltaPosition(p core.Position, v data.Vector) data.Vector {
 	return data.Vector{X: p.X, Y: p.Y}.Add(v)
 }
 
-func DeltaPositionXY(p attribute.Position, x, y float64) data.Vector {
+func DeltaPositionXY(p core.Position, x, y float64) data.Vector {
 	return data.Vector{X: p.X, Y: p.Y}.Add(data.Vector{X: x, Y: y})
 }
 
-func DeltaBounds(d attribute.Dimension, v data.Vector) data.Polygon {
-	return d.Bounds.Add(v)
+func DeltaBounds(d core.Dimension, v data.Vector) data.Polygon {
+	return d.Polygon.Add(v)
 }
 
-func DeltaBoundsXY(d attribute.Dimension, x, y float64) data.Polygon {
-	return d.Bounds.Add(data.Vector{X: x, Y: y})
+func DeltaBoundsXY(d core.Dimension, x, y float64) data.Polygon {
+	return d.Polygon.Add(data.Vector{X: x, Y: y})
 }
 
 func (s *PhysicsServer) Update(e *core.ECS) {
+	s.log.Debug("PhysicsServer", "Update()")
 	s.Load(e)
 	movements := e.GetAllMovement()
 
 	for _, m := range movements {
-		m = UpdateMovement(m)
+		m = s.UpdateMovement(m)
 		s.UpdatePosition(e, m)
 	}
 }
 
-func UpdateMovement(m attribute.Movement) attribute.Movement {
+func (s *PhysicsServer) UpdateMovement(m core.Movement) core.Movement {
+	s.log.Debug("PhysicsServer", "UpdateMovement()")
 	m.Velocity = m.Velocity.ScaleXY(m.Acceleration.X, m.Acceleration.Y)
 	if math.Signbit(m.Acceleration.X) != math.Signbit(m.Velocity.X) {
 		m.Velocity.X = 0
@@ -108,9 +114,10 @@ func UpdateMovement(m attribute.Movement) attribute.Movement {
 
 func (s *PhysicsServer) UpdatePosition(
 	e *core.ECS,
-	m attribute.Movement,
+	m core.Movement,
 ) {
 
+	s.log.Debug("PhysicsServer", "UpdatePosition()")
 	p, err := e.GetPosition(m.EntityId)
 	if err != nil {
 		return
@@ -127,7 +134,7 @@ func (s *PhysicsServer) UpdatePosition(
 		return
 	}
 
-	p, m, d = s.HandleOOB(e, p, m, d)
+	p, m, d = s.HandleOutOfBounds(e, p, m, d)
 
 	collisions := s.Collisions(e, p, m, d)
 	if len(collisions) == 0 {
@@ -145,15 +152,23 @@ func (s *PhysicsServer) UpdatePosition(
 
 func (s *PhysicsServer) updateAttributes(
 	e *core.ECS,
-	p attribute.Position,
-	m attribute.Movement,
-	d attribute.Dimension,
+	p core.Position,
+	m core.Movement,
+	d core.Dimension,
 ) {
+	entity, err := e.GetEntity(p.EntityId)
+	if err != nil {
+		return
+	}
+
 	deltaPosition := DeltaPosition(p, m.Velocity)
-	s.spatialHash.Update(p, data.Vector{X: p.X, Y: p.Y}, deltaPosition)
+	oldBounds := d.Polygon.Bounds
+
 	p.X = deltaPosition.X
 	p.Y = deltaPosition.Y
-	d.Bounds = d.Bounds.SetPosition(deltaPosition)
+	d.Polygon = d.Polygon.SetPosition(deltaPosition)
+
+	s.spatialHash.Update(entity, oldBounds, d.Bounds())
 
 	e.SetPosition(p)
 	e.SetMovement(m)
@@ -162,24 +177,22 @@ func (s *PhysicsServer) updateAttributes(
 
 func (s *PhysicsServer) Collisions(
 	e *core.ECS,
-	p attribute.Position,
-	m attribute.Movement,
-	d attribute.Dimension,
-) []attribute.Dimension {
-
-	results := []attribute.Dimension{}
-	candidates := s.spatialHash.SearchNeighbors(p.X, p.Y)
-	for i := 0; i < len(candidates); i++ {
-		if p.EntityId == candidates[i].EntityId {
-			continue
-		}
-
-		_d, err := e.GetDimension(candidates[i].EntityId)
+	p core.Position,
+	m core.Movement,
+	d core.Dimension,
+) []core.Dimension {
+	s.log.Debug("Start", "PhysicsServer.Collisions()")
+	results := []core.Dimension{}
+	entities := s.spatialHash.FindNear(d.Bounds())
+	s.log.Debug("entities length", len(entities))
+	for i := 0; i < len(entities); i++ {
+		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {
+			s.log.Error("dimension not found", "PhysicsServer.Collisions()", err)
 			continue
 		}
 
-		_, intersects := DeltaBounds(d, m.Velocity).Intersects(_d.Bounds)
+		_, intersects := DeltaBounds(d, m.Velocity).Intersects(_d.Polygon)
 		if intersects {
 			results = append(results, _d)
 		}
@@ -190,12 +203,12 @@ func (s *PhysicsServer) Collisions(
 
 func HandleCollision(
 	e *core.ECS,
-	p attribute.Position,
-	m attribute.Movement,
-	d attribute.Dimension,
-	c attribute.Collider,
-	_d attribute.Dimension,
-) (attribute.Position, attribute.Movement, attribute.Dimension) {
+	p core.Position,
+	m core.Movement,
+	d core.Dimension,
+	c core.Collider,
+	_d core.Dimension,
+) (core.Position, core.Movement, core.Dimension) {
 
 	_c, err := e.GetCollider(_d.EntityId)
 	if err != nil {
@@ -203,80 +216,56 @@ func HandleCollision(
 	}
 
 	switch _c.ColliderType {
-	case attribute.Immovable:
-		xMTV, xCollision := _d.Bounds.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
+	case core.Immovable:
+		xMTV, xCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
 		if xCollision && m.Acceleration.X != 0 {
 			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
 			p.X = translation.X
 			m.Velocity.X = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
 
-		yMTV, yCollision := _d.Bounds.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
+		yMTV, yCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
 		if yCollision && m.Acceleration.Y != 0 {
 			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
 			p.Y = translation.Y
 			m.Velocity.Y = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
+			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 		}
-	case attribute.Impeding:
+	case core.Impeding:
 		m.Velocity = m.Velocity.Scale(1 - _c.ImpedingRate)
-	case attribute.Moveable:
+	case core.Moveable:
 	}
 
 	return p, m, d
 }
 
-func (s *PhysicsServer) HandleOOB(
+func (s *PhysicsServer) HandleOutOfBounds(
 	e *core.ECS,
-	p attribute.Position,
-	m attribute.Movement,
-	d attribute.Dimension,
-) (attribute.Position, attribute.Movement, attribute.Dimension) {
+	p core.Position,
+	m core.Movement,
+	d core.Dimension,
+) (core.Position, core.Movement, core.Dimension) {
+	sizeX := s.x * s.size
+	sizeY := s.y * s.size
+	center := data.Vector{X: sizeX / 2, Y: sizeY / 2}
+	oob := data.NewRectangle(center, sizeX, sizeY).ToPolygon()
 
-	for _, oob := range s.oob {
-		xMTV, xCollision := oob.Bounds.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
-		if xCollision && m.Acceleration.X != 0 {
-			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
-			p.X = translation.X
-			m.Velocity.X = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
-		}
+	xMTV, xContained := oob.ContainsPolygon(DeltaBoundsXY(d, m.Velocity.X, 0))
+	if !xContained && m.Acceleration.X != 0 {
+		translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
+		p.X = translation.X
+		m.Velocity.X = 0
+		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+	}
 
-		yMTV, yCollision := oob.Bounds.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
-		if yCollision && m.Acceleration.Y != 0 {
-			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
-			p.Y = translation.Y
-			m.Velocity.Y = 0
-			d.Bounds = d.Bounds.SetPosition(data.Vector{X: p.X, Y: p.Y})
-		}
+	yMTV, yContained := oob.ContainsPolygon(DeltaBoundsXY(d, 0, m.Velocity.Y))
+	if !yContained && m.Acceleration.Y != 0 {
+		translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
+		p.Y = translation.Y
+		m.Velocity.Y = 0
+		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 	}
 
 	return p, m, d
-}
-
-func OOB(x, y, size float64) [4]attribute.Dimension {
-	entities := [4]core.Entity{}
-
-	xSize := x * size
-	ySize := y * size
-	positions := [4]data.Vector{
-		{X: xSize / 2, Y: -size / 2},
-		{X: xSize / 2, Y: ySize + size/2},
-		{X: xSize + size/2, Y: ySize / 2},
-		{X: -size / 2, Y: ySize / 2},
-	}
-	sizes := [4]data.Vector{
-		{X: xSize, Y: size},
-		{X: xSize, Y: size},
-		{X: size, Y: ySize},
-		{X: size, Y: ySize},
-	}
-
-	dimensions := [4]attribute.Dimension{}
-	for i := 0; i < len(entities); i++ {
-		dimensions[i] = attribute.NewDimension(positions[i], sizes[i])
-	}
-
-	return dimensions
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/pkg/engine/attribute"
 )
 
 var (
@@ -16,19 +15,21 @@ type ECS struct {
 	entityAllocator    *data.GenerationalIndexAllocator
 	entities           data.GenerationalIndexArray[Entity]
 	aiAllocator        *data.GenerationalIndexAllocator
-	ai                 data.GenerationalIndexArray[attribute.AI]
+	ai                 data.GenerationalIndexArray[AI]
+	behaviorAllocator  *data.GenerationalIndexAllocator
+	behaviors           data.GenerationalIndexArray[Behavior]
 	stateAllocator     *data.GenerationalIndexAllocator
-	state              data.GenerationalIndexArray[attribute.State]
+	states              data.GenerationalIndexArray[State]
 	movementAllocator  *data.GenerationalIndexAllocator
-	movement           data.GenerationalIndexArray[attribute.Movement]
+	movements           data.GenerationalIndexArray[Movement]
 	positionAllocator  *data.GenerationalIndexAllocator
-	position           data.GenerationalIndexArray[attribute.Position]
+	positions           data.GenerationalIndexArray[Position]
 	dimensionAllocator *data.GenerationalIndexAllocator
-	dimension          data.GenerationalIndexArray[attribute.Dimension]
+	dimensions          data.GenerationalIndexArray[Dimension]
 	colliderAllocator  *data.GenerationalIndexAllocator
-	collider           data.GenerationalIndexArray[attribute.Collider]
+	colliders           data.GenerationalIndexArray[Collider]
 	animationAllocator *data.GenerationalIndexAllocator
-	animation          data.GenerationalIndexArray[attribute.Animation]
+	animations          data.GenerationalIndexArray[Animation]
 }
 
 func NewECS() *ECS {
@@ -36,19 +37,21 @@ func NewECS() *ECS {
 		entityAllocator:    data.NewGenerationalIndexAllocator(),
 		entities:           data.NewGenerationalIndexArray[Entity](),
 		aiAllocator:        data.NewGenerationalIndexAllocator(),
-		ai:                 data.NewGenerationalIndexArray[attribute.AI](),
+		ai:                 data.NewGenerationalIndexArray[AI](),
+		behaviorAllocator:  data.NewGenerationalIndexAllocator(),
+		behaviors:           data.NewGenerationalIndexArray[Behavior](),
 		stateAllocator:     data.NewGenerationalIndexAllocator(),
-		state:              data.NewGenerationalIndexArray[attribute.State](),
+		states:              data.NewGenerationalIndexArray[State](),
 		movementAllocator:  data.NewGenerationalIndexAllocator(),
-		movement:           data.NewGenerationalIndexArray[attribute.Movement](),
+		movements:           data.NewGenerationalIndexArray[Movement](),
 		positionAllocator:  data.NewGenerationalIndexAllocator(),
-		position:           data.NewGenerationalIndexArray[attribute.Position](),
+		positions:           data.NewGenerationalIndexArray[Position](),
 		dimensionAllocator: data.NewGenerationalIndexAllocator(),
-		dimension:          data.NewGenerationalIndexArray[attribute.Dimension](),
+		dimensions:          data.NewGenerationalIndexArray[Dimension](),
 		colliderAllocator:  data.NewGenerationalIndexAllocator(),
-		collider:           data.NewGenerationalIndexArray[attribute.Collider](),
+		colliders:           data.NewGenerationalIndexArray[Collider](),
 		animationAllocator: data.NewGenerationalIndexAllocator(),
-		animation:          data.NewGenerationalIndexArray[attribute.Animation](),
+		animations:          data.NewGenerationalIndexArray[Animation](),
 	}
 
 	return ecs
