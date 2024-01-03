@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -36,7 +35,6 @@ var (
 
 type InputHandler struct {
 	repo     InputRepository
-	log      logs.Logger
 	settings InputSettings
 
 	currentKeys   []string
@@ -59,18 +57,13 @@ type InputRepository interface {
 	SetInputSettings(InputSettings) error
 }
 
-func NewInputHandler(l logs.Logger, r InputRepository) (*InputHandler, error) {
-	if l == nil {
-		return nil, ErrLoggerNil
-	}
-
+func NewInputHandler(r InputRepository) (*InputHandler, error) {
 	if r == nil {
 		return nil, ErrInputRepoNil
 	}
 
 	h := &InputHandler{
 		repo: r,
-		log:  l,
 	}
 
 	err := h.Load()

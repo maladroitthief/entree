@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
@@ -33,14 +32,12 @@ type Scene interface {
 }
 
 type SceneState struct {
-	log   logs.Logger
 	mgr   *SceneManager
 	input *InputHandler
 	theme theme.Colors
 }
 
 type SceneManager struct {
-	log             logs.Logger
 	currentScene    Scene
 	nextScene       Scene
 	transitionCount int
@@ -52,15 +49,10 @@ type SceneManager struct {
 }
 
 func NewSceneManager(
-	l logs.Logger,
 	g *GraphicsServer,
 	i *InputHandler,
 	w *WindowHandler,
 ) (*SceneManager, error) {
-	if l == nil {
-		return nil, ErrLoggerNil
-	}
-
 	if g == nil {
 		return nil, ErrGraphicsServerNil
 	}
@@ -74,7 +66,6 @@ func NewSceneManager(
 	}
 
 	m := &SceneManager{
-		log:      l,
 		graphics: g,
 		input:    i,
 		window:   w,
@@ -119,7 +110,6 @@ func (m *SceneManager) Update(state InputState) error {
 
 func (m *SceneManager) sceneState() *SceneState {
 	return &SceneState{
-		log:   m.log,
 		mgr:   m,
 		input: m.input,
 		theme: m.theme,

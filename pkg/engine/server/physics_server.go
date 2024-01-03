@@ -4,8 +4,8 @@ import (
 	"math"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -13,23 +13,20 @@ const (
 )
 
 type PhysicsServer struct {
-	log         logs.Logger
 	x           float64
 	y           float64
 	size        float64
 	spatialHash *data.SpatialHash[core.Entity]
 }
 
-func NewPhysicsServer(e *core.ECS, log logs.Logger, x, y, size float64) *PhysicsServer {
+func NewPhysicsServer(e *core.ECS, x, y, size float64) *PhysicsServer {
 	s := &PhysicsServer{
-		log:         log,
 		x:           x,
 		y:           y,
 		size:        size,
 		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
 	}
 
-	s.log.Debug("NewPhysicsServer()", nil)
 	return s
 }
 
@@ -62,7 +59,7 @@ func DeltaBoundsXY(d core.Dimension, x, y float64) data.Polygon {
 }
 
 func (s *PhysicsServer) Update(e *core.ECS) {
-	s.log.Debug("PhysicsServer", "Update()")
+	log.Debug().Msg("PhysicsServer.Update()")
 	s.Load(e)
 	movements := e.GetAllMovement()
 
@@ -73,7 +70,6 @@ func (s *PhysicsServer) Update(e *core.ECS) {
 }
 
 func (s *PhysicsServer) UpdateMovement(m core.Movement) core.Movement {
-	s.log.Debug("PhysicsServer", "UpdateMovement()")
 	m.Velocity = m.Velocity.ScaleXY(m.Acceleration.X, m.Acceleration.Y)
 	if math.Signbit(m.Acceleration.X) != math.Signbit(m.Velocity.X) {
 		m.Velocity.X = 0
@@ -117,7 +113,6 @@ func (s *PhysicsServer) UpdatePosition(
 	m core.Movement,
 ) {
 
-	s.log.Debug("PhysicsServer", "UpdatePosition()")
 	p, err := e.GetPosition(m.EntityId)
 	if err != nil {
 		return
@@ -181,14 +176,11 @@ func (s *PhysicsServer) Collisions(
 	m core.Movement,
 	d core.Dimension,
 ) []core.Dimension {
-	s.log.Debug("Start", "PhysicsServer.Collisions()")
 	results := []core.Dimension{}
 	entities := s.spatialHash.FindNear(d.Bounds())
-	s.log.Debug("entities length", len(entities))
 	for i := 0; i < len(entities); i++ {
 		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {
-			s.log.Error("dimension not found", "PhysicsServer.Collisions()", err)
 			continue
 		}
 

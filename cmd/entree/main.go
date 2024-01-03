@@ -3,18 +3,20 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/assets/sheets"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/driver"
 	"github.com/maladroitthief/entree/pkg/ui"
 	"github.com/pkg/profile"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	mode := flag.String("profile", "", "enable profiling mode, one of [cpu, mem, mutex, block]")
+	debug := flag.Bool("debug", false, "sets log level to debug")
 	flag.Parse()
 
 	switch *mode {
@@ -30,45 +32,49 @@ func main() {
 		// do nothing
 	}
 
-	log := logs.NewLogrusLogger()
-	log.SetLevel("Debug")
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	settingsRepo := driver.NewSettingsRepository("settings.json")
 
-	graphicsServer, err := ui.NewGraphicsServer(log)
+	graphicsServer, err := ui.NewGraphicsServer()
 	if err != nil {
-		log.Fatal("main", "graphicsServer", err)
+		log.Fatal().Err(err).Any("graphics", graphicsServer)
 	}
 	loadSpriteSheets(graphicsServer)
 
-	inputHandler, err := ui.NewInputHandler(log, settingsRepo)
+	inputHandler, err := ui.NewInputHandler(settingsRepo)
 	if err != nil {
-		log.Fatal("main", "inputHandler", err)
+		log.Fatal().Err(err).Any("input", inputHandler)
 	}
 
-	windowHandler, err := ui.NewWindowHandler(log, settingsRepo)
+	windowHandler, err := ui.NewWindowHandler(settingsRepo)
 	if err != nil {
-		log.Fatal("main", "windowHandler", err)
+		log.Fatal().Err(err).Any("window", windowHandler)
 	}
 
 	sceneManager, err := ui.NewSceneManager(
-		log,
 		graphicsServer,
 		inputHandler,
 		windowHandler,
 	)
 	if err != nil {
-		log.Fatal("main", "sceneManager", err)
+		log.Fatal().Err(err).Any("scene", sceneManager)
 	}
 
 	ctx := context.Background()
-	err = runGame(ctx, log, sceneManager)
+	err = runGame(ctx, sceneManager)
 	if err != nil {
-		log.Fatal("main", nil, err)
+		log.Fatal().Err(err)
 	}
 }
 
-func runGame(ctx context.Context, log logs.Logger, sceneManager *ui.SceneManager) error {
-	ebitenDriver, err := driver.NewEbitenDriver(ctx, log, sceneManager)
+func runGame(ctx context.Context, sceneManager *ui.SceneManager) error {
+	ebitenDriver, err := driver.NewEbitenDriver(ctx, sceneManager)
 	if err != nil {
 		return err
 	}
@@ -83,19 +89,19 @@ func runGame(ctx context.Context, log logs.Logger, sceneManager *ui.SceneManager
 func loadSpriteSheets(g *ui.GraphicsServer) {
 	federicoSheet, err := sheets.FedericoSheet()
 	if err != nil {
-		log.Fatal("main", "federico_sheet", err)
+		log.Fatal().Err(err).Any("federico_sheet", federicoSheet)
 	}
 	g.LoadSpriteSheet(federicoSheet)
 
 	onyawnSheet, err := sheets.OnyawnSheet()
 	if err != nil {
-		log.Fatal("main", "onyawn_sheet", err)
+		log.Fatal().Err(err).Any("onyawn_sheet", onyawnSheet)
 	}
 	g.LoadSpriteSheet(onyawnSheet)
 
 	tilesSheet, err := sheets.TilesSheet()
 	if err != nil {
-		log.Fatal("main", "tiles_sheet", err)
+		log.Fatal().Err(err).Any("tiles_sheet", tilesSheet)
 	}
 	g.LoadSpriteSheet(tilesSheet)
 }

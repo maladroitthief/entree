@@ -4,7 +4,6 @@ import (
 	"errors"
 	"image"
 
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/content"
 )
 
@@ -13,17 +12,11 @@ var (
 )
 
 type GraphicsServer struct {
-	log    logs.Logger
 	sheets map[string]*content.SpriteSheet
 }
 
-func NewGraphicsServer(logger logs.Logger) (*GraphicsServer, error) {
-	if logger == nil {
-		return nil, ErrLoggerNil
-	}
-
+func NewGraphicsServer() (*GraphicsServer, error) {
 	return &GraphicsServer{
-		log:    logger,
 		sheets: make(map[string]*content.SpriteSheet),
 	}, nil
 }

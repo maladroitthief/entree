@@ -4,12 +4,10 @@ import (
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 type TitleScene struct {
-	log             logs.Logger
 	camera          *Camera
 	width           int
 	height          int
@@ -22,7 +20,6 @@ func NewTitleScene(state *SceneState) *TitleScene {
 		width:           800,
 		height:          800,
 		cellSize:        32,
-		log:             state.log,
 		backgroundColor: state.theme.Black(),
 	}
 

@@ -4,11 +4,11 @@ import (
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/content/player"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
 	"github.com/maladroitthief/entree/pkg/engine/server"
+	"github.com/rs/zerolog/log"
 )
 
 type GameScene struct {
@@ -24,7 +24,6 @@ type GameScene struct {
 
 	camera          *Camera
 	cameraFocus     core.Entity
-	log             logs.Logger
 	backgroundColor color.Color
 }
 
@@ -34,7 +33,6 @@ func NewGameScene(state *SceneState) *GameScene {
 		gridY:           2,
 		cellSize:        32,
 		world:           core.NewECS(),
-		log:             state.log,
 		backgroundColor: state.theme.Green(),
 	}
 
@@ -42,7 +40,6 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
 		gs.world,
-		state.log,
 		float64(gs.gridX*level.RoomWidth),
 		float64(gs.gridY*level.RoomHeight),
 		float64(gs.cellSize),
@@ -117,7 +114,7 @@ func (s *GameScene) BackgroundColor() color.Color {
 func (s *GameScene) GetCamera() *Camera {
 	cameraPosition, err := s.world.GetPosition(s.cameraFocus.Id)
 	if err != nil {
-		s.log.Error("GameScene.GetCamera", cameraPosition, err)
+		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
 	}
 
 	s.camera.X = cameraPosition.X

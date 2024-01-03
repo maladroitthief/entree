@@ -2,8 +2,6 @@ package ui
 
 import (
 	"errors"
-
-	"github.com/maladroitthief/entree/common/logs"
 )
 
 var (
@@ -16,7 +14,6 @@ var (
 
 type WindowHandler struct {
 	repo     WindowRepository
-	log      logs.Logger
 	settings WindowSettings
 }
 
@@ -41,18 +38,13 @@ func DefaultWindowSettings() WindowSettings {
 	}
 }
 
-func NewWindowHandler(l logs.Logger, r WindowRepository) (*WindowHandler, error) {
-	if l == nil {
-		return nil, ErrLoggerNil
-	}
-
+func NewWindowHandler(r WindowRepository) (*WindowHandler, error) {
 	if r == nil {
 		return nil, ErrWindowRepoNil
 	}
 
 	h := &WindowHandler{
 		repo: r,
-		log:  l,
 	}
 
 	err := h.Load()
