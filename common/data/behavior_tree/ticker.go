@@ -78,6 +78,34 @@ func NewTicker(ctx context.Context, duration time.Duration, node Node) Ticker {
 	return ticker
 }
 
+func NewTickerStopOnFail(ctx context.Context, duration time.Duration, node Node) Ticker {
+	if node == nil {
+		panic(errors.New("ticker stop on fail node is nil"))
+	}
+
+	return tickerStopOnFail{
+		Ticker: NewTicker(
+			ctx,
+			duration,
+			func() (Tick, []Node) {
+				tick, children := node()
+				if tick == nil {
+					return nil, children
+				}
+
+				return func(children []Node) (Status, error) {
+					status, err := tick(children)
+					if err == nil && status == Failure {
+						err = ErrExitOnFailure
+					}
+
+					return status, err
+				}, children
+			},
+		),
+	}
+}
+
 func (t *ticker) run() {
 	var err error
 TickLoop:
