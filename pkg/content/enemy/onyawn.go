@@ -11,13 +11,13 @@ func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
 
 	ai := e.NewAI(core.Computer)
 	root := e.Root()
-	seq := e.RandomSequence(root)
-	ai.RootBehavior = seq.Id
+	root, seq := e.RandomSequence(root)
+	ai.RootBehavior = root.Id
 	ai.ActiveBehavior = seq.Id
-	moveU := e.MovingUp(seq)
-	moveD := e.MovingDown(seq)
-	moveL := e.MovingLeft(seq)
-	moveR := e.MovingRight(seq)
+	seq, moveU := e.MovingUp(seq)
+	seq, moveD := e.MovingDown(seq)
+	seq, moveL := e.MovingLeft(seq)
+	seq, moveR := e.MovingRight(seq)
 
 	entity = e.BindBehavior(entity, root)
 	entity = e.BindBehavior(entity, seq)

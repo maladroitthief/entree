@@ -18,15 +18,17 @@ type AI struct {
 
 	BehaviorType BehaviorType
 
+	BehaviorTree   BehaviorTree
 	RootBehavior   data.GenerationalIndex
 	ActiveBehavior data.GenerationalIndex
-	ActiveSequence bool
+	BehaviorStack  *data.Stack[data.GenerationalIndex]
 }
 
 func (e *ECS) NewAI(b BehaviorType) AI {
 	ai := AI{
-		Id:           e.aiAllocator.Allocate(),
-		BehaviorType: b,
+		Id:            e.aiAllocator.Allocate(),
+		BehaviorType:  b,
+		BehaviorStack: data.NewStack[data.GenerationalIndex](),
 	}
 	e.ai.Set(ai.Id, ai)
 

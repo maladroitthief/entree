@@ -1,7 +1,12 @@
 package server
 
 import (
+	"fmt"
+
+	"github.com/maladroitthief/entree/common/data"
+	behaviortree "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/rs/zerolog/log"
 )
 
 type AIServer struct {
@@ -120,26 +125,28 @@ func handleMovementInputs(inputs []core.Input, a aiAttributes) aiAttributes {
 }
 
 func ProcessBehavior(e *core.ECS, ai core.AI) {
-	rootBehavior, err := e.GetBehavior(ai.RootBehavior)
+	behavior, err := e.GetBehavior(ai.ActiveBehavior)
 	if err != nil {
-		return
+		log.Warn().Err(err).Any("ActiveBehavior", ai.ActiveBehavior).Msg("Active behavior error")
+		behavior, err = e.GetBehavior(ai.RootBehavior)
+		if err != nil {
+			log.Warn().Err(err).Any("RootBehavior", ai.RootBehavior).Msg("Root behavior error")
+			return
+		}
 	}
 
-	activeBehavior, err := e.GetBehavior(ai.ActiveBehavior)
-	if err != nil {
-		return
+	if behavior.Status != core.RUNNING {
+		behavior.Status = core.RUNNING
 	}
 
-	status, err := activeBehavior.Tick(e, activeBehavior)
+	activeTickBehavior, err := behavior.Tick(e)
 	if err != nil {
+		log.Warn().Err(err).Any("activeBehavior", ai.ActiveBehavior).Msg("Active behavior tick error")
 		return
 	}
 
 	if status != core.RUNNING {
-		rootBehavior.Status = status
-		ai.ActiveBehavior = rootBehavior.Id
-
-		e.SetBehavior(rootBehavior)
+		ai.ActiveBehavior = behavior.Parent
 		e.SetAI(ai)
 	}
 }

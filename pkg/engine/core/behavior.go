@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/maladroitthief/entree/common/data"
+	"github.com/rs/zerolog/log"
 )
 
 type Status int
@@ -19,6 +20,11 @@ const (
 	LEAF_NODE
 )
 
+type BehaviorTree struct {
+	Root  data.GenerationalIndex
+	stack *data.Stack[data.GenerationalIndex]
+}
+
 type Behavior struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
@@ -28,7 +34,14 @@ type Behavior struct {
 	Parent    data.GenerationalIndex
 	Children  []data.GenerationalIndex
 
-	Tick func(*ECS, Behavior) (Status, error)
+	Tick func(*ECS) (Behavior, error)
+}
+
+func NewBehaviorTree(root data.GenerationalIndex) *BehaviorTree {
+	return &BehaviorTree{
+		Root:  root,
+		stack: data.NewStack[data.GenerationalIndex](),
+	}
 }
 
 func AddChild(parent, child Behavior) (Behavior, Behavior) {
@@ -45,32 +58,39 @@ func (e *ECS) Root() Behavior {
 		Children:  make([]data.GenerationalIndex, 0),
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
-		b.Status = RUNNING
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("root", b)
+		ai := e.ai.Get(b.EntityId)
+		if !e.behaviorAllocator.IsLive(ai.Id) {
+			b.Status = FAILURE
+			return b, ErrAttributeNotFound
+		}
+
 		child := e.behaviors.Get(b.Children[0])
 		if !e.behaviorAllocator.IsLive(child.Id) {
 			b.Status = FAILURE
-			e.SetBehavior(b)
-			return b.Status, ErrAttributeNotFound
+			return b, ErrAttributeNotFound
 		}
-		status, err := child.Tick(e, b)
+
+		ai.BehaviorStack.Push(child.Id)
+		e.SetAI(ai)
+
+		child, err := child.Tick(e)
 		if err != nil {
 			b.Status = FAILURE
-			e.SetBehavior(b)
-			return b.Status, err
+			return b, err
 		}
-		b.Status = status
+		b.Status = child.Status
 		e.SetBehavior(b)
 
-		return status, nil
+		return b, nil
 	}
-
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
 	return b
 }
 
-func (e *ECS) RandomSequence(parent Behavior) Behavior {
+func (e *ECS) RandomSequence(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -79,39 +99,37 @@ func (e *ECS) RandomSequence(parent Behavior) Behavior {
 		Children:  make([]data.GenerationalIndex, 0),
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
-		b.Status = RUNNING
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("randomSequence", b)
 		if len(b.Children) <= 0 {
 			b.Status = FAILURE
-			e.SetBehavior(b)
-			return b.Status, ErrAttributeNotFound
+			return b, ErrAttributeNotFound
 		}
+
 		child := e.behaviors.Get(b.Children[rand.Intn(len(b.Children))])
 		if !e.behaviorAllocator.IsLive(child.Id) {
 			b.Status = FAILURE
-			e.SetBehavior(b)
-			return b.Status, ErrAttributeNotFound
+			return b, ErrAttributeNotFound
 		}
 
-		status, err := child.Tick(e, b)
+		child, err := child.Tick(e)
 		if err != nil {
 			b.Status = FAILURE
-			e.SetBehavior(b)
-			return b.Status, err
+			return b, err
 		}
 
-		b.Status = status
+		b.Status = child.Status
 		e.SetBehavior(b)
-		return b.Status, nil
+		return b, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
-func (e *ECS) Inverter(parent Behavior) Behavior {
+func (e *ECS) Inverter(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -120,33 +138,38 @@ func (e *ECS) Inverter(parent Behavior) Behavior {
 		Children:  make([]data.GenerationalIndex, 1),
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("inverter", b)
 		child := e.behaviors.Get(b.Children[0])
 		if !e.behaviorAllocator.IsLive(child.Id) {
-			return FAILURE, ErrAttributeNotFound
+			b.Status = FAILURE
+			return b, ErrAttributeNotFound
 		}
-		status, err := child.Tick(e, b)
+		child, err := child.Tick(e)
 		if err != nil {
-			return FAILURE, err
+			b.Status = FAILURE
+			return b, err
 		}
 
-		switch status {
+		switch child.Status {
 		case SUCCESS:
-			return FAILURE, nil
+			child.Status = FAILURE
+			return b, nil
 		case FAILURE:
-			return SUCCESS, nil
+			child.Status = SUCCESS
+			return child, nil
 		}
 
-		return status, nil
+		return child, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
-func (e *ECS) MovingUp(parent Behavior) Behavior {
+func (e *ECS) MovingUp(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -154,7 +177,8 @@ func (e *ECS) MovingUp(parent Behavior) Behavior {
 		Parent:    parent.Id,
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("moveUp", b)
 		state, err := e.GetState(b.EntityId)
 		if err == nil {
 			state.State = Moving
@@ -164,21 +188,23 @@ func (e *ECS) MovingUp(parent Behavior) Behavior {
 
 		movement, err := e.GetMovement(b.EntityId)
 		if err != nil {
-			return FAILURE, err
+			b.Status = FAILURE
+			return b, err
 		}
 
 		movement.Acceleration.Y = -1
 		e.SetMovement(movement)
-		return SUCCESS, nil
+		b.Status = SUCCESS
+		return b, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
-func (e *ECS) MovingDown(parent Behavior) Behavior {
+func (e *ECS) MovingDown(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -186,7 +212,8 @@ func (e *ECS) MovingDown(parent Behavior) Behavior {
 		Parent:    parent.Id,
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("moveDown", b)
 		state, err := e.GetState(b.EntityId)
 		if err == nil {
 			state.State = Moving
@@ -196,21 +223,23 @@ func (e *ECS) MovingDown(parent Behavior) Behavior {
 
 		movement, err := e.GetMovement(b.EntityId)
 		if err != nil {
-			return FAILURE, err
+			b.Status = FAILURE
+			return b, err
 		}
 
 		movement.Acceleration.Y = 1
 		e.SetMovement(movement)
-		return SUCCESS, nil
+		b.Status = SUCCESS
+		return b, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
-func (e *ECS) MovingLeft(parent Behavior) Behavior {
+func (e *ECS) MovingLeft(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -218,7 +247,8 @@ func (e *ECS) MovingLeft(parent Behavior) Behavior {
 		Parent:    parent.Id,
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("moveLeft", b)
 		state, err := e.GetState(b.EntityId)
 		if err == nil {
 			state.State = Moving
@@ -228,21 +258,23 @@ func (e *ECS) MovingLeft(parent Behavior) Behavior {
 
 		movement, err := e.GetMovement(b.EntityId)
 		if err != nil {
-			return FAILURE, err
+			b.Status = FAILURE
+			return b, err
 		}
 
 		movement.Acceleration.X = -1
 		e.SetMovement(movement)
-		return SUCCESS, nil
+		b.Status = SUCCESS
+		return b, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
-func (e *ECS) MovingRight(parent Behavior) Behavior {
+func (e *ECS) MovingRight(parent Behavior) (Behavior, Behavior) {
 	b := Behavior{
 		Id:        e.behaviorAllocator.Allocate(),
 		Status:    SUCCESS,
@@ -250,7 +282,8 @@ func (e *ECS) MovingRight(parent Behavior) Behavior {
 		Parent:    parent.Id,
 	}
 
-	b.Tick = func(e *ECS, b Behavior) (Status, error) {
+	b.Tick = func(e *ECS) (Behavior, error) {
+		log.Debug().Any("moveRight", b)
 		state, err := e.GetState(b.EntityId)
 		if err == nil {
 			state.State = Moving
@@ -260,18 +293,20 @@ func (e *ECS) MovingRight(parent Behavior) Behavior {
 
 		movement, err := e.GetMovement(b.EntityId)
 		if err != nil {
-			return FAILURE, err
+			b.Status = FAILURE
+			return b, err
 		}
 
 		movement.Acceleration.X = 1
 		e.SetMovement(movement)
-		return SUCCESS, nil
+		b.Status = SUCCESS
+		return b, nil
 	}
 	parent.Children = append(parent.Children, b.Id)
 	e.SetBehavior(parent)
-	e.behaviors.Set(b.Id, b)
+	e.SetBehavior(b)
 
-	return b
+	return parent, b
 }
 
 func (e *ECS) BindBehavior(entity Entity, behavior Behavior) Entity {
