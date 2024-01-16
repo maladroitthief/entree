@@ -165,6 +165,16 @@ func (s *PhysicsServer) updateAttributes(
 
 	s.spatialHash.Update(entity, oldBounds, d.Bounds())
 
+	if m.Acceleration.X == 0 && m.Acceleration.Y != 0 {
+		state, err := e.GetState(p.EntityId)
+		if err == nil {
+			state.OrientationX = core.Neutral
+			e.SetState(state)
+		}
+	}
+	m.Acceleration.X = 0
+	m.Acceleration.Y = 0
+
 	e.SetPosition(p)
 	e.SetMovement(m)
 	e.SetDimension(d)

@@ -17,6 +17,7 @@ type GameScene struct {
 	cellSize int
 
 	world     *core.ECS
+	playerId  data.GenerationalIndex
 	ai        *server.AIServer
 	state     *server.StateServer
 	physics   *server.PhysicsServer
@@ -47,6 +48,7 @@ func NewGameScene(state *SceneState) *GameScene {
 	gs.animation = server.NewAnimationServer()
 
 	player := player.NewFederico(gs.world, 0, 0)
+	gs.playerId = player.Id
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
@@ -75,13 +77,14 @@ func (s *GameScene) Update(state *SceneState) error {
 
 	for _, input := range inputs {
 		switch input {
-		case core.Menu:
+		case core.InputMenu:
 			return Termination
 		}
 	}
 
 	s.state.Update(s.world)
-	s.ai.Update(s.world, inputs)
+	ProcessPlayerGameInputs(s.world, s.playerId, inputs)
+	// s.ai.Update(s.world, inputs)
 	s.physics.Update(s.world)
 	s.animation.Update(s.world)
 

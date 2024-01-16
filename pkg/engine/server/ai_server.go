@@ -1,12 +1,7 @@
 package server
 
 import (
-	"fmt"
-
-	"github.com/maladroitthief/entree/common/data"
-	behaviortree "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
-	"github.com/rs/zerolog/log"
 )
 
 type AIServer struct {
@@ -25,8 +20,6 @@ func (s *AIServer) Update(e *core.ECS, inputs []core.Input) {
 		switch ai.BehaviorType {
 		case core.Player:
 			ProcessInput(e, ai, inputs)
-		case core.Computer:
-			ProcessBehavior(e, ai)
 		}
 	}
 }
@@ -53,16 +46,16 @@ func ProcessInput(e *core.ECS, ai core.AI, inputs []core.Input) {
 	actionInputs := []core.Input{}
 	for _, input := range inputs {
 		switch input {
-		case core.MoveUp:
-			movementInputs = append(movementInputs, core.MoveUp)
-		case core.MoveDown:
-			movementInputs = append(movementInputs, core.MoveDown)
-		case core.MoveRight:
-			movementInputs = append(movementInputs, core.MoveRight)
-		case core.MoveLeft:
-			movementInputs = append(movementInputs, core.MoveLeft)
-		case core.Dodge:
-			actionInputs = append(actionInputs, core.Dodge)
+		case core.InputMoveUp:
+			movementInputs = append(movementInputs, core.InputMoveUp)
+		case core.InputMoveDown:
+			movementInputs = append(movementInputs, core.InputMoveDown)
+		case core.InputMoveRight:
+			movementInputs = append(movementInputs, core.InputMoveRight)
+		case core.InputMoveLeft:
+			movementInputs = append(movementInputs, core.InputMoveLeft)
+		case core.InputDodge:
+			actionInputs = append(actionInputs, core.InputDodge)
 		}
 	}
 
@@ -76,7 +69,7 @@ func ProcessInput(e *core.ECS, ai core.AI, inputs []core.Input) {
 func handleActionInputs(inputs []core.Input, a aiAttributes) aiAttributes {
 	for _, input := range inputs {
 		switch input {
-		case core.Dodge:
+		case core.InputDodge:
 			a.state.State = core.Dodging
 		}
 	}
@@ -102,19 +95,19 @@ func handleMovementInputs(inputs []core.Input, a aiAttributes) aiAttributes {
 
 	for _, input := range inputs {
 		switch input {
-		case core.MoveUp:
+		case core.InputMoveUp:
 			a.state.State = core.Moving
 			a.state.OrientationY = core.North
 			a.movement.Acceleration.Y = -1
-		case core.MoveDown:
+		case core.InputMoveDown:
 			a.state.State = core.Moving
 			a.state.OrientationY = core.South
 			a.movement.Acceleration.Y = 1
-		case core.MoveRight:
+		case core.InputMoveRight:
 			a.state.State = core.Moving
 			a.state.OrientationX = core.East
 			a.movement.Acceleration.X = 1
-		case core.MoveLeft:
+		case core.InputMoveLeft:
 			a.state.State = core.Moving
 			a.state.OrientationX = core.West
 			a.movement.Acceleration.X = -1
@@ -122,31 +115,4 @@ func handleMovementInputs(inputs []core.Input, a aiAttributes) aiAttributes {
 	}
 
 	return a
-}
-
-func ProcessBehavior(e *core.ECS, ai core.AI) {
-	behavior, err := e.GetBehavior(ai.ActiveBehavior)
-	if err != nil {
-		log.Warn().Err(err).Any("ActiveBehavior", ai.ActiveBehavior).Msg("Active behavior error")
-		behavior, err = e.GetBehavior(ai.RootBehavior)
-		if err != nil {
-			log.Warn().Err(err).Any("RootBehavior", ai.RootBehavior).Msg("Root behavior error")
-			return
-		}
-	}
-
-	if behavior.Status != core.RUNNING {
-		behavior.Status = core.RUNNING
-	}
-
-	activeTickBehavior, err := behavior.Tick(e)
-	if err != nil {
-		log.Warn().Err(err).Any("activeBehavior", ai.ActiveBehavior).Msg("Active behavior tick error")
-		return
-	}
-
-	if status != core.RUNNING {
-		ai.ActiveBehavior = behavior.Parent
-		e.SetAI(ai)
-	}
 }

@@ -35,7 +35,7 @@ func NewTitleScene(state *SceneState) *TitleScene {
 func (s *TitleScene) Update(state *SceneState) error {
 	for _, input := range state.input.CurrentInputs() {
 		switch input {
-		case core.Menu:
+		case core.InputMenu:
 			return Termination
 		}
 	}
