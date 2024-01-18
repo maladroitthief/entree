@@ -39,6 +39,7 @@ func main() {
 	}
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	ctx := context.Background()
 	settingsRepo := driver.NewSettingsRepository("settings.json")
 
 	graphicsServer, err := ui.NewGraphicsServer()
@@ -58,6 +59,7 @@ func main() {
 	}
 
 	sceneManager, err := ui.NewSceneManager(
+		ctx,
 		graphicsServer,
 		inputHandler,
 		windowHandler,
@@ -66,7 +68,6 @@ func main() {
 		log.Fatal().Err(err).Any("scene", sceneManager)
 	}
 
-	ctx := context.Background()
 	err = runGame(ctx, sceneManager)
 	if err != nil {
 		log.Fatal().Err(err)

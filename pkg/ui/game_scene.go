@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -12,6 +13,7 @@ import (
 )
 
 type GameScene struct {
+	ctx      context.Context
 	gridX    int
 	gridY    int
 	cellSize int
@@ -28,12 +30,13 @@ type GameScene struct {
 	backgroundColor color.Color
 }
 
-func NewGameScene(state *SceneState) *GameScene {
+func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	gs := &GameScene{
+		ctx:             ctx,
 		gridX:           2,
 		gridY:           2,
 		cellSize:        32,
-		world:           core.NewECS(),
+		world:           core.NewECS(ctx),
 		backgroundColor: state.theme.Green(),
 	}
 
@@ -53,7 +56,7 @@ func NewGameScene(state *SceneState) *GameScene {
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
-		level.NewBlockFactory(),
+		level.NewBlockFactory(gs.world),
 		player,
 		gs.gridX,
 		gs.gridY,

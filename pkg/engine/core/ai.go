@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 )
 
 type BehaviorType int
@@ -18,7 +19,7 @@ type AI struct {
 
 	BehaviorType BehaviorType
 
-	BehaviorTree   BehaviorTree
+	Ticker         bt.Ticker
 	RootBehavior   data.GenerationalIndex
 	ActiveBehavior data.GenerationalIndex
 	BehaviorStack  *data.Stack[data.GenerationalIndex]

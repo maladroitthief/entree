@@ -1,10 +1,14 @@
 package server
 
 import (
+	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 type AIServer struct {
+	tickerAllocator *data.GenerationalIndexAllocator
+	tickers         data.GenerationalIndexArray[bt.Ticker]
 }
 
 func NewAIServer() *AIServer {
@@ -18,7 +22,7 @@ func (s *AIServer) Update(e *core.ECS, inputs []core.Input) {
 
 	for _, ai := range ais {
 		switch ai.BehaviorType {
-		case core.Player:
+		case core.Computer:
 			ProcessInput(e, ai, inputs)
 		}
 	}

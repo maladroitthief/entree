@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -12,14 +13,13 @@ var (
 )
 
 type ECS struct {
+	Context            context.Context
 	entityAllocator    *data.GenerationalIndexAllocator
 	entities           data.GenerationalIndexArray[Entity]
 	aiAllocator        *data.GenerationalIndexAllocator
 	ai                 data.GenerationalIndexArray[AI]
 	commandAllocator   *data.GenerationalIndexAllocator
 	command            data.GenerationalIndexArray[Command]
-	behaviorAllocator  *data.GenerationalIndexAllocator
-	behaviors          data.GenerationalIndexArray[Behavior]
 	stateAllocator     *data.GenerationalIndexAllocator
 	states             data.GenerationalIndexArray[State]
 	movementAllocator  *data.GenerationalIndexAllocator
@@ -34,16 +34,15 @@ type ECS struct {
 	animations         data.GenerationalIndexArray[Animation]
 }
 
-func NewECS() *ECS {
+func NewECS(ctx context.Context) *ECS {
 	ecs := &ECS{
+		Context:            ctx,
 		entityAllocator:    data.NewGenerationalIndexAllocator(),
 		entities:           data.NewGenerationalIndexArray[Entity](),
 		aiAllocator:        data.NewGenerationalIndexAllocator(),
 		ai:                 data.NewGenerationalIndexArray[AI](),
 		commandAllocator:   data.NewGenerationalIndexAllocator(),
 		command:            data.NewGenerationalIndexArray[Command](),
-		behaviorAllocator:  data.NewGenerationalIndexAllocator(),
-		behaviors:          data.NewGenerationalIndexArray[Behavior](),
 		stateAllocator:     data.NewGenerationalIndexAllocator(),
 		states:             data.NewGenerationalIndexArray[State](),
 		movementAllocator:  data.NewGenerationalIndexAllocator(),

@@ -122,6 +122,7 @@ func (s *PhysicsServer) UpdatePosition(
 	if err != nil {
 		return
 	}
+	d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 
 	c, err := e.GetCollider(m.EntityId)
 	if err != nil {

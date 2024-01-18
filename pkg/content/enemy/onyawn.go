@@ -1,41 +1,31 @@
 package enemy
 
 import (
+	"context"
+	"time"
+
 	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
-func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
-	entity := e.NewEntity()
-	state := e.NewState()
+func NewOnyawn(ecs *core.ECS, x, y float64) core.Entity {
+	entity := ecs.NewEntity()
+	state := ecs.NewState()
 
-	ai := e.NewAI(core.Computer)
-	root := e.Root()
-	root, seq := e.RandomSequence(root)
-	ai.RootBehavior = root.Id
-	ai.ActiveBehavior = seq.Id
-	seq, moveU := e.MovingUp(seq)
-	seq, moveD := e.MovingDown(seq)
-	seq, moveL := e.MovingLeft(seq)
-	seq, moveR := e.MovingRight(seq)
+	ai := ecs.NewAI(core.Computer)
+	ai.Ticker = OnyawnBehaviorTree(ecs.Context, ecs, entity.Id)
 
-	entity = e.BindBehavior(entity, root)
-	entity = e.BindBehavior(entity, seq)
-	entity = e.BindBehavior(entity, moveU)
-	entity = e.BindBehavior(entity, moveD)
-	entity = e.BindBehavior(entity, moveL)
-	entity = e.BindBehavior(entity, moveR)
-
-	position := e.NewPosition(x, y, 1.6)
-	movement := e.NewMovement()
-	dimension := e.NewDimension(
+	position := ecs.NewPosition(x, y, 1.6)
+	movement := ecs.NewMovement()
+	dimension := ecs.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},
 		data.Vector{X: 16, Y: 16},
 	)
 	dimension.Offset = data.Vector{X: 0, Y: -6}
-	collider := e.NewCollider()
+	collider := ecs.NewCollider()
 
-	animation := e.NewAnimation("onyawn", "idle_front_1")
+	animation := ecs.NewAnimation("onyawn", "idle_front_1")
 	animation.VariantMax = 6
 	animation.Speed = 50
 	animation.Sprites = map[string][]string{
@@ -49,13 +39,50 @@ func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
 		"move_back_side":  core.SpriteArray("move_front_side", 6),
 	}
 
-	entity = e.BindAI(entity, ai)
-	entity = e.BindState(entity, state)
-	entity = e.BindPosition(entity, position)
-	entity = e.BindMovement(entity, movement)
-	entity = e.BindDimension(entity, dimension)
-	entity = e.BindCollider(entity, collider)
-	entity = e.BindAnimation(entity, animation)
+	entity = ecs.BindAI(entity, ai)
+	entity = ecs.BindState(entity, state)
+	entity = ecs.BindPosition(entity, position)
+	entity = ecs.BindMovement(entity, movement)
+	entity = ecs.BindDimension(entity, dimension)
+	entity = ecs.BindCollider(entity, collider)
+	entity = ecs.BindAnimation(entity, animation)
 
 	return entity
+}
+
+func OnyawnBehaviorTree(ctx context.Context, ecs *core.ECS, id data.GenerationalIndex) bt.Ticker {
+	duration := time.Millisecond * 10
+
+	moveUp := func() (bt.Tick, []bt.Node) {
+		return func(children []bt.Node) (bt.Status, error) {
+			core.MoveUp(ecs)(id)
+			return bt.Success, nil
+		}, nil
+	}
+	moveDown := func() (bt.Tick, []bt.Node) {
+		return func(children []bt.Node) (bt.Status, error) {
+			core.MoveDown(ecs)(id)
+			return bt.Success, nil
+		}, nil
+	}
+	moveLeft := func() (bt.Tick, []bt.Node) {
+		return func(children []bt.Node) (bt.Status, error) {
+			core.MoveLeft(ecs)(id)
+			return bt.Success, nil
+		}, nil
+	}
+	moveRight := func() (bt.Tick, []bt.Node) {
+		return func(children []bt.Node) (bt.Status, error) {
+			core.MoveRight(ecs)(id)
+			return bt.Success, nil
+		}, nil
+	}
+
+	var root bt.Node = func() (bt.Tick, []bt.Node) {
+		return bt.Sequence, []bt.Node{
+			moveUp, moveRight, moveDown, moveLeft,
+		}
+	}
+
+	return bt.NewTicker(ctx, duration, root)
 }

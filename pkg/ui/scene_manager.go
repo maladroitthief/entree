@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"errors"
 	"image"
 	"image/color"
@@ -17,6 +18,7 @@ const (
 var (
 	Termination = errors.New("game closed normally")
 
+	ErrContextNil        = errors.New("context is nil")
 	ErrGraphicsServerNil = errors.New("graphics server is nil")
 	ErrInputHandlerNil   = errors.New("input handler is nil")
 	ErrWindowHandlerNil  = errors.New("window handler is nil")
@@ -38,6 +40,7 @@ type SceneState struct {
 }
 
 type SceneManager struct {
+	ctx             context.Context
 	currentScene    Scene
 	nextScene       Scene
 	transitionCount int
@@ -49,10 +52,15 @@ type SceneManager struct {
 }
 
 func NewSceneManager(
+	ctx context.Context,
 	g *GraphicsServer,
 	i *InputHandler,
 	w *WindowHandler,
 ) (*SceneManager, error) {
+	if ctx == nil {
+		return nil, ErrContextNil
+	}
+
 	if g == nil {
 		return nil, ErrGraphicsServerNil
 	}
@@ -66,13 +74,14 @@ func NewSceneManager(
 	}
 
 	m := &SceneManager{
+		ctx:      ctx,
 		graphics: g,
 		input:    i,
 		window:   w,
 		theme:    &theme.Endesga32{},
 	}
 
-	err := m.GoTo(NewTitleScene(m.sceneState()))
+	err := m.GoTo(NewTitleScene(m.ctx, m.sceneState()))
 
 	return m, err
 }
@@ -85,7 +94,7 @@ func (m *SceneManager) Update(state InputState) error {
 	}
 
 	if m.currentScene == nil {
-		err = m.GoTo(NewTitleScene(m.sceneState()))
+		err = m.GoTo(NewTitleScene(m.ctx, m.sceneState()))
 	}
 
 	if err != nil {

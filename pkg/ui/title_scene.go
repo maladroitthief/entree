@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -8,6 +9,7 @@ import (
 )
 
 type TitleScene struct {
+	ctx             context.Context
 	camera          *Camera
 	width           int
 	height          int
@@ -15,8 +17,9 @@ type TitleScene struct {
 	backgroundColor color.Color
 }
 
-func NewTitleScene(state *SceneState) *TitleScene {
+func NewTitleScene(ctx context.Context, state *SceneState) *TitleScene {
 	ts := &TitleScene{
+		ctx:             ctx,
 		width:           800,
 		height:          800,
 		cellSize:        32,
@@ -41,7 +44,7 @@ func (s *TitleScene) Update(state *SceneState) error {
 	}
 
 	if state.input.IsAny() {
-		return state.mgr.GoTo(NewGameScene(state))
+		return state.mgr.GoTo(NewGameScene(s.ctx, state))
 	}
 
 	return nil

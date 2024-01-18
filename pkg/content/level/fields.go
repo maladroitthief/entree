@@ -11,51 +11,54 @@ import (
 )
 
 type fieldBlocks struct {
+	ecs *core.ECS
 }
 
-func FieldBlockFactory() level.BlockFactory {
-	bf := &fieldBlocks{}
+func FieldBlockFactory(ecs *core.ECS) level.BlockFactory {
+	bf := &fieldBlocks{
+		ecs: ecs,
+	}
 
 	return bf
 }
 
-func (bf *fieldBlocks) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
+func (bf *fieldBlocks) AddPlayer(p core.Entity, x, y float64) {
 	// TODO: Handle this error
-	position, _ := e.GetPosition(p.Id)
-	dimension, _ := e.GetDimension(p.Id)
+	position, _ := bf.ecs.GetPosition(p.Id)
+	dimension, _ := bf.ecs.GetDimension(p.Id)
 	position.X = x
 	position.Y = y
 	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: x, Y: y})
 
-	e.SetPosition(position)
-	e.SetDimension(dimension)
+	bf.ecs.SetPosition(position)
+	bf.ecs.SetDimension(dimension)
 }
 
-func (bf *fieldBlocks) AddSolidBlock(e *core.ECS, x, y float64) {
-	environment.Grass(e, x, y)
+func (bf *fieldBlocks) AddSolidBlock(x, y float64) {
+	environment.Grass(bf.ecs, x, y)
 }
 
-func (bf *fieldBlocks) AddSolid(e *core.ECS, x, y float64) {
-	environment.Wall(e, x, y)
+func (bf *fieldBlocks) AddSolid(x, y float64) {
+	environment.Wall(bf.ecs, x, y)
 }
 
-func (bf *fieldBlocks) AddSolid50(e *core.ECS, x, y float64) {
+func (bf *fieldBlocks) AddSolid50(x, y float64) {
 	roll := rand.Intn(100)
 	if roll < 50 {
-		environment.Wall(e, x, y)
+		environment.Wall(bf.ecs, x, y)
 	}
 }
 
-func (bf *fieldBlocks) AddObstacle(e *core.ECS, x, y float64) {
+func (bf *fieldBlocks) AddObstacle(x, y float64) {
 	roll := rand.Intn(100)
 
 	if roll < 10 {
-		environment.Weeds(e, x, y)
+		environment.Weeds(bf.ecs, x, y)
 	} else {
-		environment.Grass(e, x, y)
+		environment.Grass(bf.ecs, x, y)
 	}
 }
 
-func (bf *fieldBlocks) AddEnemy(e *core.ECS, x, y float64) {
-	enemy.NewOnyawn(e, x, y)
+func (bf *fieldBlocks) AddEnemy(x, y float64) {
+	enemy.NewOnyawn(bf.ecs, x, y)
 }
