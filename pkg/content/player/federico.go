@@ -6,7 +6,6 @@ import (
 )
 
 func NewFederico(e *core.ECS, x, y float64) core.Entity {
-	ai := e.NewAI(core.Player)
 	state := e.NewState()
 
 	position := e.NewPosition(x, y, 1.6)
@@ -33,7 +32,6 @@ func NewFederico(e *core.ECS, x, y float64) core.Entity {
 	}
 
 	entity := e.NewEntity()
-	entity = e.BindAI(entity, ai)
 	entity = e.BindState(entity, state)
 	entity = e.BindPosition(entity, position)
 	entity = e.BindMovement(entity, movement)

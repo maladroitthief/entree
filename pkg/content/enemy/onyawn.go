@@ -1,7 +1,6 @@
 package enemy
 
 import (
-	"context"
 	"time"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -13,8 +12,8 @@ func NewOnyawn(ecs *core.ECS, x, y float64) core.Entity {
 	entity := ecs.NewEntity()
 	state := ecs.NewState()
 
-	ai := ecs.NewAI(core.Computer)
-	ai.Ticker = OnyawnBehaviorTree(ecs.Context, ecs, entity.Id)
+	rootNode := onyawnBehaviorTree(ecs, entity.Id)
+	ai := ecs.NewAI(ecs.Context, rootNode)
 
 	position := ecs.NewPosition(x, y, 1.6)
 	movement := ecs.NewMovement()
@@ -50,39 +49,38 @@ func NewOnyawn(ecs *core.ECS, x, y float64) core.Entity {
 	return entity
 }
 
-func OnyawnBehaviorTree(ctx context.Context, ecs *core.ECS, id data.GenerationalIndex) bt.Ticker {
-	duration := time.Millisecond * 10
+func onyawnBehaviorTree(ecs *core.ECS, id data.GenerationalIndex) bt.Node {
+	duration := time.Millisecond * 200
 
 	moveUp := func() (bt.Tick, []bt.Node) {
-		return func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
 			core.MoveUp(ecs)(id)
 			return bt.Success, nil
-		}, nil
+		}), nil
 	}
 	moveDown := func() (bt.Tick, []bt.Node) {
-		return func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
 			core.MoveDown(ecs)(id)
 			return bt.Success, nil
-		}, nil
+		}), nil
 	}
 	moveLeft := func() (bt.Tick, []bt.Node) {
-		return func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
 			core.MoveLeft(ecs)(id)
 			return bt.Success, nil
-		}, nil
+		}), nil
 	}
 	moveRight := func() (bt.Tick, []bt.Node) {
-		return func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
 			core.MoveRight(ecs)(id)
 			return bt.Success, nil
-		}, nil
+		}), nil
 	}
 
-	var root bt.Node = func() (bt.Tick, []bt.Node) {
-		return bt.Sequence, []bt.Node{
-			moveUp, moveRight, moveDown, moveLeft,
-		}
-	}
+	return bt.New(
+		bt.Shuffle(bt.Sequence, nil),
+		moveUp, moveRight, moveDown, moveLeft,
+	)
 
-	return bt.NewTicker(ctx, duration, root)
+	// return bt.NewTicker(ctx, duration, root)
 }

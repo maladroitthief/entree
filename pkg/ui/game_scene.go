@@ -18,7 +18,7 @@ type GameScene struct {
 	gridY    int
 	cellSize int
 
-	world     *core.ECS
+	ecs       *core.ECS
 	playerId  data.GenerationalIndex
 	ai        *server.AIServer
 	state     *server.StateServer
@@ -36,36 +36,36 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 		gridX:           2,
 		gridY:           2,
 		cellSize:        32,
-		world:           core.NewECS(ctx),
+		ecs:             core.NewECS(ctx),
 		backgroundColor: state.theme.Green(),
 	}
 
 	gs.ai = server.NewAIServer()
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
-		gs.world,
+		gs.ecs,
 		float64(gs.gridX*level.RoomWidth),
 		float64(gs.gridY*level.RoomHeight),
 		float64(gs.cellSize),
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.world, 0, 0)
+	player := player.NewFederico(gs.ecs, 0, 0)
 	gs.playerId = player.Id
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
-		level.NewBlockFactory(gs.world),
+		level.NewBlockFactory(gs.ecs),
 		player,
 		gs.gridX,
 		gs.gridY,
 		gs.cellSize,
 	)
 	level.GenerateRooms()
-	level.Render(gs.world)
+	level.Render(gs.ecs)
 
-	gs.physics.Load(gs.world)
+	gs.physics.Load(gs.ecs)
 	gs.camera = NewCamera(
 		0,
 		0,
@@ -85,11 +85,11 @@ func (s *GameScene) Update(state *SceneState) error {
 		}
 	}
 
-	s.state.Update(s.world)
-	ProcessPlayerGameInputs(s.world, s.playerId, inputs)
+	s.state.Update(s.ecs)
+	ProcessPlayerGameInputs(s.ecs, s.playerId, inputs)
 	// s.ai.Update(s.world, inputs)
-	s.physics.Update(s.world)
-	s.animation.Update(s.world)
+	s.physics.Update(s.ecs)
+	s.animation.Update(s.ecs)
 
 	return nil
 }
@@ -110,7 +110,7 @@ func (s *GameScene) CellSize() int {
 }
 
 func (s *GameScene) GetState() *core.ECS {
-	return s.world
+	return s.ecs
 }
 
 func (s *GameScene) BackgroundColor() color.Color {
@@ -118,7 +118,7 @@ func (s *GameScene) BackgroundColor() color.Color {
 }
 
 func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.world.GetPosition(s.cameraFocus.Id)
+	cameraPosition, err := s.ecs.GetPosition(s.cameraFocus.Id)
 	if err != nil {
 		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
 	}

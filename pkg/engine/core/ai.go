@@ -1,6 +1,10 @@
 package core
 
 import (
+	"context"
+	"errors"
+	"log"
+
 	"github.com/maladroitthief/entree/common/data"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 )
@@ -13,26 +17,31 @@ const (
 	Computer
 )
 
+var (
+	ErrAIContextNil = errors.New("NewAI nil context")
+)
+
 type AI struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
 
-	BehaviorType BehaviorType
-
-	Ticker         bt.Ticker
-	RootBehavior   data.GenerationalIndex
-	ActiveBehavior data.GenerationalIndex
-	BehaviorStack  *data.Stack[data.GenerationalIndex]
+	Node    bt.Node
+	Context context.Context
+	cancel  context.CancelFunc
 }
 
-func (e *ECS) NewAI(b BehaviorType) AI {
-	ai := AI{
-		Id:            e.aiAllocator.Allocate(),
-		BehaviorType:  b,
-		BehaviorStack: data.NewStack[data.GenerationalIndex](),
+func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
+	if ctx == nil {
+		log.Panic(ErrAIContextNil)
 	}
-	e.ai.Set(ai.Id, ai)
 
+	ai := AI{
+		Id:   e.aiAllocator.Allocate(),
+		Node: node,
+	}
+	ai.Context, ai.cancel = context.WithCancel(ctx)
+
+	e.ai.Set(ai.Id, ai)
 	return ai
 }
 
