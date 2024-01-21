@@ -54,27 +54,28 @@ func NewOnyawn(ecs *core.ECS, aiServer *server.AIServer) core.Entity {
 
 func onyawnBehaviorTree(ecs *core.ECS, id data.GenerationalIndex) bt.Node {
 	duration := time.Millisecond * 200
+	frequency := time.Millisecond * 10
 
 	moveUp := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
 			core.MoveUp(ecs)(id)
 			return bt.Success, nil
 		}), nil
 	}
 	moveDown := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
 			core.MoveDown(ecs)(id)
 			return bt.Success, nil
 		}), nil
 	}
 	moveLeft := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
 			core.MoveLeft(ecs)(id)
 			return bt.Success, nil
 		}), nil
 	}
 	moveRight := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, func(children []bt.Node) (bt.Status, error) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
 			core.MoveRight(ecs)(id)
 			return bt.Success, nil
 		}), nil
@@ -84,6 +85,4 @@ func onyawnBehaviorTree(ecs *core.ECS, id data.GenerationalIndex) bt.Node {
 		bt.Shuffle(bt.Sequence, nil),
 		moveUp, moveRight, moveDown, moveLeft,
 	)
-
-	// return bt.NewTicker(ctx, duration, root)
 }

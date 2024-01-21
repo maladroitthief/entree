@@ -20,7 +20,7 @@ func NewAIServer() *AIServer {
 }
 
 func (s *AIServer) Add(ai core.AI) {
-	duration := time.Millisecond * 100
+	duration := time.Millisecond * 500
 	ticker := bt.NewTicker(ai.Context, duration, ai.Node)
 	s.btManager.Add(ticker)
 }

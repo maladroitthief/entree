@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-func Repeater(duration time.Duration, tick Tick) Tick {
+func Repeater(duration, frequency time.Duration, tick Tick) Tick {
 	if tick == nil {
 		return nil
 	}
@@ -13,7 +13,12 @@ func Repeater(duration time.Duration, tick Tick) Tick {
 		return nil
 	}
 
-	ticker := time.NewTicker(duration)
+	if frequency <= 0 {
+		return nil
+	}
+
+	ticker := time.NewTicker(frequency)
+	stopwatch := time.NewTicker(duration)
 
 	return func(children []Node) (Status, error) {
 		var err error
@@ -22,9 +27,9 @@ func Repeater(duration time.Duration, tick Tick) Tick {
 		for err == nil {
 			select {
 			case <-ticker.C:
-				break RepeaterLoop
-			default:
 				status, err = tick(children)
+			case <-stopwatch.C:
+				break RepeaterLoop
 			}
 		}
 
