@@ -6,16 +6,17 @@ import (
 	"github.com/maladroitthief/entree/common/data"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/entree/pkg/engine/server"
 )
 
-func NewOnyawn(ecs *core.ECS, x, y float64) core.Entity {
+func NewOnyawn(ecs *core.ECS, aiServer *server.AIServer) core.Entity {
 	entity := ecs.NewEntity()
 	state := ecs.NewState()
 
 	rootNode := onyawnBehaviorTree(ecs, entity.Id)
 	ai := ecs.NewAI(ecs.Context, rootNode)
 
-	position := ecs.NewPosition(x, y, 1.6)
+	position := ecs.NewPosition(0, 0, 1.6)
 	movement := ecs.NewMovement()
 	dimension := ecs.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},
@@ -45,6 +46,8 @@ func NewOnyawn(ecs *core.ECS, x, y float64) core.Entity {
 	entity = ecs.BindDimension(entity, dimension)
 	entity = ecs.BindCollider(entity, collider)
 	entity = ecs.BindAnimation(entity, animation)
+
+	aiServer.Add(ai)
 
 	return entity
 }

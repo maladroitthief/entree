@@ -50,13 +50,13 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.ecs, 0, 0)
+	player := player.NewFederico(gs.ecs)
 	gs.playerId = player.Id
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
-		level.NewBlockFactory(gs.ecs),
+		level.NewBlockFactory(gs.ecs, gs.ai),
 		player,
 		gs.gridX,
 		gs.gridY,

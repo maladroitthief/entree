@@ -6,6 +6,7 @@ import (
 	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/entree/pkg/engine/server"
 )
 
 const (
@@ -27,11 +28,13 @@ type BlockFactory interface {
 
 type blockFactory struct {
 	ecs *core.ECS
+	ai  *server.AIServer
 }
 
-func NewBlockFactory(ecs *core.ECS) BlockFactory {
+func NewBlockFactory(ecs *core.ECS, ai *server.AIServer) BlockFactory {
 	bf := &blockFactory{
 		ecs: ecs,
+		ai:  ai,
 	}
 
 	return bf
@@ -68,5 +71,11 @@ func (bf *blockFactory) AddObstacle(x, y float64) {
 }
 
 func (bf *blockFactory) AddEnemy(x, y float64) {
-	enemy.NewOnyawn(bf.ecs, x, y)
+	e := enemy.NewOnyawn(bf.ecs, bf.ai)
+
+	position, _ := bf.ecs.GetPosition(e.Id)
+	position.X = x
+	position.Y = y
+
+	bf.ecs.SetPosition(position)
 }

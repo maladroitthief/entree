@@ -3,20 +3,22 @@ package level
 import (
 	"math/rand"
 
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
+	"github.com/maladroitthief/entree/pkg/engine/server"
 )
 
 type fieldBlocks struct {
 	ecs *core.ECS
+	ai  *server.AIServer
 }
 
-func FieldBlockFactory(ecs *core.ECS) level.BlockFactory {
+func FieldBlockFactory(ecs *core.ECS, ai *server.AIServer) level.BlockFactory {
 	bf := &fieldBlocks{
 		ecs: ecs,
+		ai:  ai,
 	}
 
 	return bf
@@ -25,13 +27,10 @@ func FieldBlockFactory(ecs *core.ECS) level.BlockFactory {
 func (bf *fieldBlocks) AddPlayer(p core.Entity, x, y float64) {
 	// TODO: Handle this error
 	position, _ := bf.ecs.GetPosition(p.Id)
-	dimension, _ := bf.ecs.GetDimension(p.Id)
 	position.X = x
 	position.Y = y
-	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: x, Y: y})
 
 	bf.ecs.SetPosition(position)
-	bf.ecs.SetDimension(dimension)
 }
 
 func (bf *fieldBlocks) AddSolidBlock(x, y float64) {
@@ -60,5 +59,11 @@ func (bf *fieldBlocks) AddObstacle(x, y float64) {
 }
 
 func (bf *fieldBlocks) AddEnemy(x, y float64) {
-	enemy.NewOnyawn(bf.ecs, x, y)
+	e := enemy.NewOnyawn(bf.ecs, bf.ai)
+
+	position, _ := bf.ecs.GetPosition(e.Id)
+	position.X = x
+	position.Y = y
+
+	bf.ecs.SetPosition(position)
 }

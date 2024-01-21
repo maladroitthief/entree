@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
@@ -10,9 +12,17 @@ type AIServer struct {
 }
 
 func NewAIServer() *AIServer {
-	s := &AIServer{}
+	s := &AIServer{
+		btManager: bt.NewManager(),
+	}
 
 	return s
+}
+
+func (s *AIServer) Add(ai core.AI) {
+	duration := time.Millisecond * 100
+	ticker := bt.NewTicker(ai.Context, duration, ai.Node)
+	s.btManager.Add(ticker)
 }
 
 func (s *AIServer) Update(e *core.ECS) {

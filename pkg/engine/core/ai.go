@@ -39,9 +39,10 @@ func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
 		Id:   e.aiAllocator.Allocate(),
 		Node: node,
 	}
-	ai.Context, ai.cancel = context.WithCancel(ctx)
 
-	e.ai.Set(ai.Id, ai)
+	ai.Context, ai.cancel = context.WithCancel(ctx)
+	e.SetAI(ai)
+
 	return ai
 }
 

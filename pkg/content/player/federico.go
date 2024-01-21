@@ -5,10 +5,10 @@ import (
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
-func NewFederico(e *core.ECS, x, y float64) core.Entity {
+func NewFederico(e *core.ECS) core.Entity {
 	state := e.NewState()
 
-	position := e.NewPosition(x, y, 1.6)
+	position := e.NewPosition(0, 0, 1.6)
 	movement := e.NewMovement()
 	dimension := e.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},

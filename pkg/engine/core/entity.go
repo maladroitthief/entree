@@ -20,7 +20,7 @@ func (e *ECS) NewEntity() Entity {
 		Id: e.entityAllocator.Allocate(),
 	}
 
-	e.entities = e.entities.Set(entity.Id, entity)
+	e.SetEntity(entity)
 
 	return entity
 }
