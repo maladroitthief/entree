@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type SpatialHash[T comparable] struct {
+type SpatialGrid[T comparable] struct {
 	sb        strings.Builder
 	Cells     [][]Cell[T]
 	X         int
@@ -13,13 +13,13 @@ type SpatialHash[T comparable] struct {
 	ChunkSize float64
 }
 
-func NewSpatialHash[T comparable](x, y int, size float64) *SpatialHash[T] {
+func NewSpatialGrid[T comparable](x, y int, size float64) *SpatialGrid[T] {
 	cells := make([][]Cell[T], x)
 	for i := range cells {
 		cells[i] = make([]Cell[T], y)
 	}
 
-	return &SpatialHash[T]{
+	return &SpatialGrid[T]{
 		sb:        strings.Builder{},
 		X:         x,
 		Y:         y,
@@ -28,7 +28,7 @@ func NewSpatialHash[T comparable](x, y int, size float64) *SpatialHash[T] {
 	}
 }
 
-func (h *SpatialHash[T]) Size() int {
+func (h *SpatialGrid[T]) Size() int {
 	size := 0
 
 	for x := range h.Cells {
@@ -40,7 +40,7 @@ func (h *SpatialHash[T]) Size() int {
 	return size
 }
 
-func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
+func (h *SpatialGrid[T]) Insert(val T, bounds Rectangle) {
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
 	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
 	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
@@ -52,12 +52,12 @@ func (h *SpatialHash[T]) Insert(val T, bounds Rectangle) {
 	}
 }
 
-func (h *SpatialHash[T]) Update(val T, oldBounds, newBounds Rectangle) {
+func (h *SpatialGrid[T]) Update(val T, oldBounds, newBounds Rectangle) {
 	h.Delete(val, oldBounds)
 	h.Insert(val, newBounds)
 }
 
-func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
+func (h *SpatialGrid[T]) Delete(val T, bounds Rectangle) {
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
 	xMinIndex, yMinIndex := h.getCellIndex(minPoint.X, minPoint.Y)
 	xMaxIndex, yMaxIndex := h.getCellIndex(maxPoint.X, maxPoint.Y)
@@ -69,7 +69,7 @@ func (h *SpatialHash[T]) Delete(val T, bounds Rectangle) {
 	}
 }
 
-func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
+func (h *SpatialGrid[T]) FindNear(bounds Rectangle) []T {
 	set := map[T]struct{}{}
 	items := []T{}
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
@@ -91,13 +91,13 @@ func (h *SpatialHash[T]) FindNear(bounds Rectangle) []T {
 	return items
 }
 
-func (h *SpatialHash[T]) Drop() {
+func (h *SpatialGrid[T]) Drop() {
 	for i := range h.Cells {
 		h.Cells[i] = make([]Cell[T], h.Y)
 	}
 }
 
-func (h *SpatialHash[T]) getCellIndex(x, y float64) (xIndex, yIndex int) {
+func (h *SpatialGrid[T]) getCellIndex(x, y float64) (xIndex, yIndex int) {
 	xIndex = int(math.Round(x / h.ChunkSize))
 	yIndex = int(math.Round(y / h.ChunkSize))
 
@@ -155,7 +155,7 @@ type CellItem[T comparable] struct {
 	item T
 }
 
-func (h *SpatialHash[T]) WalkGrid(v, w Vector) []Vector {
+func (h *SpatialGrid[T]) WalkGrid(v, w Vector) []Vector {
 	delta := w.Subtract(v)
 	nX, nY := math.Abs(delta.X), math.Abs(delta.Y)
 	signX, signY := 1.0, 1.0

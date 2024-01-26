@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/rs/zerolog/log"
 )
@@ -13,32 +14,32 @@ const (
 )
 
 type PhysicsServer struct {
-	x           float64
-	y           float64
-	size        float64
-	spatialHash *data.SpatialHash[core.Entity]
+	x    float64
+	y    float64
+	size float64
+	grid *data.SpatialGrid[core.Entity]
 }
 
-func NewPhysicsServer(e *core.ECS, x, y, size float64) *PhysicsServer {
+func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 	s := &PhysicsServer{
-		x:           x,
-		y:           y,
-		size:        size,
-		spatialHash: data.NewSpatialHash[core.Entity](int(x), int(y), 32),
+		x:    x,
+		y:    y,
+		size: size,
+		grid: world.Grid,
 	}
 
 	return s
 }
 
 func (s *PhysicsServer) Load(e *core.ECS) {
-	s.spatialHash.Drop()
+	s.grid.Drop()
 	entities := e.GetAllEntities()
 	for _, entity := range entities {
 		dimension, err := e.GetDimension(entity.DimensionId)
 		if err != nil {
 			continue
 		}
-		s.spatialHash.Insert(entity, dimension.Bounds())
+		s.grid.Insert(entity, dimension.Bounds())
 	}
 }
 
@@ -164,7 +165,7 @@ func (s *PhysicsServer) updateAttributes(
 	p.Y = deltaPosition.Y
 	d.Polygon = d.Polygon.SetPosition(deltaPosition)
 
-	s.spatialHash.Update(entity, oldBounds, d.Bounds())
+	s.grid.Update(entity, oldBounds, d.Bounds())
 
 	if m.Acceleration.X == 0 && m.Acceleration.Y != 0 {
 		state, err := e.GetState(p.EntityId)
@@ -188,7 +189,7 @@ func (s *PhysicsServer) Collisions(
 	d core.Dimension,
 ) []core.Dimension {
 	results := []core.Dimension{}
-	entities := s.spatialHash.FindNear(d.Bounds())
+	entities := s.grid.FindNear(d.Bounds())
 	for i := 0; i < len(entities); i++ {
 		_d, err := e.GetDimension(entities[i].Id)
 		if err != nil {

@@ -3,10 +3,10 @@ package level
 import (
 	"math/rand"
 
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
-	"github.com/maladroitthief/entree/pkg/engine/server"
 )
 
 const (
@@ -27,14 +27,12 @@ type BlockFactory interface {
 }
 
 type blockFactory struct {
-	ecs *core.ECS
-	ai  *server.AIServer
+	world *content.World
 }
 
-func NewBlockFactory(ecs *core.ECS, ai *server.AIServer) BlockFactory {
+func NewBlockFactory(world *content.World) BlockFactory {
 	bf := &blockFactory{
-		ecs: ecs,
-		ai:  ai,
+		world: world,
 	}
 
 	return bf
@@ -42,21 +40,21 @@ func NewBlockFactory(ecs *core.ECS, ai *server.AIServer) BlockFactory {
 
 func (bf *blockFactory) AddPlayer(p core.Entity, x, y float64) {
 	// TODO: Handle this error
-	position, _ := bf.ecs.GetPosition(p.Id)
+	position, _ := bf.world.ECS.GetPosition(p.Id)
 	position.X = x
 	position.Y = y
 
-	bf.ecs.SetPosition(position)
+	bf.world.ECS.SetPosition(position)
 }
 
 func (bf *blockFactory) AddSolid(x, y float64) {
-	environment.Wall(bf.ecs, x, y)
+	environment.Wall(bf.world.ECS, x, y)
 }
 
 func (bf *blockFactory) AddSolid50(x, y float64) {
 	roll := rand.Intn(100)
 	if roll < 50 {
-		environment.Wall(bf.ecs, x, y)
+		environment.Wall(bf.world.ECS, x, y)
 	}
 }
 
@@ -64,18 +62,18 @@ func (bf *blockFactory) AddObstacle(x, y float64) {
 	roll := rand.Intn(100)
 
 	if roll < 10 {
-		environment.Weeds(bf.ecs, x, y)
+		environment.Weeds(bf.world.ECS, x, y)
 	} else {
-		environment.Grass(bf.ecs, x, y)
+		environment.Grass(bf.world.ECS, x, y)
 	}
 }
 
 func (bf *blockFactory) AddEnemy(x, y float64) {
-	e := enemy.NewOnyawn(bf.ecs, bf.ai)
+	e := enemy.NewOnyawn(bf.world)
 
-	position, _ := bf.ecs.GetPosition(e.Id)
+	position, _ := bf.world.ECS.GetPosition(e.Id)
 	position.X = x
 	position.Y = y
 
-	bf.ecs.SetPosition(position)
+	bf.world.ECS.SetPosition(position)
 }

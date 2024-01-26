@@ -5,6 +5,8 @@ import (
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/content/player"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
@@ -18,7 +20,7 @@ type GameScene struct {
 	gridY    int
 	cellSize int
 
-	ecs       *core.ECS
+	world     *content.World
 	playerId  data.GenerationalIndex
 	ai        *server.AIServer
 	state     *server.StateServer
@@ -36,36 +38,44 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 		gridX:           2,
 		gridY:           2,
 		cellSize:        32,
-		ecs:             core.NewECS(ctx),
 		backgroundColor: state.theme.Green(),
 	}
+
+	x := gs.gridX * level.RoomWidth
+	y := gs.gridY * level.RoomHeight
+	gs.world = content.NewWorld(
+		ctx,
+		core.NewECS(),
+		bt.NewManager(),
+		data.NewSpatialGrid[core.Entity](x, y, float64(gs.cellSize)),
+	)
 
 	gs.ai = server.NewAIServer()
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
-		gs.ecs,
-		float64(gs.gridX*level.RoomWidth),
-		float64(gs.gridY*level.RoomHeight),
+		gs.world,
+		float64(x),
+		float64(y),
 		float64(gs.cellSize),
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.ecs)
+	player := player.NewFederico(gs.world)
 	gs.playerId = player.Id
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
-		level.NewBlockFactory(gs.ecs, gs.ai),
+		level.NewBlockFactory(gs.world),
 		player,
 		gs.gridX,
 		gs.gridY,
 		gs.cellSize,
 	)
 	level.GenerateRooms()
-	level.Render(gs.ecs)
+	level.Render(gs.world.ECS)
 
-	gs.physics.Load(gs.ecs)
+	gs.physics.Load(gs.world.ECS)
 	gs.camera = NewCamera(
 		0,
 		0,
@@ -85,11 +95,11 @@ func (s *GameScene) Update(state *SceneState) error {
 		}
 	}
 
-	s.state.Update(s.ecs)
-	ProcessPlayerGameInputs(s.ecs, s.playerId, inputs)
+	s.state.Update(s.world.ECS)
+	ProcessPlayerGameInputs(s.world.ECS, s.playerId, inputs)
 	// s.ai.Update(s.world, inputs)
-	s.physics.Update(s.ecs)
-	s.animation.Update(s.ecs)
+	s.physics.Update(s.world.ECS)
+	s.animation.Update(s.world.ECS)
 
 	return nil
 }
@@ -110,7 +120,7 @@ func (s *GameScene) CellSize() int {
 }
 
 func (s *GameScene) GetState() *core.ECS {
-	return s.ecs
+	return s.world.ECS
 }
 
 func (s *GameScene) BackgroundColor() color.Color {
@@ -118,7 +128,7 @@ func (s *GameScene) BackgroundColor() color.Color {
 }
 
 func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.ecs.GetPosition(s.cameraFocus.Id)
+	cameraPosition, err := s.world.ECS.GetPosition(s.cameraFocus.Id)
 	if err != nil {
 		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
 	}

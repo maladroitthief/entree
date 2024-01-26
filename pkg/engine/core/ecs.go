@@ -1,7 +1,6 @@
 package core
 
 import (
-	"context"
 	"errors"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -13,7 +12,6 @@ var (
 )
 
 type ECS struct {
-	Context            context.Context
 	entityAllocator    *data.GenerationalIndexAllocator
 	entities           data.GenerationalIndexArray[Entity]
 	aiAllocator        *data.GenerationalIndexAllocator
@@ -34,9 +32,8 @@ type ECS struct {
 	animations         data.GenerationalIndexArray[Animation]
 }
 
-func NewECS(ctx context.Context) *ECS {
+func NewECS() *ECS {
 	ecs := &ECS{
-		Context:            ctx,
 		entityAllocator:    data.NewGenerationalIndexAllocator(),
 		entities:           data.NewGenerationalIndexArray[Entity](),
 		aiAllocator:        data.NewGenerationalIndexAllocator(),

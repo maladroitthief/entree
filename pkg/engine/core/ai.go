@@ -27,7 +27,7 @@ type AI struct {
 
 	Node    bt.Node
 	Context context.Context
-	cancel  context.CancelFunc
+	Cancel  context.CancelFunc
 }
 
 func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
@@ -40,7 +40,7 @@ func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
 		Node: node,
 	}
 
-	ai.Context, ai.cancel = context.WithCancel(ctx)
+	ai.Context, ai.Cancel = context.WithCancel(ctx)
 	e.SetAI(ai)
 
 	return ai
