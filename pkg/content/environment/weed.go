@@ -13,9 +13,8 @@ func Weeds(e *core.ECS, x, y float64) core.Entity {
 		data.Vector{X: position.X, Y: position.Y},
 		data.Vector{X: 32, Y: 32},
 	)
-	collider := e.NewCollider()
+	collider := e.NewCollider(0.6)
 	collider.ColliderType = core.Impeding
-	collider.ImpedingRate = 0.6
 
 	animation := e.NewAnimation("tiles", "weeds_1")
 	animation.Static = true

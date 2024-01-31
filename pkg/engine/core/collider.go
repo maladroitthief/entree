@@ -11,7 +11,7 @@ const (
 	Moveable
 	Impeding
 
-	BaseImpedingRate = 0.35
+	BaseImpedingRate = 1.0
 	MaxImpedingRate  = 1.0
 )
 
@@ -23,11 +23,11 @@ type Collider struct {
 	ImpedingRate float64
 }
 
-func (e *ECS) NewCollider() Collider {
+func (e *ECS) NewCollider(impedingRate float64) Collider {
 	collider := Collider{
 		Id:           e.colliderAllocator.Allocate(),
 		ColliderType: Moveable,
-		ImpedingRate: BaseImpedingRate,
+		ImpedingRate: impedingRate,
 	}
 	e.colliders.Set(collider.Id, collider)
 

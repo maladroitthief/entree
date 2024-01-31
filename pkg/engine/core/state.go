@@ -4,9 +4,6 @@ import (
 	"github.com/maladroitthief/entree/common/data"
 )
 
-type OrientationX int
-type OrientationY int
-
 const (
 	Neutral OrientationX = iota
 	West
@@ -21,15 +18,20 @@ const (
 	DodgeDuration = 40
 )
 
-type State struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+type (
+	OrientationX int
+	OrientationY int
 
-	State        string
-	Counter      int
-	OrientationX OrientationX
-	OrientationY OrientationY
-}
+	State struct {
+		Id       data.GenerationalIndex
+		EntityId data.GenerationalIndex
+
+		State        string
+		Counter      int
+		OrientationX OrientationX
+		OrientationY OrientationY
+	}
+)
 
 func (e *ECS) NewState() State {
 	state := State{

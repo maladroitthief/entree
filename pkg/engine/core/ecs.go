@@ -30,6 +30,8 @@ type ECS struct {
 	colliders          data.GenerationalIndexArray[Collider]
 	animationAllocator *data.GenerationalIndexAllocator
 	animations         data.GenerationalIndexArray[Animation]
+	factionAllocator   *data.GenerationalIndexAllocator
+	factions           data.GenerationalIndexArray[Faction]
 }
 
 func NewECS() *ECS {
@@ -52,6 +54,8 @@ func NewECS() *ECS {
 		colliders:          data.NewGenerationalIndexArray[Collider](),
 		animationAllocator: data.NewGenerationalIndexAllocator(),
 		animations:         data.NewGenerationalIndexArray[Animation](),
+		factionAllocator:   data.NewGenerationalIndexAllocator(),
+		factions:           data.NewGenerationalIndexArray[Faction](),
 	}
 
 	return ecs

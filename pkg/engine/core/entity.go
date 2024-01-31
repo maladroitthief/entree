@@ -13,6 +13,7 @@ type Entity struct {
 	PositionId  data.GenerationalIndex
 	DimensionId data.GenerationalIndex
 	ColliderId  data.GenerationalIndex
+	FactionId   data.GenerationalIndex
 }
 
 func (e *ECS) NewEntity() Entity {

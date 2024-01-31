@@ -35,6 +35,11 @@ func (s *PhysicsServer) Load(e *core.ECS) {
 	s.grid.Drop()
 	entities := e.GetAllEntities()
 	for _, entity := range entities {
+		_, err := e.GetCollider(entity.ColliderId)
+		if err != nil {
+			continue
+		}
+
 		dimension, err := e.GetDimension(entity.DimensionId)
 		if err != nil {
 			continue

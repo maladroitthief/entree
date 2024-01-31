@@ -1,9 +1,8 @@
 package server
 
 import (
-	"time"
-
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -19,19 +18,6 @@ func NewAIServer() *AIServer {
 	return s
 }
 
-func (s *AIServer) Add(ai core.AI) {
-	duration := time.Millisecond * 500
-	ticker := bt.NewTicker(ai.Context, duration, ai.Node)
-	s.btManager.Add(ticker)
-}
+func BFS(world *content.World, entity, target core.Entity) {
 
-func (s *AIServer) Update(e *core.ECS) {
-	// ais := e.GetAllAI()
-
-	// for _, ai := range ais {
-	// 	switch ai.BehaviorType {
-	// 	case core.Computer:
-	// 		ProcessInput(e, ai, inputs)
-	// 	}
-	// }
 }

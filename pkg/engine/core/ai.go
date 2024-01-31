@@ -13,7 +13,6 @@ type BehaviorType int
 
 const (
 	None BehaviorType = iota
-	Player
 	Computer
 )
 
@@ -24,6 +23,7 @@ var (
 type AI struct {
 	Id       data.GenerationalIndex
 	EntityId data.GenerationalIndex
+	TargetId data.GenerationalIndex
 
 	Node    bt.Node
 	Context context.Context
