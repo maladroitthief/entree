@@ -56,13 +56,11 @@ func (e *ECS) BindState(entity Entity, state State) Entity {
 	return entity
 }
 
-func (e *ECS) GetState(entityId data.GenerationalIndex) (State, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return State{}, err
-	}
-
-	state := e.states.Get(entity.StateId)
+func (e *ECS) GetState(entity Entity) (State, error) {
+	return e.GetStateById(entity.StateId)
+}
+func (e *ECS) GetStateById(id data.GenerationalIndex) (State, error) {
+	state := e.states.Get(id)
 	if !e.stateAllocator.IsLive(state.Id) {
 		return state, ErrAttributeNotFound
 	}

@@ -28,9 +28,9 @@ func FieldBlockFactory(world *content.World) level.BlockFactory {
 	return bf
 }
 
-func (bf *fieldBlocks) AddPlayer(p core.Entity, x, y float64) {
+func (bf *fieldBlocks) AddPlayer(entity core.Entity, x, y float64) {
 	// TODO: Handle this error
-	position, _ := bf.world.ECS.GetPosition(p.Id)
+	position, _ := bf.world.ECS.GetPosition(entity)
 	position.X = x
 	position.Y = y
 
@@ -63,9 +63,9 @@ func (bf *fieldBlocks) AddObstacle(x, y float64) {
 }
 
 func (bf *fieldBlocks) AddEnemy(x, y float64) {
-	e := enemy.NewOnyawn(bf.world)
+	entity := enemy.NewOnyawn(bf.world)
 
-	position, _ := bf.world.ECS.GetPosition(e.Id)
+	position, _ := bf.world.ECS.GetPosition(entity)
 	position.X = x
 	position.Y = y
 

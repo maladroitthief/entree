@@ -17,7 +17,7 @@ func NewOnyawn(world *content.World) core.Entity {
 
 	duration := time.Millisecond * 200
 	frequency := time.Millisecond * 10
-	rootNode := onyawnBehaviorTree(world, entity.Id, duration, frequency)
+	rootNode := onyawnBehaviorTree(world, entity, duration, frequency)
 	ai := world.ECS.NewAI(world.Context, rootNode)
 
 	position := world.ECS.NewPosition(0, 0, 1.6)
@@ -59,7 +59,7 @@ func NewOnyawn(world *content.World) core.Entity {
 
 func onyawnBehaviorTree(
 	world *content.World,
-	id data.GenerationalIndex,
+	entity core.Entity,
 	duration time.Duration,
 	frequency time.Duration,
 ) bt.Node {
@@ -71,9 +71,15 @@ func onyawnBehaviorTree(
 		directions := [][]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
 
 		return func(children []bt.Node) (bt.Status, error) {
-			position, err := world.ECS.GetPosition(id)
+			entity, err := world.ECS.GetEntity(entity.Id)
 			if err != nil {
-				log.Debug().Err(err).Any("entityId", id).Msg("search error")
+				log.Debug().Err(err).Any("entity", entity).Msg("search error")
+				return bt.Failure, nil
+			}
+
+			position, err := world.ECS.GetPosition(entity)
+			if err != nil {
+				log.Debug().Err(err).Any("position", position).Msg("search error")
 				return bt.Failure, nil
 			}
 
@@ -93,7 +99,7 @@ func onyawnBehaviorTree(
 
 				entities := world.Grid.GetItemsAtLocation(current.x, current.y)
 				for _, entity := range entities {
-					faction, err := world.ECS.GetFaction(entity.Id)
+					faction, err := world.ECS.GetFaction(entity)
 					if err != nil {
 						continue
 					}
@@ -136,25 +142,25 @@ func onyawnBehaviorTree(
 
 	moveUp := func() (bt.Tick, []bt.Node) {
 		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveUp(world.ECS)(id)
+			core.MoveUp(world.ECS)(entity)
 			return bt.Success, nil
 		}), nil
 	}
 	moveDown := func() (bt.Tick, []bt.Node) {
 		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveDown(world.ECS)(id)
+			core.MoveDown(world.ECS)(entity)
 			return bt.Success, nil
 		}), nil
 	}
 	moveLeft := func() (bt.Tick, []bt.Node) {
 		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveLeft(world.ECS)(id)
+			core.MoveLeft(world.ECS)(entity)
 			return bt.Success, nil
 		}), nil
 	}
 	moveRight := func() (bt.Tick, []bt.Node) {
 		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveRight(world.ECS)(id)
+			core.MoveRight(world.ECS)(entity)
 			return bt.Success, nil
 		}), nil
 	}

@@ -61,13 +61,12 @@ func (e *ECS) BindAnimation(entity Entity, animation Animation) Entity {
 	return entity
 }
 
-func (e *ECS) GetAnimation(entityId data.GenerationalIndex) (Animation, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Animation{}, err
-	}
+func (e *ECS) GetAnimation(entity Entity) (Animation, error) {
+	return e.GetAnimationById(entity.AnimationId)
+}
 
-	animation := e.animations.Get(entity.AnimationId)
+func (e *ECS) GetAnimationById(id data.GenerationalIndex) (Animation, error) {
+	animation := e.animations.Get(id)
 	if !e.animationAllocator.IsLive(animation.Id) {
 		return animation, ErrAttributeNotFound
 	}

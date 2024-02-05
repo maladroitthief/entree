@@ -96,7 +96,11 @@ func (s *GameScene) Update(state *SceneState) error {
 	}
 
 	s.state.Update(s.world.ECS)
-	ProcessPlayerGameInputs(s.world.ECS, s.playerId, inputs)
+	player, err := s.world.ECS.GetEntity(s.playerId)
+	if err != nil {
+		panic("")
+	}
+	ProcessPlayerGameInputs(s.world.ECS, player, inputs)
 	// s.ai.Update(s.world, inputs)
 	s.physics.Update(s.world.ECS)
 	s.animation.Update(s.world.ECS)
@@ -128,12 +132,13 @@ func (s *GameScene) BackgroundColor() color.Color {
 }
 
 func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.world.ECS.GetPosition(s.cameraFocus.Id)
+	cameraPosition, err := s.world.ECS.GetPosition(s.cameraFocus)
 	if err != nil {
 		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
 	}
 
 	s.camera.X = cameraPosition.X
 	s.camera.Y = cameraPosition.Y
+
 	return s.camera
 }

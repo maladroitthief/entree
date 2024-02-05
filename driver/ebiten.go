@@ -105,7 +105,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	positions := state.GetAllPosition()
+	positions := state.GetAllPositions()
 	sort.Slice(
 		positions,
 		func(i, j int) bool {
@@ -133,9 +133,9 @@ func (e *EbitenGame) DrawAnimation(
 	position core.Position,
 ) (err error) {
 	entity, entityErr := world.GetEntity(position.EntityId)
-	state, stateErr := world.GetState(entity.Id)
-	animation, animationErr := world.GetAnimation(entity.Id)
-	dimension, dimensionErr := world.GetDimension(entity.Id)
+	state, stateErr := world.GetState(entity)
+	animation, animationErr := world.GetAnimation(entity)
+	dimension, dimensionErr := world.GetDimension(entity)
 
 	if entityErr != nil {
 		return nil

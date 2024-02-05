@@ -56,18 +56,17 @@ func (e *ECS) BindAI(entity Entity, ai AI) Entity {
 	return entity
 }
 
-func (e *ECS) GetAI(entityId data.GenerationalIndex) (AI, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return AI{}, err
-	}
-
-	ai := e.ai.Get(entity.AIId)
+func (e *ECS) GetAIById(id data.GenerationalIndex) (AI, error) {
+	ai := e.ai.Get(id)
 	if !e.aiAllocator.IsLive(ai.Id) {
 		return ai, ErrAttributeNotFound
 	}
 
 	return ai, nil
+}
+
+func (e *ECS) GetAI(entity Entity) (AI, error) {
+	return e.GetAIById(entity.AIId)
 }
 
 func (e *ECS) GetAllAI() []AI {

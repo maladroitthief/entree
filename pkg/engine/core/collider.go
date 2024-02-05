@@ -44,13 +44,8 @@ func (e *ECS) BindCollider(entity Entity, collider Collider) Entity {
 	return entity
 }
 
-func (e *ECS) GetCollider(entityId data.GenerationalIndex) (Collider, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Collider{}, err
-	}
-
-	collider := e.colliders.Get(entity.ColliderId)
+func (e *ECS) GetColliderById(id data.GenerationalIndex) (Collider, error) {
+	collider := e.colliders.Get(id)
 	if !e.colliderAllocator.IsLive(collider.Id) {
 		return collider, ErrAttributeNotFound
 	}
@@ -58,7 +53,11 @@ func (e *ECS) GetCollider(entityId data.GenerationalIndex) (Collider, error) {
 	return collider, nil
 }
 
-func (e *ECS) GetAllCollider() []Collider {
+func (e *ECS) GetCollider(entity Entity) (Collider, error) {
+	return e.GetColliderById(entity.ColliderId)
+}
+
+func (e *ECS) GetAllColliders() []Collider {
 	return e.colliders.GetAll(e.colliderAllocator)
 }
 

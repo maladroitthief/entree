@@ -38,9 +38,9 @@ func NewBlockFactory(world *content.World) BlockFactory {
 	return bf
 }
 
-func (bf *blockFactory) AddPlayer(p core.Entity, x, y float64) {
+func (bf *blockFactory) AddPlayer(entity core.Entity, x, y float64) {
 	// TODO: Handle this error
-	position, _ := bf.world.ECS.GetPosition(p.Id)
+	position, _ := bf.world.ECS.GetPosition(entity)
 	position.X = x
 	position.Y = y
 
@@ -69,9 +69,9 @@ func (bf *blockFactory) AddObstacle(x, y float64) {
 }
 
 func (bf *blockFactory) AddEnemy(x, y float64) {
-	e := enemy.NewOnyawn(bf.world)
+	entity := enemy.NewOnyawn(bf.world)
 
-	position, _ := bf.world.ECS.GetPosition(e.Id)
+	position, _ := bf.world.ECS.GetPosition(entity)
 	position.X = x
 	position.Y = y
 

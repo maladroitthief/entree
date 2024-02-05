@@ -13,12 +13,20 @@ const (
 	CollisionBuffer = 0.5
 )
 
-type PhysicsServer struct {
-	x    float64
-	y    float64
-	size float64
-	grid *data.SpatialGrid[core.Entity]
-}
+type (
+	PhysicsServer struct {
+		x    float64
+		y    float64
+		size float64
+		grid *data.SpatialGrid[core.Entity]
+	}
+	physicsAttributes struct {
+		entity    core.Entity
+		position  core.Position
+		movement  core.Movement
+		dimension core.Dimension
+	}
+)
 
 func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 	s := &PhysicsServer{
@@ -31,16 +39,16 @@ func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 	return s
 }
 
-func (s *PhysicsServer) Load(e *core.ECS) {
+func (s *PhysicsServer) Load(ecs *core.ECS) {
 	s.grid.Drop()
-	entities := e.GetAllEntities()
+	entities := ecs.GetAllEntities()
 	for _, entity := range entities {
-		_, err := e.GetCollider(entity.ColliderId)
+		_, err := ecs.GetCollider(entity)
 		if err != nil {
 			continue
 		}
 
-		dimension, err := e.GetDimension(entity.DimensionId)
+		dimension, err := ecs.GetDimension(entity)
 		if err != nil {
 			continue
 		}
@@ -48,160 +56,149 @@ func (s *PhysicsServer) Load(e *core.ECS) {
 	}
 }
 
-func DeltaPosition(p core.Position, v data.Vector) data.Vector {
-	return data.Vector{X: p.X, Y: p.Y}.Add(v)
+func DeltaPosition(position core.Position, vector data.Vector) data.Vector {
+	return data.Vector{X: position.X, Y: position.Y}.Add(vector)
 }
 
-func DeltaPositionXY(p core.Position, x, y float64) data.Vector {
-	return data.Vector{X: p.X, Y: p.Y}.Add(data.Vector{X: x, Y: y})
+func DeltaPositionXY(position core.Position, x, y float64) data.Vector {
+	return data.Vector{X: position.X, Y: position.Y}.Add(data.Vector{X: x, Y: y})
 }
 
-func DeltaBounds(d core.Dimension, v data.Vector) data.Polygon {
-	return d.Polygon.Add(v)
+func DeltaBounds(dimension core.Dimension, vector data.Vector) data.Polygon {
+	return dimension.Polygon.Add(vector)
 }
 
-func DeltaBoundsXY(d core.Dimension, x, y float64) data.Polygon {
-	return d.Polygon.Add(data.Vector{X: x, Y: y})
+func DeltaBoundsXY(dimension core.Dimension, x, y float64) data.Polygon {
+	return dimension.Polygon.Add(data.Vector{X: x, Y: y})
 }
 
-func (s *PhysicsServer) Update(e *core.ECS) {
+func (s *PhysicsServer) Update(ecs *core.ECS) {
 	log.Debug().Msg("PhysicsServer.Update()")
-	s.Load(e)
-	movements := e.GetAllMovement()
+	s.Load(ecs)
+	movements := ecs.GetAllMovements()
 
 	for _, m := range movements {
 		m = s.UpdateMovement(m)
-		s.UpdatePosition(e, m)
+		s.UpdatePosition(ecs, m)
 	}
 }
 
-func (s *PhysicsServer) UpdateMovement(m core.Movement) core.Movement {
-	m.Velocity = m.Velocity.ScaleXY(m.Acceleration.X, m.Acceleration.Y)
-	if math.Signbit(m.Acceleration.X) != math.Signbit(m.Velocity.X) {
-		m.Velocity.X = 0
+func (s *PhysicsServer) UpdateMovement(movement core.Movement) core.Movement {
+	movement.Velocity = movement.Velocity.ScaleXY(movement.Acceleration.X, movement.Acceleration.Y)
+	if math.Signbit(movement.Acceleration.X) != math.Signbit(movement.Velocity.X) {
+		movement.Velocity.X = 0
 	}
 
-	if math.Signbit(m.Acceleration.Y) != math.Signbit(m.Velocity.Y) {
-		m.Velocity.Y = 0
+	if math.Signbit(movement.Acceleration.Y) != math.Signbit(movement.Velocity.Y) {
+		movement.Velocity.Y = 0
 	}
 
-	m.Velocity = m.Velocity.Add(m.Acceleration.Scale(m.Mass))
+	movement.Velocity = movement.Velocity.Add(movement.Acceleration.Scale(movement.Mass))
 	direction := data.Vector{X: 1, Y: 1}
 
-	if m.Velocity.X < 0 {
+	if movement.Velocity.X < 0 {
 		direction.X = -1
 	}
 
-	if m.Velocity.Y < 0 {
+	if movement.Velocity.Y < 0 {
 		direction.Y = -1
 	}
 
-	if math.Abs(m.Velocity.X) > m.MaxVelocity {
-		m.Velocity.X = m.MaxVelocity
+	if math.Abs(movement.Velocity.X) > movement.MaxVelocity {
+		movement.Velocity.X = movement.MaxVelocity
 	}
 
-	if math.Abs(m.Velocity.Y) > m.MaxVelocity {
-		m.Velocity.Y = m.MaxVelocity
+	if math.Abs(movement.Velocity.Y) > movement.MaxVelocity {
+		movement.Velocity.Y = movement.MaxVelocity
 	}
 
-	m.Velocity = m.Velocity.ScaleXY(direction.X, direction.Y)
+	movement.Velocity = movement.Velocity.ScaleXY(direction.X, direction.Y)
 
-	magnitude := m.Velocity.Magnitude()
-	if magnitude > m.MaxVelocity {
-		m.Velocity = m.Velocity.Scale(m.MaxVelocity / magnitude)
+	magnitude := movement.Velocity.Magnitude()
+	if magnitude > movement.MaxVelocity {
+		movement.Velocity = movement.Velocity.Scale(movement.MaxVelocity / magnitude)
 	}
 
-	return m
+	return movement
 }
 
 func (s *PhysicsServer) UpdatePosition(
-	e *core.ECS,
-	m core.Movement,
+	ecs *core.ECS,
+	movement core.Movement,
 ) {
-
-	p, err := e.GetPosition(m.EntityId)
+	entity, err := ecs.GetEntity(movement.EntityId)
 	if err != nil {
 		return
 	}
 
-	d, err := e.GetDimension(m.EntityId)
+	position, err := ecs.GetPosition(entity)
 	if err != nil {
 		return
 	}
-	d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
 
-	c, err := e.GetCollider(m.EntityId)
+	dimension, err := ecs.GetDimension(entity)
 	if err != nil {
-		s.updateAttributes(e, p, m, d)
+		return
+	}
+	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: position.X, Y: position.Y})
+	attr := physicsAttributes{entity, position, movement, dimension}
+	collider, err := ecs.GetCollider(entity)
+	if err != nil {
+		s.updateAttributes(ecs, attr)
 		return
 	}
 
-	p, m, d = s.HandleOutOfBounds(e, p, m, d)
+	attr = s.HandleOutOfBounds(ecs, attr)
 
-	collisions := s.Collisions(e, p, m, d)
+	collisions := s.Collisions(ecs, attr)
 	if len(collisions) == 0 {
-		s.updateAttributes(e, p, m, d)
+		s.updateAttributes(ecs, attr)
 		return
 	}
 
 	for _, collision := range collisions {
-		p, m, d = HandleCollision(e, p, m, d, c, collision)
+		attr = HandleCollision(ecs, attr, collider, collision)
 	}
 
-	s.updateAttributes(e, p, m, d)
+	s.updateAttributes(ecs, attr)
 	return
 }
 
-func (s *PhysicsServer) updateAttributes(
-	e *core.ECS,
-	p core.Position,
-	m core.Movement,
-	d core.Dimension,
-) {
-	entity, err := e.GetEntity(p.EntityId)
-	if err != nil {
-		return
-	}
+func (s *PhysicsServer) updateAttributes(ecs *core.ECS, attr physicsAttributes) {
+	deltaPosition := DeltaPosition(attr.position, attr.movement.Velocity)
+	oldBounds := attr.dimension.Polygon.Bounds
 
-	deltaPosition := DeltaPosition(p, m.Velocity)
-	oldBounds := d.Polygon.Bounds
+	attr.position.X = deltaPosition.X
+	attr.position.Y = deltaPosition.Y
+	attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(deltaPosition)
 
-	p.X = deltaPosition.X
-	p.Y = deltaPosition.Y
-	d.Polygon = d.Polygon.SetPosition(deltaPosition)
+	s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds())
 
-	s.grid.Update(entity, oldBounds, d.Bounds())
-
-	if m.Acceleration.X == 0 && m.Acceleration.Y != 0 {
-		state, err := e.GetState(p.EntityId)
+	if attr.movement.Acceleration.X == 0 && attr.movement.Acceleration.Y != 0 {
+		state, err := ecs.GetState(attr.entity)
 		if err == nil {
 			state.OrientationX = core.Neutral
-			e.SetState(state)
+			ecs.SetState(state)
 		}
 	}
-	m.Acceleration.X = 0
-	m.Acceleration.Y = 0
+	attr.movement.Acceleration.X = 0
+	attr.movement.Acceleration.Y = 0
 
-	e.SetPosition(p)
-	e.SetMovement(m)
-	e.SetDimension(d)
+	ecs.SetPosition(attr.position)
+	ecs.SetMovement(attr.movement)
+	ecs.SetDimension(attr.dimension)
 }
 
-func (s *PhysicsServer) Collisions(
-	e *core.ECS,
-	p core.Position,
-	m core.Movement,
-	d core.Dimension,
-) []core.Dimension {
+func (s *PhysicsServer) Collisions(ecs *core.ECS, attr physicsAttributes) []core.Dimension {
 	results := []core.Dimension{}
-	entities := s.grid.FindNear(d.Bounds())
+	entities := s.grid.FindNear(attr.dimension.Bounds())
 	for i := 0; i < len(entities); i++ {
-		_d, err := e.GetDimension(entities[i].Id)
+		_d, err := ecs.GetDimension(entities[i])
 		if err != nil {
 			continue
 		}
 
-		_, intersects := DeltaBounds(d, m.Velocity).Intersects(_d.Polygon)
+		_, intersects := DeltaBounds(attr.dimension, attr.movement.Velocity).Intersects(_d.Polygon)
 		if intersects {
 			results = append(results, _d)
 		}
@@ -210,71 +207,63 @@ func (s *PhysicsServer) Collisions(
 	return results
 }
 
-func HandleCollision(
-	e *core.ECS,
-	p core.Position,
-	m core.Movement,
-	d core.Dimension,
-	c core.Collider,
-	_d core.Dimension,
-) (core.Position, core.Movement, core.Dimension) {
-
-	_c, err := e.GetCollider(_d.EntityId)
+func HandleCollision(ecs *core.ECS, attr physicsAttributes, collider core.Collider, collision core.Dimension) physicsAttributes {
+	collisionEntity, err := ecs.GetEntity(collision.EntityId)
 	if err != nil {
-		return p, m, d
+		return attr
 	}
 
-	switch _c.ColliderType {
+	collisionCollider, err := ecs.GetCollider(collisionEntity)
+	if err != nil {
+		return attr
+	}
+
+	switch collisionCollider.ColliderType {
 	case core.Immovable:
-		xMTV, xCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, m.Velocity.X, 0))
-		if xCollision && m.Acceleration.X != 0 {
-			translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
-			p.X = translation.X
-			m.Velocity.X = 0
-			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+		xMTV, xCollision := collision.Polygon.Intersects(DeltaBoundsXY(attr.dimension, attr.movement.Velocity.X, 0))
+		if xCollision && attr.movement.Acceleration.X != 0 {
+			translation := DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
+			attr.position.X = translation.X
+			attr.movement.Velocity.X = 0
+			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
 		}
 
-		yMTV, yCollision := _d.Polygon.Intersects(DeltaBoundsXY(d, 0, m.Velocity.Y))
-		if yCollision && m.Acceleration.Y != 0 {
-			translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
-			p.Y = translation.Y
-			m.Velocity.Y = 0
-			d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+		yMTV, yCollision := collision.Polygon.Intersects(DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
+		if yCollision && attr.movement.Acceleration.Y != 0 {
+			translation := DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
+			attr.position.Y = translation.Y
+			attr.movement.Velocity.Y = 0
+			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
 		}
 	case core.Impeding:
-		m.Velocity = m.Velocity.Scale(1 - _c.ImpedingRate)
+		attr.movement.Velocity = attr.movement.Velocity.Scale(1 - collisionCollider.ImpedingRate)
 	case core.Moveable:
 	}
 
-	return p, m, d
+	return attr
 }
 
-func (s *PhysicsServer) HandleOutOfBounds(
-	e *core.ECS,
-	p core.Position,
-	m core.Movement,
-	d core.Dimension,
-) (core.Position, core.Movement, core.Dimension) {
+func (s *PhysicsServer) HandleOutOfBounds(ecs *core.ECS, attr physicsAttributes) physicsAttributes {
 	sizeX := s.x * s.size
 	sizeY := s.y * s.size
 	center := data.Vector{X: sizeX / 2, Y: sizeY / 2}
 	oob := data.NewRectangle(center, sizeX, sizeY).ToPolygon()
 
-	xMTV, xContained := oob.ContainsPolygon(DeltaBoundsXY(d, m.Velocity.X, 0))
-	if !xContained && m.Acceleration.X != 0 {
-		translation := DeltaPositionXY(p, m.Velocity.X, 0).Add(xMTV)
-		p.X = translation.X
-		m.Velocity.X = 0
-		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+	xMTV, xContained := oob.ContainsPolygon(DeltaBoundsXY(attr.dimension, attr.movement.Velocity.X, 0))
+	if !xContained && attr.movement.Acceleration.X != 0 {
+		translation := DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
+		attr.position.X = translation.X
+		attr.movement.Velocity.X = 0
+		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
 	}
 
-	yMTV, yContained := oob.ContainsPolygon(DeltaBoundsXY(d, 0, m.Velocity.Y))
-	if !yContained && m.Acceleration.Y != 0 {
-		translation := DeltaPositionXY(p, 0, m.Velocity.Y).Add(yMTV)
-		p.Y = translation.Y
-		m.Velocity.Y = 0
-		d.Polygon = d.Polygon.SetPosition(data.Vector{X: p.X, Y: p.Y})
+	yMTV, yContained := oob.ContainsPolygon(DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
+	if !yContained && attr.movement.Acceleration.Y != 0 {
+		translation := DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
+		attr.position.Y = translation.Y
+		attr.movement.Velocity.Y = 0
+		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
 	}
 
-	return p, m, d
+	return attr
 }

@@ -38,13 +38,11 @@ func (e *ECS) BindFaction(entity Entity, faction Faction) Entity {
 	return entity
 }
 
-func (e *ECS) GetFaction(entityId data.GenerationalIndex) (Faction, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Faction{}, err
-	}
-
-	faction := e.factions.Get(entity.FactionId)
+func (e *ECS) GetFaction(entity Entity) (Faction, error) {
+	return e.GetFactionById(entity.FactionId)
+}
+func (e *ECS) GetFactionById(id data.GenerationalIndex) (Faction, error) {
+	faction := e.factions.Get(id)
 	if !e.factionAllocator.IsLive(faction.Id) {
 		return faction, ErrAttributeNotFound
 	}

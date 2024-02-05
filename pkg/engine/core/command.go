@@ -1,19 +1,18 @@
 package core
 
 import (
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/rs/zerolog/log"
 )
 
 type (
-	Command func(data.GenerationalIndex)
+	Command func(entity Entity)
 )
 
 func Idle(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("Idle state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("Idle state error")
 			return
 		}
 
@@ -23,10 +22,10 @@ func Idle(ecs *ECS) Command {
 }
 
 func MoveUp(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveUp state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp state error")
 			return
 		}
 
@@ -34,9 +33,9 @@ func MoveUp(ecs *ECS) Command {
 			return
 		}
 
-		movement, err := ecs.GetMovement(entityId)
+		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveUp movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp movement error")
 			return
 		}
 
@@ -49,19 +48,19 @@ func MoveUp(ecs *ECS) Command {
 }
 
 func MoveDown(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveDown state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown state error")
 			return
 		}
 		if state.State == Dodging && state.Counter <= DodgeDuration {
 			return
 		}
 
-		movement, err := ecs.GetMovement(entityId)
+		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveDown movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown movement error")
 			return
 		}
 
@@ -75,19 +74,19 @@ func MoveDown(ecs *ECS) Command {
 }
 
 func MoveLeft(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveLeft state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft state error")
 			return
 		}
 		if state.State == Dodging && state.Counter <= DodgeDuration {
 			return
 		}
 
-		movement, err := ecs.GetMovement(entityId)
+		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveLeft movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft movement error")
 			return
 		}
 
@@ -101,10 +100,10 @@ func MoveLeft(ecs *ECS) Command {
 }
 
 func MoveRight(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveRight state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight state error")
 			return
 		}
 
@@ -112,9 +111,9 @@ func MoveRight(ecs *ECS) Command {
 			return
 		}
 
-		movement, err := ecs.GetMovement(entityId)
+		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("MoveRight movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight movement error")
 			return
 		}
 
@@ -128,10 +127,10 @@ func MoveRight(ecs *ECS) Command {
 }
 
 func Dodge(ecs *ECS) Command {
-	return func(entityId data.GenerationalIndex) {
-		state, err := ecs.GetState(entityId)
+	return func(entity Entity) {
+		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entityId", entityId).Msg("Dodge state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("Dodge state error")
 			return
 		}
 
