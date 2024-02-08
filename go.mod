@@ -1,6 +1,6 @@
 module github.com/maladroitthief/entree
 
-go 1.21
+go 1.22
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.6.5
