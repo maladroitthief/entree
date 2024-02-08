@@ -10,6 +10,12 @@ type (
 
 func Idle(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("Idle entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("Idle state error")
@@ -23,6 +29,12 @@ func Idle(ecs *ECS) Command {
 
 func MoveUp(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp state error")
@@ -49,6 +61,12 @@ func MoveUp(ecs *ECS) Command {
 
 func MoveDown(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown state error")
@@ -75,6 +93,12 @@ func MoveDown(ecs *ECS) Command {
 
 func MoveLeft(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft state error")
@@ -101,6 +125,12 @@ func MoveLeft(ecs *ECS) Command {
 
 func MoveRight(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight state error")
@@ -128,6 +158,12 @@ func MoveRight(ecs *ECS) Command {
 
 func Dodge(ecs *ECS) Command {
 	return func(entity Entity) {
+		entity, err := ecs.GetEntity(entity.Id)
+		if err != nil {
+			log.Debug().Err(err).Any("entity", entity).Msg("Dodge entity error")
+			return
+		}
+
 		state, err := ecs.GetState(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("Dodge state error")
