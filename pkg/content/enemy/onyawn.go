@@ -19,6 +19,7 @@ func NewOnyawn(world *content.World) core.Entity {
 	frequency := time.Millisecond * 10
 	rootNode := onyawnBehaviorTree(world, entity, duration, frequency)
 	ai := world.ECS.NewAI(world.Context, rootNode)
+	ai.Targets = ai.Targets.Set(core.Human)
 
 	position := world.ECS.NewPosition(0, 0, 1.6)
 	movement := world.ECS.NewMovement()
@@ -77,6 +78,12 @@ func onyawnBehaviorTree(
 				return bt.Failure, nil
 			}
 
+			ai, err := world.ECS.GetAI(entity)
+			if err != nil {
+				log.Debug().Err(err).Any("ai", ai).Msg("search error")
+				return bt.Failure, nil
+			}
+
 			position, err := world.ECS.GetPosition(entity)
 			if err != nil {
 				log.Debug().Err(err).Any("position", position).Msg("search error")
@@ -98,14 +105,17 @@ func onyawnBehaviorTree(
 				}
 
 				entities := world.Grid.GetItemsAtLocation(current.x, current.y)
-				for _, entity := range entities {
-					faction, err := world.ECS.GetFaction(entity)
+				for _, e := range entities {
+					faction, err := world.ECS.GetFaction(e)
 					if err != nil {
 						continue
 					}
 
-					if faction.IsArchetype(core.Human) {
-						log.Debug().Msg("HUMAN FOUND")
+					if ai.Targets.Check(faction.Archetype) {
+						ai.TargetEntityId = e.Id
+						world.ECS.SetAI(ai)
+
+						log.Debug().Msg("Target acquired")
 						return bt.Success, nil
 					}
 				}

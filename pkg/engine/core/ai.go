@@ -21,9 +21,10 @@ var (
 )
 
 type AI struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
-	TargetId data.GenerationalIndex
+	Id             data.GenerationalIndex
+	EntityId       data.GenerationalIndex
+	TargetEntityId data.GenerationalIndex
+	Targets        Archetype
 
 	Node    bt.Node
 	Context context.Context

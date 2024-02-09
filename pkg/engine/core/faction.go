@@ -5,6 +5,7 @@ import "github.com/maladroitthief/entree/common/data"
 const (
 	Human Archetype = 1 << iota
 	Vegetable
+	Fruit
 )
 
 type (
@@ -58,16 +59,30 @@ func (e *ECS) SetFaction(faction Faction) {
 	e.factions = e.factions.Set(faction.Id, faction)
 }
 
+func (a Archetype) Set(archetype Archetype) Archetype {
+	a |= archetype
+	return a
+}
+
+func (a Archetype) Unset(archetype Archetype) Archetype {
+	a &= ^archetype
+	return a
+}
+
+func (a Archetype) Check(archetype Archetype) bool {
+	return a&archetype != 0
+}
+
 func (e *ECS) SetArchetype(faction Faction, archetype Archetype) {
-	faction.Archetype |= archetype
+	faction.Archetype = faction.Archetype.Set(archetype)
 	e.SetFaction(faction)
 }
 
 func (e *ECS) UnsetArchetype(faction Faction, archetype Archetype) {
-	faction.Archetype &= ^archetype
+	faction.Archetype = faction.Archetype.Unset(archetype)
 	e.SetFaction(faction)
 }
 
 func (faction Faction) IsArchetype(archetype Archetype) bool {
-	return faction.Archetype&archetype != 0
+	return faction.Archetype.Check(archetype)
 }
