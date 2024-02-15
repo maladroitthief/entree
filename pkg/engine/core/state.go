@@ -4,9 +4,6 @@ import (
 	"github.com/maladroitthief/entree/common/data"
 )
 
-type OrientationX int
-type OrientationY int
-
 const (
 	Neutral OrientationX = iota
 	West
@@ -21,15 +18,20 @@ const (
 	DodgeDuration = 40
 )
 
-type State struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+type (
+	OrientationX int
+	OrientationY int
 
-	State        string
-	Counter      int
-	OrientationX OrientationX
-	OrientationY OrientationY
-}
+	State struct {
+		Id       data.GenerationalIndex
+		EntityId data.GenerationalIndex
+
+		State        string
+		Counter      int
+		OrientationX OrientationX
+		OrientationY OrientationY
+	}
+)
 
 func (e *ECS) NewState() State {
 	state := State{
@@ -54,13 +56,11 @@ func (e *ECS) BindState(entity Entity, state State) Entity {
 	return entity
 }
 
-func (e *ECS) GetState(entityId data.GenerationalIndex) (State, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return State{}, err
-	}
-
-	state := e.states.Get(entity.StateId)
+func (e *ECS) GetState(entity Entity) (State, error) {
+	return e.GetStateById(entity.StateId)
+}
+func (e *ECS) GetStateById(id data.GenerationalIndex) (State, error) {
+	state := e.states.Get(id)
 	if !e.stateAllocator.IsLive(state.Id) {
 		return state, ErrAttributeNotFound
 	}

@@ -3,7 +3,9 @@ package level
 import (
 	"math/rand"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/rs/zerolog/log"
+
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/content/enemy"
 	"github.com/maladroitthief/entree/pkg/content/environment"
 	"github.com/maladroitthief/entree/pkg/engine/core"
@@ -11,51 +13,61 @@ import (
 )
 
 type fieldBlocks struct {
+	world *content.World
 }
 
-func FieldBlockFactory() level.BlockFactory {
-	bf := &fieldBlocks{}
+func FieldBlockFactory(world *content.World) level.BlockFactory {
+	if world == nil {
+		log.Fatal().Msg("FieldBlockFactory World is nil")
+	}
+
+	bf := &fieldBlocks{
+		world: world,
+	}
 
 	return bf
 }
 
-func (bf *fieldBlocks) AddPlayer(e *core.ECS, p core.Entity, x, y float64) {
+func (bf *fieldBlocks) AddPlayer(entity core.Entity, x, y float64) {
 	// TODO: Handle this error
-	position, _ := e.GetPosition(p.Id)
-	dimension, _ := e.GetDimension(p.Id)
+	position, _ := bf.world.ECS.GetPosition(entity)
 	position.X = x
 	position.Y = y
-	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: x, Y: y})
 
-	e.SetPosition(position)
-	e.SetDimension(dimension)
+	bf.world.ECS.SetPosition(position)
 }
 
-func (bf *fieldBlocks) AddSolidBlock(e *core.ECS, x, y float64) {
-	environment.Grass(e, x, y)
+func (bf *fieldBlocks) AddSolidBlock(x, y float64) {
+	environment.Grass(bf.world.ECS, x, y)
 }
 
-func (bf *fieldBlocks) AddSolid(e *core.ECS, x, y float64) {
-	environment.Wall(e, x, y)
+func (bf *fieldBlocks) AddSolid(x, y float64) {
+	environment.Wall(bf.world.ECS, x, y)
 }
 
-func (bf *fieldBlocks) AddSolid50(e *core.ECS, x, y float64) {
+func (bf *fieldBlocks) AddSolid50(x, y float64) {
 	roll := rand.Intn(100)
 	if roll < 50 {
-		environment.Wall(e, x, y)
+		environment.Wall(bf.world.ECS, x, y)
 	}
 }
 
-func (bf *fieldBlocks) AddObstacle(e *core.ECS, x, y float64) {
+func (bf *fieldBlocks) AddObstacle(x, y float64) {
 	roll := rand.Intn(100)
 
 	if roll < 10 {
-		environment.Weeds(e, x, y)
+		environment.Weeds(bf.world.ECS, x, y)
 	} else {
-		environment.Grass(e, x, y)
+		environment.Grass(bf.world.ECS, x, y)
 	}
 }
 
-func (bf *fieldBlocks) AddEnemy(e *core.ECS, x, y float64) {
-	enemy.NewOnyawn(e, x, y)
+func (bf *fieldBlocks) AddEnemy(x, y float64) {
+	entity := enemy.NewOnyawn(bf.world)
+
+	position, _ := bf.world.ECS.GetPosition(entity)
+	position.X = x
+	position.Y = y
+
+	bf.world.ECS.SetPosition(position)
 }

@@ -1,34 +1,48 @@
 package core
 
 import (
+	"context"
+	"errors"
+	"log"
+
 	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 )
 
 type BehaviorType int
 
 const (
 	None BehaviorType = iota
-	Player
 	Computer
 )
 
+var (
+	ErrAIContextNil = errors.New("NewAI nil context")
+)
+
 type AI struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id             data.GenerationalIndex
+	EntityId       data.GenerationalIndex
+	TargetEntityId data.GenerationalIndex
+	Targets        Archetype
 
-	BehaviorType BehaviorType
-
-	RootBehavior   data.GenerationalIndex
-	ActiveBehavior data.GenerationalIndex
-	ActiveSequence bool
+	Node    bt.Node
+	Context context.Context
+	Cancel  context.CancelFunc
 }
 
-func (e *ECS) NewAI(b BehaviorType) AI {
-	ai := AI{
-		Id:           e.aiAllocator.Allocate(),
-		BehaviorType: b,
+func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
+	if ctx == nil {
+		log.Panic(ErrAIContextNil)
 	}
-	e.ai.Set(ai.Id, ai)
+
+	ai := AI{
+		Id:   e.aiAllocator.Allocate(),
+		Node: node,
+	}
+
+	ai.Context, ai.Cancel = context.WithCancel(ctx)
+	e.SetAI(ai)
 
 	return ai
 }
@@ -43,18 +57,17 @@ func (e *ECS) BindAI(entity Entity, ai AI) Entity {
 	return entity
 }
 
-func (e *ECS) GetAI(entityId data.GenerationalIndex) (AI, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return AI{}, err
-	}
-
-	ai := e.ai.Get(entity.AIId)
+func (e *ECS) GetAIById(id data.GenerationalIndex) (AI, error) {
+	ai := e.ai.Get(id)
 	if !e.aiAllocator.IsLive(ai.Id) {
 		return ai, ErrAttributeNotFound
 	}
 
 	return ai, nil
+}
+
+func (e *ECS) GetAI(entity Entity) (AI, error) {
+	return e.GetAIById(entity.AIId)
 }
 
 func (e *ECS) GetAllAI() []AI {

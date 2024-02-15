@@ -12,15 +12,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/ui"
+	"github.com/rs/zerolog/log"
 )
 
 type EbitenGame struct {
 	ctx   context.Context
-	log   logs.Logger
 	scene *ui.SceneManager
 
 	width         int
@@ -36,12 +35,10 @@ type EbitenGame struct {
 
 func NewEbitenDriver(
 	ctx context.Context,
-	log logs.Logger,
 	scene *ui.SceneManager,
 ) (*EbitenGame, error) {
 	e := &EbitenGame{
 		ctx:           ctx,
-		log:           log,
 		scene:         scene,
 		width:         0,
 		height:        0,
@@ -108,7 +105,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	positions := state.GetAllPosition()
+	positions := state.GetAllPositions()
 	sort.Slice(
 		positions,
 		func(i, j int) bool {
@@ -122,7 +119,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	for _, position := range positions {
 		err := e.DrawAnimation(screen, state, position)
 		if err != nil {
-			e.log.Error("Draw", position, err)
+			log.Warn().Err(err).Any("position", position)
 		}
 	}
 
@@ -136,9 +133,9 @@ func (e *EbitenGame) DrawAnimation(
 	position core.Position,
 ) (err error) {
 	entity, entityErr := world.GetEntity(position.EntityId)
-	state, stateErr := world.GetState(entity.Id)
-	animation, animationErr := world.GetAnimation(entity.Id)
-	dimension, dimensionErr := world.GetDimension(entity.Id)
+	state, stateErr := world.GetState(entity)
+	animation, animationErr := world.GetAnimation(entity)
+	dimension, dimensionErr := world.GetDimension(entity)
 
 	if entityErr != nil {
 		return nil

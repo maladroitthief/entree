@@ -1,22 +1,27 @@
 package ui
 
 import (
+	"context"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/content/player"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
 	"github.com/maladroitthief/entree/pkg/engine/server"
+	"github.com/rs/zerolog/log"
 )
 
 type GameScene struct {
+	ctx      context.Context
 	gridX    int
 	gridY    int
 	cellSize int
 
-	world     *core.ECS
+	world     *content.World
+	playerId  data.GenerationalIndex
 	ai        *server.AIServer
 	state     *server.StateServer
 	physics   *server.PhysicsServer
@@ -24,46 +29,53 @@ type GameScene struct {
 
 	camera          *Camera
 	cameraFocus     core.Entity
-	log             logs.Logger
 	backgroundColor color.Color
 }
 
-func NewGameScene(state *SceneState) *GameScene {
+func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	gs := &GameScene{
+		ctx:             ctx,
 		gridX:           2,
 		gridY:           2,
 		cellSize:        32,
-		world:           core.NewECS(),
-		log:             state.log,
 		backgroundColor: state.theme.Green(),
 	}
+
+	x := gs.gridX * level.RoomWidth
+	y := gs.gridY * level.RoomHeight
+	gs.world = content.NewWorld(
+		ctx,
+		core.NewECS(),
+		bt.NewManager(),
+		data.NewSpatialGrid[core.Entity](x, y, float64(gs.cellSize)),
+	)
 
 	gs.ai = server.NewAIServer()
 	gs.state = server.NewStateServer()
 	gs.physics = server.NewPhysicsServer(
 		gs.world,
-		state.log,
-		float64(gs.gridX*level.RoomWidth),
-		float64(gs.gridY*level.RoomHeight),
+		float64(x),
+		float64(y),
 		float64(gs.cellSize),
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.world, 0, 0)
+	player := player.NewFederico(gs.world)
+	gs.playerId = player.Id
 	gs.cameraFocus = player
 
 	level := level.NewLevel(
 		level.NewRoomFactory(),
-		level.NewBlockFactory(),
+		level.NewBlockFactory(gs.world),
 		player,
 		gs.gridX,
 		gs.gridY,
 		gs.cellSize,
 	)
 	level.GenerateRooms()
-	level.Render(gs.world)
+	level.Render(gs.world.ECS)
 
-	gs.physics.Load(gs.world)
+	gs.physics.Load(gs.world.ECS)
 	gs.camera = NewCamera(
 		0,
 		0,
@@ -78,15 +90,20 @@ func (s *GameScene) Update(state *SceneState) error {
 
 	for _, input := range inputs {
 		switch input {
-		case core.Menu:
+		case core.InputMenu:
 			return Termination
 		}
 	}
 
-	s.state.Update(s.world)
-	s.ai.Update(s.world, inputs)
-	s.physics.Update(s.world)
-	s.animation.Update(s.world)
+	s.state.Update(s.world.ECS)
+	player, err := s.world.ECS.GetEntity(s.playerId)
+	if err != nil {
+		panic("")
+	}
+	ProcessPlayerGameInputs(s.world.ECS, player, inputs)
+	// s.ai.Update(s.world, inputs)
+	s.physics.Update(s.world.ECS)
+	s.animation.Update(s.world.ECS)
 
 	return nil
 }
@@ -107,7 +124,7 @@ func (s *GameScene) CellSize() int {
 }
 
 func (s *GameScene) GetState() *core.ECS {
-	return s.world
+	return s.world.ECS
 }
 
 func (s *GameScene) BackgroundColor() color.Color {
@@ -115,12 +132,13 @@ func (s *GameScene) BackgroundColor() color.Color {
 }
 
 func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.world.GetPosition(s.cameraFocus.Id)
+	cameraPosition, err := s.world.ECS.GetPosition(s.cameraFocus)
 	if err != nil {
-		s.log.Error("GameScene.GetCamera", cameraPosition, err)
+		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
 	}
 
 	s.camera.X = cameraPosition.X
 	s.camera.Y = cameraPosition.Y
+
 	return s.camera
 }

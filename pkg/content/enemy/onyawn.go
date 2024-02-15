@@ -1,41 +1,36 @@
 package enemy
 
 import (
+	"time"
+
 	"github.com/maladroitthief/entree/common/data"
+	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/rs/zerolog/log"
 )
 
-func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
-	entity := e.NewEntity()
-	state := e.NewState()
+func NewOnyawn(world *content.World) core.Entity {
+	entity := world.ECS.NewEntity()
+	state := world.ECS.NewState()
+	faction := world.ECS.NewFaction(core.Vegetable)
 
-	ai := e.NewAI(core.Computer)
-	root := e.Root()
-	seq := e.RandomSequence(root)
-	ai.RootBehavior = seq.Id
-	ai.ActiveBehavior = seq.Id
-	moveU := e.MovingUp(seq)
-	moveD := e.MovingDown(seq)
-	moveL := e.MovingLeft(seq)
-	moveR := e.MovingRight(seq)
+	duration := time.Millisecond * 200
+	frequency := time.Millisecond * 10
+	rootNode := onyawnBehaviorTree(world, entity, duration, frequency)
+	ai := world.ECS.NewAI(world.Context, rootNode)
+	ai.Targets = ai.Targets.Set(core.Human)
 
-	entity = e.BindBehavior(entity, root)
-	entity = e.BindBehavior(entity, seq)
-	entity = e.BindBehavior(entity, moveU)
-	entity = e.BindBehavior(entity, moveD)
-	entity = e.BindBehavior(entity, moveL)
-	entity = e.BindBehavior(entity, moveR)
-
-	position := e.NewPosition(x, y, 1.6)
-	movement := e.NewMovement()
-	dimension := e.NewDimension(
+	position := world.ECS.NewPosition(0, 0, 1.6)
+	movement := world.ECS.NewMovement()
+	dimension := world.ECS.NewDimension(
 		data.Vector{X: position.X, Y: position.Y},
 		data.Vector{X: 16, Y: 16},
 	)
 	dimension.Offset = data.Vector{X: 0, Y: -6}
-	collider := e.NewCollider()
+	collider := world.ECS.NewCollider(1.0)
 
-	animation := e.NewAnimation("onyawn", "idle_front_1")
+	animation := world.ECS.NewAnimation("onyawn", "idle_front_1")
 	animation.VariantMax = 6
 	animation.Speed = 50
 	animation.Sprites = map[string][]string{
@@ -49,13 +44,139 @@ func NewOnyawn(e *core.ECS, x, y float64) core.Entity {
 		"move_back_side":  core.SpriteArray("move_front_side", 6),
 	}
 
-	entity = e.BindAI(entity, ai)
-	entity = e.BindState(entity, state)
-	entity = e.BindPosition(entity, position)
-	entity = e.BindMovement(entity, movement)
-	entity = e.BindDimension(entity, dimension)
-	entity = e.BindCollider(entity, collider)
-	entity = e.BindAnimation(entity, animation)
+	entity = world.ECS.BindAI(entity, ai)
+	entity = world.ECS.BindState(entity, state)
+	entity = world.ECS.BindFaction(entity, faction)
+	entity = world.ECS.BindPosition(entity, position)
+	entity = world.ECS.BindMovement(entity, movement)
+	entity = world.ECS.BindDimension(entity, dimension)
+	entity = world.ECS.BindCollider(entity, collider)
+	entity = world.ECS.BindAnimation(entity, animation)
+
+	world.AI.Add(bt.NewTicker(ai.Context, duration, ai.Node))
 
 	return entity
+}
+
+func onyawnBehaviorTree(
+	world *content.World,
+	entity core.Entity,
+	duration time.Duration,
+	frequency time.Duration,
+) bt.Node {
+	search := func() bt.Tick {
+		type index struct {
+			x int
+			y int
+		}
+		directions := [][]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
+
+		return func(children []bt.Node) (bt.Status, error) {
+			entity, err := world.ECS.GetEntity(entity.Id)
+			if err != nil {
+				log.Debug().Err(err).Any("entity", entity).Msg("search error")
+				return bt.Failure, nil
+			}
+
+			ai, err := world.ECS.GetAI(entity)
+			if err != nil {
+				log.Debug().Err(err).Any("ai", ai).Msg("search error")
+				return bt.Failure, nil
+			}
+
+			position, err := world.ECS.GetPosition(entity)
+			if err != nil {
+				log.Debug().Err(err).Any("position", position).Msg("search error")
+				return bt.Failure, nil
+			}
+
+			frontier := data.NewQueue[index]()
+			x, y := world.Grid.Location(position.X, position.Y)
+
+			start := index{x, y}
+			frontier.Enqueue(start)
+			cameFrom := map[index]index{}
+			cameFrom[start] = start
+
+			for frontier.Len() > 0 {
+				current, err := frontier.Dequeue()
+				if err != nil {
+					return bt.Failure, err
+				}
+
+				entities := world.Grid.GetItemsAtLocation(current.x, current.y)
+				for _, e := range entities {
+					faction, err := world.ECS.GetFaction(e)
+					if err != nil {
+						continue
+					}
+
+					if ai.Targets.Check(faction.Archetype) {
+						ai.TargetEntityId = e.Id
+						world.ECS.SetAI(ai)
+
+						log.Debug().Msg("Target acquired")
+						return bt.Success, nil
+					}
+				}
+
+				_, ok := cameFrom[current]
+				if current.x != start.x && current.y != start.y && ok {
+					continue
+				}
+
+				for _, direction := range directions {
+					next := index{current.x + direction[0], current.y + direction[1]}
+					if next.x < 0 || next.x >= world.Grid.SizeX {
+						continue
+					}
+					if next.y < 0 || next.y >= world.Grid.SizeY {
+						continue
+					}
+
+					_, ok := cameFrom[next]
+					if !ok {
+						frontier.Enqueue(next)
+						cameFrom[next] = current
+					}
+				}
+			}
+
+			return bt.Success, nil
+		}
+	}
+
+	searching := func() (bt.Tick, []bt.Node) {
+		return search(), nil
+	}
+
+	moveUp := func() (bt.Tick, []bt.Node) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+			core.MoveUp(world.ECS)(entity)
+			return bt.Success, nil
+		}), nil
+	}
+	moveDown := func() (bt.Tick, []bt.Node) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+			core.MoveDown(world.ECS)(entity)
+			return bt.Success, nil
+		}), nil
+	}
+	moveLeft := func() (bt.Tick, []bt.Node) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+			core.MoveLeft(world.ECS)(entity)
+			return bt.Success, nil
+		}), nil
+	}
+	moveRight := func() (bt.Tick, []bt.Node) {
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+			core.MoveRight(world.ECS)(entity)
+			return bt.Success, nil
+		}), nil
+	}
+
+	return bt.New(
+		bt.Shuffle(bt.Sequence, nil),
+		moveUp, moveRight, moveDown, moveLeft, searching,
+	)
 }

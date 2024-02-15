@@ -1,15 +1,15 @@
 package ui
 
 import (
+	"context"
 	"image/color"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 type TitleScene struct {
-	log             logs.Logger
+	ctx             context.Context
 	camera          *Camera
 	width           int
 	height          int
@@ -17,12 +17,12 @@ type TitleScene struct {
 	backgroundColor color.Color
 }
 
-func NewTitleScene(state *SceneState) *TitleScene {
+func NewTitleScene(ctx context.Context, state *SceneState) *TitleScene {
 	ts := &TitleScene{
+		ctx:             ctx,
 		width:           800,
 		height:          800,
 		cellSize:        32,
-		log:             state.log,
 		backgroundColor: state.theme.Black(),
 	}
 
@@ -38,13 +38,13 @@ func NewTitleScene(state *SceneState) *TitleScene {
 func (s *TitleScene) Update(state *SceneState) error {
 	for _, input := range state.input.CurrentInputs() {
 		switch input {
-		case core.Menu:
+		case core.InputMenu:
 			return Termination
 		}
 	}
 
 	if state.input.IsAny() {
-		return state.mgr.GoTo(NewGameScene(state))
+		return state.mgr.GoTo(NewGameScene(s.ctx, state))
 	}
 
 	return nil

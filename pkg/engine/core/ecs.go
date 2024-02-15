@@ -16,20 +16,22 @@ type ECS struct {
 	entities           data.GenerationalIndexArray[Entity]
 	aiAllocator        *data.GenerationalIndexAllocator
 	ai                 data.GenerationalIndexArray[AI]
-	behaviorAllocator  *data.GenerationalIndexAllocator
-	behaviors           data.GenerationalIndexArray[Behavior]
+	commandAllocator   *data.GenerationalIndexAllocator
+	command            data.GenerationalIndexArray[Command]
 	stateAllocator     *data.GenerationalIndexAllocator
-	states              data.GenerationalIndexArray[State]
+	states             data.GenerationalIndexArray[State]
 	movementAllocator  *data.GenerationalIndexAllocator
-	movements           data.GenerationalIndexArray[Movement]
+	movements          data.GenerationalIndexArray[Movement]
 	positionAllocator  *data.GenerationalIndexAllocator
-	positions           data.GenerationalIndexArray[Position]
+	positions          data.GenerationalIndexArray[Position]
 	dimensionAllocator *data.GenerationalIndexAllocator
-	dimensions          data.GenerationalIndexArray[Dimension]
+	dimensions         data.GenerationalIndexArray[Dimension]
 	colliderAllocator  *data.GenerationalIndexAllocator
-	colliders           data.GenerationalIndexArray[Collider]
+	colliders          data.GenerationalIndexArray[Collider]
 	animationAllocator *data.GenerationalIndexAllocator
-	animations          data.GenerationalIndexArray[Animation]
+	animations         data.GenerationalIndexArray[Animation]
+	factionAllocator   *data.GenerationalIndexAllocator
+	factions           data.GenerationalIndexArray[Faction]
 }
 
 func NewECS() *ECS {
@@ -38,20 +40,22 @@ func NewECS() *ECS {
 		entities:           data.NewGenerationalIndexArray[Entity](),
 		aiAllocator:        data.NewGenerationalIndexAllocator(),
 		ai:                 data.NewGenerationalIndexArray[AI](),
-		behaviorAllocator:  data.NewGenerationalIndexAllocator(),
-		behaviors:           data.NewGenerationalIndexArray[Behavior](),
+		commandAllocator:   data.NewGenerationalIndexAllocator(),
+		command:            data.NewGenerationalIndexArray[Command](),
 		stateAllocator:     data.NewGenerationalIndexAllocator(),
-		states:              data.NewGenerationalIndexArray[State](),
+		states:             data.NewGenerationalIndexArray[State](),
 		movementAllocator:  data.NewGenerationalIndexAllocator(),
-		movements:           data.NewGenerationalIndexArray[Movement](),
+		movements:          data.NewGenerationalIndexArray[Movement](),
 		positionAllocator:  data.NewGenerationalIndexAllocator(),
-		positions:           data.NewGenerationalIndexArray[Position](),
+		positions:          data.NewGenerationalIndexArray[Position](),
 		dimensionAllocator: data.NewGenerationalIndexAllocator(),
-		dimensions:          data.NewGenerationalIndexArray[Dimension](),
+		dimensions:         data.NewGenerationalIndexArray[Dimension](),
 		colliderAllocator:  data.NewGenerationalIndexAllocator(),
-		colliders:           data.NewGenerationalIndexArray[Collider](),
+		colliders:          data.NewGenerationalIndexArray[Collider](),
 		animationAllocator: data.NewGenerationalIndexAllocator(),
-		animations:          data.NewGenerationalIndexArray[Animation](),
+		animations:         data.NewGenerationalIndexArray[Animation](),
+		factionAllocator:   data.NewGenerationalIndexAllocator(),
+		factions:           data.NewGenerationalIndexArray[Faction](),
 	}
 
 	return ecs

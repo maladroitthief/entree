@@ -142,15 +142,16 @@ func (p Polygon) Intersects(q Polygon) (Vector, bool) {
 func (p Polygon) ContainsPolygon(q Polygon) (Vector, bool) {
 	normal := Vector{}
 	distance := math.MaxFloat64
-	contained := 1
+	contained := true
 
 	for _, v := range q.CalcVectors {
 		if !p.ContainsVector(v) {
-			contained--
+			contained = false
+			break
 		}
 	}
 
-	if contained == 1 {
+	if contained == true {
 		return Vector{}, true
 	}
 

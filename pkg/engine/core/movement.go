@@ -41,13 +41,11 @@ func (e *ECS) BindMovement(entity Entity, movement Movement) Entity {
 	return entity
 }
 
-func (e *ECS) GetMovement(entityId data.GenerationalIndex) (Movement, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Movement{}, err
-	}
-
-	movement := e.movements.Get(entity.MovementId)
+func (e *ECS) GetMovement(entity Entity) (Movement, error) {
+	return e.GetMovementById(entity.MovementId)
+}
+func (e *ECS) GetMovementById(id data.GenerationalIndex) (Movement, error) {
+	movement := e.movements.Get(id)
 	if !e.movementAllocator.IsLive(movement.Id) {
 		return movement, ErrAttributeNotFound
 	}
@@ -55,7 +53,7 @@ func (e *ECS) GetMovement(entityId data.GenerationalIndex) (Movement, error) {
 	return movement, nil
 }
 
-func (e *ECS) GetAllMovement() []Movement {
+func (e *ECS) GetAllMovements() []Movement {
 	return e.movements.GetAll(e.movementAllocator)
 }
 

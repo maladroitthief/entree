@@ -41,13 +41,12 @@ func (e *ECS) BindDimension(entity Entity, dimension Dimension) Entity {
 	return entity
 }
 
-func (e *ECS) GetDimension(entityId data.GenerationalIndex) (Dimension, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Dimension{}, err
-	}
+func (e *ECS) GetDimension(entity Entity) (Dimension, error) {
+	return e.GetDimensionById(entity.DimensionId)
+}
 
-	dimension := e.dimensions.Get(entity.DimensionId)
+func (e *ECS) GetDimensionById(id data.GenerationalIndex) (Dimension, error) {
+	dimension := e.dimensions.Get(id)
 	if !e.dimensionAllocator.IsLive(dimension.Id) {
 		return dimension, ErrAttributeNotFound
 	}

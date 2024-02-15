@@ -5,6 +5,7 @@ import "github.com/maladroitthief/entree/common/data"
 type Entity struct {
 	Id          data.GenerationalIndex
 	AIId        data.GenerationalIndex
+	CommandId   data.GenerationalIndex
 	BehaviorId  data.GenerationalIndex
 	StateId     data.GenerationalIndex
 	MovementId  data.GenerationalIndex
@@ -12,6 +13,7 @@ type Entity struct {
 	PositionId  data.GenerationalIndex
 	DimensionId data.GenerationalIndex
 	ColliderId  data.GenerationalIndex
+	FactionId   data.GenerationalIndex
 }
 
 func (e *ECS) NewEntity() Entity {
@@ -19,7 +21,7 @@ func (e *ECS) NewEntity() Entity {
 		Id: e.entityAllocator.Allocate(),
 	}
 
-	e.entities = e.entities.Set(entity.Id, entity)
+	e.SetEntity(entity)
 
 	return entity
 }

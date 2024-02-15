@@ -1,11 +1,11 @@
 package ui
 
 import (
+	"context"
 	"errors"
 	"image"
 	"image/color"
 
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
@@ -18,6 +18,7 @@ const (
 var (
 	Termination = errors.New("game closed normally")
 
+	ErrContextNil        = errors.New("context is nil")
 	ErrGraphicsServerNil = errors.New("graphics server is nil")
 	ErrInputHandlerNil   = errors.New("input handler is nil")
 	ErrWindowHandlerNil  = errors.New("window handler is nil")
@@ -33,14 +34,13 @@ type Scene interface {
 }
 
 type SceneState struct {
-	log   logs.Logger
 	mgr   *SceneManager
 	input *InputHandler
 	theme theme.Colors
 }
 
 type SceneManager struct {
-	log             logs.Logger
+	ctx             context.Context
 	currentScene    Scene
 	nextScene       Scene
 	transitionCount int
@@ -52,13 +52,13 @@ type SceneManager struct {
 }
 
 func NewSceneManager(
-	l logs.Logger,
+	ctx context.Context,
 	g *GraphicsServer,
 	i *InputHandler,
 	w *WindowHandler,
 ) (*SceneManager, error) {
-	if l == nil {
-		return nil, ErrLoggerNil
+	if ctx == nil {
+		return nil, ErrContextNil
 	}
 
 	if g == nil {
@@ -74,14 +74,14 @@ func NewSceneManager(
 	}
 
 	m := &SceneManager{
-		log:      l,
+		ctx:      ctx,
 		graphics: g,
 		input:    i,
 		window:   w,
 		theme:    &theme.Endesga32{},
 	}
 
-	err := m.GoTo(NewTitleScene(m.sceneState()))
+	err := m.GoTo(NewTitleScene(m.ctx, m.sceneState()))
 
 	return m, err
 }
@@ -94,7 +94,7 @@ func (m *SceneManager) Update(state InputState) error {
 	}
 
 	if m.currentScene == nil {
-		err = m.GoTo(NewTitleScene(m.sceneState()))
+		err = m.GoTo(NewTitleScene(m.ctx, m.sceneState()))
 	}
 
 	if err != nil {
@@ -119,7 +119,6 @@ func (m *SceneManager) Update(state InputState) error {
 
 func (m *SceneManager) sceneState() *SceneState {
 	return &SceneState{
-		log:   m.log,
 		mgr:   m,
 		input: m.input,
 		theme: m.theme,

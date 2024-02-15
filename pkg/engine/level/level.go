@@ -100,16 +100,16 @@ func (l *Level) Render(e *core.ECS) {
 			for i, block := range l.Rooms[x][y].layout {
 				switch block {
 				case Player:
-					l.blockFactory.AddPlayer(e, l.player, xPosition(x, l.size, i), yPosition(y, l.size, i))
+					l.blockFactory.AddPlayer(l.player, xPosition(x, l.size, i), yPosition(y, l.size, i))
 				case EmptySpace:
 				case Solid:
-					l.blockFactory.AddSolid(e, xPosition(x, l.size, i), yPosition(y, l.size, i))
+					l.blockFactory.AddSolid(xPosition(x, l.size, i), yPosition(y, l.size, i))
 				case Solid50:
-					l.blockFactory.AddSolid50(e, xPosition(x, l.size, i), yPosition(y, l.size, i))
+					l.blockFactory.AddSolid50(xPosition(x, l.size, i), yPosition(y, l.size, i))
 				case Obstacle:
-					l.blockFactory.AddObstacle(e, xPosition(x, l.size, i), yPosition(y, l.size, i))
+					l.blockFactory.AddObstacle(xPosition(x, l.size, i), yPosition(y, l.size, i))
 				case Enemy:
-					l.blockFactory.AddEnemy(e, xPosition(x, l.size, i), yPosition(y, l.size, i))
+					l.blockFactory.AddEnemy(xPosition(x, l.size, i), yPosition(y, l.size, i))
 				}
 			}
 		}

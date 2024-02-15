@@ -35,13 +35,11 @@ func (e *ECS) BindPosition(entity Entity, position Position) Entity {
 	return entity
 }
 
-func (e *ECS) GetPosition(entityId data.GenerationalIndex) (Position, error) {
-	entity, err := e.GetEntity(entityId)
-	if err != nil {
-		return Position{}, err
-	}
-
-	position := e.positions.Get(entity.PositionId)
+func (e *ECS) GetPosition(entity Entity) (Position, error) {
+	return e.GetPositionById(entity.PositionId)
+}
+func (e *ECS) GetPositionById(id data.GenerationalIndex) (Position, error) {
+	position := e.positions.Get(id)
 	if !e.positionAllocator.IsLive(position.Id) {
 		return position, ErrAttributeNotFound
 	}
@@ -49,7 +47,7 @@ func (e *ECS) GetPosition(entityId data.GenerationalIndex) (Position, error) {
 	return position, nil
 }
 
-func (e *ECS) GetAllPosition() []Position {
+func (e *ECS) GetAllPositions() []Position {
 	return e.positions.GetAll(e.positionAllocator)
 }
 

@@ -21,7 +21,12 @@ func (s *AnimationServer) Update(e *core.ECS) {
 			continue
 		}
 
-		state, err := e.GetState(a.EntityId)
+		entity, err := e.GetEntity(a.EntityId)
+		if err != nil {
+			continue
+		}
+
+		state, err := e.GetState(entity)
 		if err != nil {
 			continue
 		}

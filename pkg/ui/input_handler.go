@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/maladroitthief/entree/common/data"
-	"github.com/maladroitthief/entree/common/logs"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
@@ -14,29 +13,28 @@ var (
 	ErrInputRepoNil = errors.New("input repo is nil")
 
 	DefaultKeyBindings = map[core.Input]string{
-		core.Accept:        "Enter",
-		core.Cancel:        "Backspace",
-		core.MoveUp:        "W",
-		core.MoveDown:      "S",
-		core.MoveLeft:      "A",
-		core.MoveRight:     "D",
-		core.Attack:        "MouseButtonLeft",
-		core.AttackUp:      "ArrowUp",
-		core.AttackDown:    "ArrowDown",
-		core.AttackLeft:    "ArrowLeft",
-		core.AttackRight:   "ArrowRight",
-		core.Dodge:         "Space",
-		core.Interact:      "E",
-		core.UseItem:       "MouseButtonRight",
-		core.UseConsumable: "Q",
-		core.Map:           "M",
-		core.Menu:          "Escape",
+		core.InputAccept:        "Enter",
+		core.InputCancel:        "Backspace",
+		core.InputMoveUp:        "W",
+		core.InputMoveDown:      "S",
+		core.InputMoveLeft:      "A",
+		core.InputMoveRight:     "D",
+		core.InputAttack:        "MouseButtonLeft",
+		core.InputAttackUp:      "ArrowUp",
+		core.InputAttackDown:    "ArrowDown",
+		core.InputAttackLeft:    "ArrowLeft",
+		core.InputAttackRight:   "ArrowRight",
+		core.InputDodge:         "Space",
+		core.InputInteract:      "E",
+		core.InputUseItem:       "MouseButtonRight",
+		core.InputUseConsumable: "Q",
+		core.InputMap:           "M",
+		core.InputMenu:          "Escape",
 	}
 )
 
 type InputHandler struct {
 	repo     InputRepository
-	log      logs.Logger
 	settings InputSettings
 
 	currentKeys   []string
@@ -59,18 +57,13 @@ type InputRepository interface {
 	SetInputSettings(InputSettings) error
 }
 
-func NewInputHandler(l logs.Logger, r InputRepository) (*InputHandler, error) {
-	if l == nil {
-		return nil, ErrLoggerNil
-	}
-
+func NewInputHandler(r InputRepository) (*InputHandler, error) {
 	if r == nil {
 		return nil, ErrInputRepoNil
 	}
 
 	h := &InputHandler{
 		repo: r,
-		log:  l,
 	}
 
 	err := h.Load()

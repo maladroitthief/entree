@@ -7,8 +7,8 @@ import (
 type Position int
 
 const (
-	RoomHeight   = 9
-	RoomWidth    = 9
+	RoomHeight = 9
+	RoomWidth  = 9
 )
 
 var (
@@ -25,9 +25,9 @@ type RoomFactory interface {
 }
 
 func NewRoomFactory() RoomFactory {
-  rf := &roomFactory{}
+	rf := &roomFactory{}
 
-  return rf
+	return rf
 }
 
 type Room struct {
@@ -46,7 +46,7 @@ func (rf *roomFactory) Entrance() Room {
 			"0500@0000" +
 			"000000000" +
 			"000000500" +
-			"000000000" +
+			"000000e00" +
 			"111111111" +
 			"111111111",
 	}
