@@ -33,45 +33,59 @@ type (
 	}
 )
 
-func (e *ECS) NewState() State {
+func (ecs *ECS) NewState() State {
 	state := State{
-		Id:           e.stateAllocator.Allocate(),
+		Id:           ecs.stateAllocator.Allocate(),
 		State:        Idling,
 		Counter:      0,
 		OrientationX: Neutral,
 		OrientationY: South,
 	}
-	e.states.Set(state.Id, state)
+	ecs.states.Set(state.Id, state)
 
 	return state
 }
 
-func (e *ECS) BindState(entity Entity, state State) Entity {
+func (ecs *ECS) BindState(entity Entity, state State) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.stateMu.Lock()
+	defer ecs.stateMu.Unlock()
+
 	state.EntityId = entity.Id
 	entity.StateId = state.Id
 
-	e.states = e.states.Set(state.Id, state)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.states = ecs.states.Set(state.Id, state)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetState(entity Entity) (State, error) {
-	return e.GetStateById(entity.StateId)
+func (ecs *ECS) GetState(entity Entity) (State, error) {
+	return ecs.GetStateById(entity.StateId)
 }
-func (e *ECS) GetStateById(id data.GenerationalIndex) (State, error) {
-	state := e.states.Get(id)
-	if !e.stateAllocator.IsLive(state.Id) {
+func (ecs *ECS) GetStateById(id data.GenerationalIndex) (State, error) {
+	ecs.stateMu.RLock()
+	defer ecs.stateMu.RUnlock()
+
+	state := ecs.states.Get(id)
+	if !ecs.stateAllocator.IsLive(state.Id) {
 		return state, ErrAttributeNotFound
 	}
 
 	return state, nil
 }
 
-func (e *ECS) GetAllStates() []State {
-	return e.states.GetAll(e.stateAllocator)
+func (ecs *ECS) GetAllStates() []State {
+	ecs.stateMu.RLock()
+	defer ecs.stateMu.RUnlock()
+
+	return ecs.states.GetAll(ecs.stateAllocator)
 }
 
-func (e *ECS) SetState(state State) {
-	e.states = e.states.Set(state.Id, state)
+func (ecs *ECS) SetState(state State) {
+	ecs.stateMu.Lock()
+	defer ecs.stateMu.Unlock()
+
+	ecs.states = ecs.states.Set(state.Id, state)
 }

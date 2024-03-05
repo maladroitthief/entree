@@ -25,9 +25,9 @@ type Animation struct {
 	Sprites     map[string][]string
 }
 
-func (e *ECS) NewAnimation(sheet, defaultSprite string) Animation {
+func (ecs *ECS) NewAnimation(sheet, defaultSprite string) Animation {
 	animation := Animation{
-		Id:          e.animationAllocator.Allocate(),
+		Id:          ecs.animationAllocator.Allocate(),
 		Speed:       DefaultSpeed,
 		Counter:     0,
 		Variant:     1,
@@ -36,7 +36,7 @@ func (e *ECS) NewAnimation(sheet, defaultSprite string) Animation {
 		Sprite:      defaultSprite,
 		Sprites:     map[string][]string{},
 	}
-	e.animations.Set(animation.Id, animation)
+	ecs.animations.Set(animation.Id, animation)
 
 	return animation
 }
@@ -51,33 +51,47 @@ func SpriteArray(spriteName string, count int) []string {
 	return results
 }
 
-func (e *ECS) BindAnimation(entity Entity, animation Animation) Entity {
+func (ecs *ECS) BindAnimation(entity Entity, animation Animation) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.animationMu.Lock()
+	defer ecs.animationMu.Unlock()
+
 	animation.EntityId = entity.Id
 	entity.AnimationId = animation.Id
 
-	e.animations = e.animations.Set(animation.Id, animation)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.animations = ecs.animations.Set(animation.Id, animation)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetAnimation(entity Entity) (Animation, error) {
-	return e.GetAnimationById(entity.AnimationId)
+func (ecs *ECS) GetAnimation(entity Entity) (Animation, error) {
+	return ecs.GetAnimationById(entity.AnimationId)
 }
 
-func (e *ECS) GetAnimationById(id data.GenerationalIndex) (Animation, error) {
-	animation := e.animations.Get(id)
-	if !e.animationAllocator.IsLive(animation.Id) {
+func (ecs *ECS) GetAnimationById(id data.GenerationalIndex) (Animation, error) {
+	ecs.animationMu.RLock()
+	defer ecs.animationMu.RUnlock()
+
+	animation := ecs.animations.Get(id)
+	if !ecs.animationAllocator.IsLive(animation.Id) {
 		return animation, ErrAttributeNotFound
 	}
 
 	return animation, nil
 }
 
-func (e *ECS) GetAllAnimations() []Animation {
-	return e.animations.GetAll(e.animationAllocator)
+func (ecs *ECS) GetAllAnimations() []Animation {
+	ecs.animationMu.RLock()
+	defer ecs.animationMu.RUnlock()
+
+	return ecs.animations.GetAll(ecs.animationAllocator)
 }
 
-func (e *ECS) SetAnimation(animation Animation) {
-	e.animations = e.animations.Set(animation.Id, animation)
+func (ecs *ECS) SetAnimation(animation Animation) {
+	ecs.animationMu.Lock()
+	defer ecs.animationMu.Unlock()
+
+	ecs.animations = ecs.animations.Set(animation.Id, animation)
 }

@@ -1,94 +1,112 @@
 package data
 
 import (
+	"errors"
 	"math"
-	"strings"
+	"sync"
 )
 
 type (
 	SpatialGrid[T comparable] struct {
-		sb        strings.Builder
-		Cells     [][]Cell[T]
+		Nodes     [][]spatialGridNode[T]
+		nodesMu   sync.RWMutex
 		SizeX     int
 		SizeY     int
 		ChunkSize float64
 	}
 
-	Cell[T comparable] struct {
-		items []CellItem[T]
-	}
-
-	CellItem[T comparable] struct {
-		item T
+	spatialGridNode[T comparable] struct {
+		x     int
+		y     int
+		items []T
 	}
 )
 
+var (
+	directions         = [][]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
+	ErrMaxDepthReached = errors.New("search max depth has been reached")
+)
+
 func NewSpatialGrid[T comparable](x, y int, size float64) *SpatialGrid[T] {
-	cells := make([][]Cell[T], x)
-	for i := range cells {
-		cells[i] = make([]Cell[T], y)
+	nodes := make([][]spatialGridNode[T], x)
+	for iX := range nodes {
+		nodes[iX] = make([]spatialGridNode[T], y)
+		for iY := range y {
+			nodes[iX][iY].x = iX
+			nodes[iX][iY].y = iY
+		}
 	}
 
 	return &SpatialGrid[T]{
-		sb:        strings.Builder{},
 		SizeX:     x,
 		SizeY:     y,
 		ChunkSize: size,
-		Cells:     cells,
+		Nodes:     nodes,
 	}
 }
 
-func (h *SpatialGrid[T]) Size() int {
-	size := 0
+func (sg *SpatialGrid[T]) Size() int {
+	sg.nodesMu.RLock()
+	defer sg.nodesMu.RUnlock()
 
-	for x := range h.Cells {
-		for y := range h.Cells[x] {
-			size += len(h.Cells[x][y].items)
+	size := 0
+	for x := range sg.Nodes {
+		for y := range sg.Nodes[x] {
+			size += len(sg.Nodes[x][y].items)
 		}
 	}
 
 	return size
 }
 
-func (h *SpatialGrid[T]) Insert(val T, bounds Rectangle) {
-	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
-	xMinIndex, yMinIndex := h.Location(minPoint.X, minPoint.Y)
-	xMaxIndex, yMaxIndex := h.Location(maxPoint.X, maxPoint.Y)
+func (sg *SpatialGrid[T]) Insert(val T, bounds Rectangle) {
+	sg.nodesMu.Lock()
+	defer sg.nodesMu.Unlock()
 
-	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
-		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			h.Cells[x][y] = h.Cells[x][y].Insert(val)
+	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
+	xMinIndex, yMinIndex := sg.Location(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := sg.Location(maxPoint.X, maxPoint.Y)
+
+	for xMin, xMax := xMinIndex, xMaxIndex; xMin <= xMax; xMin++ {
+		for yMin, yMax := yMinIndex, yMaxIndex; yMin <= yMax; yMin++ {
+			sg.Nodes[xMin][yMin] = sg.Nodes[xMin][yMin].Insert(val)
 		}
 	}
 }
 
-func (h *SpatialGrid[T]) Update(val T, oldBounds, newBounds Rectangle) {
-	h.Delete(val, oldBounds)
-	h.Insert(val, newBounds)
+func (sg *SpatialGrid[T]) Update(val T, oldBounds, newBounds Rectangle) {
+	sg.Delete(val, oldBounds)
+	sg.Insert(val, newBounds)
 }
 
-func (h *SpatialGrid[T]) Delete(val T, bounds Rectangle) {
+func (sg *SpatialGrid[T]) Delete(val T, bounds Rectangle) {
+	sg.nodesMu.Lock()
+	defer sg.nodesMu.Unlock()
+
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
-	xMinIndex, yMinIndex := h.Location(minPoint.X, minPoint.Y)
-	xMaxIndex, yMaxIndex := h.Location(maxPoint.X, maxPoint.Y)
+	xMinIndex, yMinIndex := sg.Location(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := sg.Location(maxPoint.X, maxPoint.Y)
 
 	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
 		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			h.Cells[x][y] = h.Cells[x][y].Delete(val)
+			sg.Nodes[x][y] = sg.Nodes[x][y].Delete(val)
 		}
 	}
 }
 
-func (h *SpatialGrid[T]) FindNear(bounds Rectangle) []T {
+func (sg *SpatialGrid[T]) FindNear(bounds Rectangle) []T {
+	sg.nodesMu.RLock()
+	defer sg.nodesMu.RUnlock()
+
 	set := map[T]struct{}{}
 	items := []T{}
 	minPoint, maxPoint := bounds.MinPoint(), bounds.MaxPoint()
-	xMinIndex, yMinIndex := h.Location(minPoint.X, minPoint.Y)
-	xMaxIndex, yMaxIndex := h.Location(maxPoint.X, maxPoint.Y)
+	xMinIndex, yMinIndex := sg.Location(minPoint.X, minPoint.Y)
+	xMaxIndex, yMaxIndex := sg.Location(maxPoint.X, maxPoint.Y)
 
 	for x, xn := xMinIndex, xMaxIndex; x <= xn; x++ {
 		for y, yn := yMinIndex, yMaxIndex; y <= yn; y++ {
-			for _, item := range h.Cells[x][y].Get() {
+			for _, item := range sg.Nodes[x][y].Items() {
 				_, ok := set[item]
 				if !ok {
 					set[item] = struct{}{}
@@ -101,67 +119,155 @@ func (h *SpatialGrid[T]) FindNear(bounds Rectangle) []T {
 	return items
 }
 
-func (h *SpatialGrid[T]) Drop() {
-	for i := range h.Cells {
-		h.Cells[i] = make([]Cell[T], h.SizeY)
+func (sg *SpatialGrid[T]) Drop() {
+	sg.nodesMu.Lock()
+	defer sg.nodesMu.Unlock()
+
+	for iX := range sg.Nodes {
+		sg.Nodes[iX] = make([]spatialGridNode[T], sg.SizeY)
+		for iY := range sg.SizeY {
+			sg.Nodes[iX][iY].x = iX
+			sg.Nodes[iX][iY].y = iY
+		}
 	}
 }
 
-func (h *SpatialGrid[T]) Location(x, y float64) (xIndex, yIndex int) {
-	xIndex = int(math.Round(x / h.ChunkSize))
-	yIndex = int(math.Round(y / h.ChunkSize))
+func (sg *SpatialGrid[T]) Location(x, y float64) (xIndex, yIndex int) {
+	xIndex = int(math.Floor(x / sg.ChunkSize))
+	yIndex = int(math.Floor(y / sg.ChunkSize))
 
 	xIndex = max(xIndex, 0)
-	xIndex = min(xIndex, h.SizeX-1)
+	xIndex = min(xIndex, sg.SizeX-1)
 	yIndex = max(yIndex, 0)
-	yIndex = min(yIndex, h.SizeY-1)
+	yIndex = min(yIndex, sg.SizeY-1)
 
 	return xIndex, yIndex
 }
 
-func (h *SpatialGrid[T]) GetItemsAtLocation(x, y int) []T {
-	return h.Cells[x][y].Get()
+func (sg *SpatialGrid[T]) GetItemsAtLocation(x, y int) []T {
+	sg.nodesMu.RLock()
+	defer sg.nodesMu.RUnlock()
+
+	return sg.Nodes[x][y].Items()
 }
 
-func NewCell[T comparable]() Cell[T] {
-	return Cell[T]{
-		items: make([]CellItem[T], 0),
+func (sg *SpatialGrid[T]) Node(x, y float64) spatialGridNode[T] {
+	xIndex, yIndex := sg.Location(x, y)
+	return sg.Nodes[xIndex][yIndex]
+}
+
+func (sg *SpatialGrid[T]) Edges(sgn spatialGridNode[T]) []spatialGridNode[T] {
+	edges := []spatialGridNode[T]{}
+	for _, direction := range directions {
+		nextX := sgn.x + direction[0]
+		nextY := sgn.y + direction[1]
+		if nextX < 0 || nextX >= sg.SizeX {
+			continue
+		}
+		if nextY < 0 || nextY >= sg.SizeY {
+			continue
+		}
+
+		edges = append(edges, sg.Nodes[nextX][nextY])
+	}
+
+	return edges
+}
+
+func (sg *SpatialGrid[T]) Search(
+	x float64,
+	y float64,
+	maxDepth int,
+	process func([]T) error,
+) error {
+	sg.nodesMu.RLock()
+	defer sg.nodesMu.RUnlock()
+
+	start := sg.Node(x, y)
+
+	type index struct{ x, y int }
+	visited := map[index]struct{}{}
+
+	queue := NewQueue[spatialGridNode[T]]()
+	queue.Enqueue(start)
+
+	currentDepth := 0
+	for queue.Len() > 0 {
+		if currentDepth > maxDepth {
+			return ErrMaxDepthReached
+		}
+
+		nodesAtDepth := queue.Len()
+		for i := 0; i < nodesAtDepth; i++ {
+			currentNode, err := queue.Dequeue()
+			if err != nil {
+				return err
+			}
+			_, ok := visited[index{currentNode.x, currentNode.y}]
+			if ok {
+				continue
+			}
+			visited[index{currentNode.x, currentNode.y}] = struct{}{}
+
+			err = process(currentNode.Items())
+			if err != nil {
+				return err
+			}
+
+			edges := sg.Edges(currentNode)
+			if len(edges) <= 0 {
+				continue
+			}
+
+			for _, edge := range edges {
+				queue.Enqueue(edge)
+			}
+		}
+		currentDepth++
+	}
+
+	return nil
+}
+
+func NewSpatialGridNode[T comparable](x, y int) spatialGridNode[T] {
+	return spatialGridNode[T]{
+		items: make([]T, 0),
+		x:     x,
+		y:     y,
 	}
 }
 
-func (c Cell[T]) Get() []T {
-	items := make([]T, len(c.items))
+func (sgn spatialGridNode[T]) Items() []T {
+	items := make([]T, len(sgn.items))
 
-	for i := 0; i < len(c.items); i++ {
-		items[i] = c.items[i].item
+	for i := 0; i < len(sgn.items); i++ {
+		items[i] = sgn.items[i]
 	}
 
 	return items
 }
 
-func (c Cell[T]) Insert(item T) Cell[T] {
-	c.items = append(
-		c.items,
-		CellItem[T]{
-			item: item,
-		},
+func (sgn spatialGridNode[T]) Insert(item T) spatialGridNode[T] {
+	sgn.items = append(
+		sgn.items,
+		item,
 	)
-	return c
+	return sgn
 }
 
-func (c Cell[T]) Delete(item T) Cell[T] {
-	for i := 0; i < len(c.items); i++ {
-		if c.items[i].item != item {
+func (sgn spatialGridNode[T]) Delete(item T) spatialGridNode[T] {
+	for i := 0; i < len(sgn.items); i++ {
+		if sgn.items[i] != item {
 			continue
 		}
-		c.items[i] = c.items[len(c.items)-1]
-		c.items = c.items[:len(c.items)-1]
+		sgn.items[i] = sgn.items[len(sgn.items)-1]
+		sgn.items = sgn.items[:len(sgn.items)-1]
 	}
 
-	return c
+	return sgn
 }
 
-func (h *SpatialGrid[T]) WalkGrid(v, w Vector) []Vector {
+func (sgn *SpatialGrid[T]) WalkGrid(v, w Vector) []Vector {
 	delta := w.Subtract(v)
 	nX, nY := math.Abs(delta.X), math.Abs(delta.Y)
 	signX, signY := 1.0, 1.0

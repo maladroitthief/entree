@@ -54,8 +54,8 @@ func NewEbitenDriver(
 
 	err := e.WindowHandler()
 
-	ebiten.SetVsyncEnabled(true)
-	ebiten.SetTPS(ebiten.SyncWithFPS)
+	ebiten.SetVsyncEnabled(false)
+	// ebiten.SetTPS(ebiten.SyncWithFPS)
 
 	return e, err
 }

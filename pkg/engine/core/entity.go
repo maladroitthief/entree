@@ -16,33 +16,45 @@ type Entity struct {
 	FactionId   data.GenerationalIndex
 }
 
-func (e *ECS) NewEntity() Entity {
+func (ecs *ECS) NewEntity() Entity {
 	entity := Entity{
-		Id: e.entityAllocator.Allocate(),
+		Id: ecs.entityAllocator.Allocate(),
 	}
 
-	e.SetEntity(entity)
+	ecs.SetEntity(entity)
 
 	return entity
 }
 
-func (e *ECS) GetEntity(id data.GenerationalIndex) (Entity, error) {
-	entity := e.entities.Get(id)
-	if !e.entityAllocator.IsLive(entity.Id) {
+func (ecs *ECS) GetEntity(id data.GenerationalIndex) (Entity, error) {
+	ecs.entityMu.RLock()
+	defer ecs.entityMu.RUnlock()
+
+	entity := ecs.entities.Get(id)
+	if !ecs.entityAllocator.IsLive(entity.Id) {
 		return entity, ErrEnityNotFound
 	}
 
 	return entity, nil
 }
 
-func (e *ECS) GetAllEntities() []Entity {
-	return e.entities.GetAll(e.entityAllocator)
+func (ecs *ECS) GetAllEntities() []Entity {
+	ecs.entityMu.RLock()
+	defer ecs.entityMu.RUnlock()
+
+	return ecs.entities.GetAll(ecs.entityAllocator)
 }
 
-func (e *ECS) SetEntity(entity Entity) {
-	e.entities = e.entities.Set(entity.Id, entity)
+func (ecs *ECS) SetEntity(entity Entity) {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 }
 
-func (e *ECS) DestroyEntity(entity Entity) bool {
-	return e.entityAllocator.Deallocate(data.GenerationalIndex(entity.Id))
+func (ecs *ECS) DestroyEntity(entity Entity) bool {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+
+	return ecs.entityAllocator.Deallocate(data.GenerationalIndex(entity.Id))
 }

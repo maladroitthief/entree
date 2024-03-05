@@ -1,6 +1,7 @@
 package enemy
 
 import (
+	"errors"
 	"time"
 
 	"github.com/maladroitthief/entree/common/data"
@@ -65,12 +66,6 @@ func onyawnBehaviorTree(
 	frequency time.Duration,
 ) bt.Node {
 	search := func() bt.Tick {
-		type index struct {
-			x int
-			y int
-		}
-		directions := [][]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
-
 		return func(children []bt.Node) (bt.Status, error) {
 			entity, err := world.ECS.GetEntity(entity.Id)
 			if err != nil {
@@ -90,21 +85,8 @@ func onyawnBehaviorTree(
 				return bt.Failure, nil
 			}
 
-			frontier := data.NewQueue[index]()
-			x, y := world.Grid.Location(position.X, position.Y)
-
-			start := index{x, y}
-			frontier.Enqueue(start)
-			cameFrom := map[index]index{}
-			cameFrom[start] = start
-
-			for frontier.Len() > 0 {
-				current, err := frontier.Dequeue()
-				if err != nil {
-					return bt.Failure, err
-				}
-
-				entities := world.Grid.GetItemsAtLocation(current.x, current.y)
+			errSuccess := errors.New("target found")
+			findTarget := func(entities []core.Entity) error {
 				for _, e := range entities {
 					faction, err := world.ECS.GetFaction(e)
 					if err != nil {
@@ -116,33 +98,29 @@ func onyawnBehaviorTree(
 						world.ECS.SetAI(ai)
 
 						log.Debug().Msg("Target acquired")
-						return bt.Success, nil
+						return errSuccess
 					}
 				}
 
-				_, ok := cameFrom[current]
-				if current.x != start.x && current.y != start.y && ok {
-					continue
-				}
-
-				for _, direction := range directions {
-					next := index{current.x + direction[0], current.y + direction[1]}
-					if next.x < 0 || next.x >= world.Grid.SizeX {
-						continue
-					}
-					if next.y < 0 || next.y >= world.Grid.SizeY {
-						continue
-					}
-
-					_, ok := cameFrom[next]
-					if !ok {
-						frontier.Enqueue(next)
-						cameFrom[next] = current
-					}
-				}
+				return nil
 			}
 
-			return bt.Success, nil
+			err = world.Grid.Search(
+				position.X,
+				position.Y,
+				3,
+				findTarget,
+			)
+
+			if errors.Is(err, errSuccess) {
+				return bt.Success, nil
+			}
+
+			// if err != nil {
+			// 	return bt.Failure, err
+			// }
+
+			return bt.Failure, nil
 		}
 	}
 
@@ -150,33 +128,34 @@ func onyawnBehaviorTree(
 		return search(), nil
 	}
 
-	moveUp := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveUp(world.ECS)(entity)
-			return bt.Success, nil
-		}), nil
-	}
-	moveDown := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveDown(world.ECS)(entity)
-			return bt.Success, nil
-		}), nil
-	}
-	moveLeft := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveLeft(world.ECS)(entity)
-			return bt.Success, nil
-		}), nil
-	}
-	moveRight := func() (bt.Tick, []bt.Node) {
-		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveRight(world.ECS)(entity)
-			return bt.Success, nil
-		}), nil
-	}
+	// moveUp := func() (bt.Tick, []bt.Node) {
+	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+	// 		core.MoveUp(world.ECS)(entity)
+	// 		return bt.Success, nil
+	// 	}), nil
+	// }
+	// moveDown := func() (bt.Tick, []bt.Node) {
+	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+	// 		core.MoveDown(world.ECS)(entity)
+	// 		return bt.Success, nil
+	// 	}), nil
+	// }
+	// moveLeft := func() (bt.Tick, []bt.Node) {
+	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+	// 		core.MoveLeft(world.ECS)(entity)
+	// 		return bt.Success, nil
+	// 	}), nil
+	// }
+	// moveRight := func() (bt.Tick, []bt.Node) {
+	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+	// 		core.MoveRight(world.ECS)(entity)
+	// 		return bt.Success, nil
+	// 	}), nil
+	// }
 
 	return bt.New(
 		bt.Shuffle(bt.Sequence, nil),
-		moveUp, moveRight, moveDown, moveLeft, searching,
+		// moveUp, moveRight, moveDown, moveLeft, searching,
+		searching,
 	)
 }
