@@ -19,44 +19,58 @@ type Movement struct {
 	Acceleration data.Vector
 }
 
-func (e *ECS) NewMovement() Movement {
+func (ecs *ECS) NewMovement() Movement {
 	movement := Movement{
-		Id:          e.movementAllocator.Allocate(),
+		Id:          ecs.movementAllocator.Allocate(),
 		Velocity:    data.Vector{X: 0, Y: 0},
 		MaxVelocity: BaseMaxVelocity,
 		Mass:        BaseMass,
 	}
-	e.movements.Set(movement.Id, movement)
+	ecs.movements.Set(movement.Id, movement)
 
 	return movement
 }
 
-func (e *ECS) BindMovement(entity Entity, movement Movement) Entity {
+func (ecs *ECS) BindMovement(entity Entity, movement Movement) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.movementMu.Lock()
+	defer ecs.movementMu.Unlock()
+
 	movement.EntityId = entity.Id
 	entity.MovementId = movement.Id
 
-	e.movements = e.movements.Set(movement.Id, movement)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.movements = ecs.movements.Set(movement.Id, movement)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetMovement(entity Entity) (Movement, error) {
-	return e.GetMovementById(entity.MovementId)
+func (ecs *ECS) GetMovement(entity Entity) (Movement, error) {
+	return ecs.GetMovementById(entity.MovementId)
 }
-func (e *ECS) GetMovementById(id data.GenerationalIndex) (Movement, error) {
-	movement := e.movements.Get(id)
-	if !e.movementAllocator.IsLive(movement.Id) {
+func (ecs *ECS) GetMovementById(id data.GenerationalIndex) (Movement, error) {
+	ecs.movementMu.RLock()
+	defer ecs.movementMu.RUnlock()
+
+	movement := ecs.movements.Get(id)
+	if !ecs.movementAllocator.IsLive(movement.Id) {
 		return movement, ErrAttributeNotFound
 	}
 
 	return movement, nil
 }
 
-func (e *ECS) GetAllMovements() []Movement {
-	return e.movements.GetAll(e.movementAllocator)
+func (ecs *ECS) GetAllMovements() []Movement {
+	ecs.movementMu.RLock()
+	defer ecs.movementMu.RUnlock()
+
+	return ecs.movements.GetAll(ecs.movementAllocator)
 }
 
-func (e *ECS) SetMovement(movement Movement) {
-	e.movements = e.movements.Set(movement.Id, movement)
+func (ecs *ECS) SetMovement(movement Movement) {
+	ecs.movementMu.Lock()
+	defer ecs.movementMu.Unlock()
+
+	ecs.movements = ecs.movements.Set(movement.Id, movement)
 }

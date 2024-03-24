@@ -23,44 +23,58 @@ type Collider struct {
 	ImpedingRate float64
 }
 
-func (e *ECS) NewCollider(impedingRate float64) Collider {
+func (ecs *ECS) NewCollider(impedingRate float64) Collider {
 	collider := Collider{
-		Id:           e.colliderAllocator.Allocate(),
+		Id:           ecs.colliderAllocator.Allocate(),
 		ColliderType: Moveable,
 		ImpedingRate: impedingRate,
 	}
-	e.colliders.Set(collider.Id, collider)
+	ecs.colliders.Set(collider.Id, collider)
 
 	return collider
 }
 
-func (e *ECS) BindCollider(entity Entity, collider Collider) Entity {
+func (ecs *ECS) BindCollider(entity Entity, collider Collider) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.colliderMu.Lock()
+	defer ecs.colliderMu.Unlock()
+
 	collider.EntityId = entity.Id
 	entity.ColliderId = collider.Id
 
-	e.colliders = e.colliders.Set(collider.Id, collider)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.colliders = ecs.colliders.Set(collider.Id, collider)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetColliderById(id data.GenerationalIndex) (Collider, error) {
-	collider := e.colliders.Get(id)
-	if !e.colliderAllocator.IsLive(collider.Id) {
+func (ecs *ECS) GetColliderById(id data.GenerationalIndex) (Collider, error) {
+	ecs.colliderMu.RLock()
+	defer ecs.colliderMu.RUnlock()
+
+	collider := ecs.colliders.Get(id)
+	if !ecs.colliderAllocator.IsLive(collider.Id) {
 		return collider, ErrAttributeNotFound
 	}
 
 	return collider, nil
 }
 
-func (e *ECS) GetCollider(entity Entity) (Collider, error) {
-	return e.GetColliderById(entity.ColliderId)
+func (ecs *ECS) GetCollider(entity Entity) (Collider, error) {
+	return ecs.GetColliderById(entity.ColliderId)
 }
 
-func (e *ECS) GetAllColliders() []Collider {
-	return e.colliders.GetAll(e.colliderAllocator)
+func (ecs *ECS) GetAllColliders() []Collider {
+	ecs.colliderMu.RLock()
+	defer ecs.colliderMu.RUnlock()
+
+	return ecs.colliders.GetAll(ecs.colliderAllocator)
 }
 
-func (e *ECS) SetCollider(collider Collider) {
-	e.colliders = e.colliders.Set(collider.Id, collider)
+func (ecs *ECS) SetCollider(collider Collider) {
+	ecs.colliderMu.Lock()
+	defer ecs.colliderMu.Unlock()
+
+	ecs.colliders = ecs.colliders.Set(collider.Id, collider)
 }

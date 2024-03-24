@@ -31,49 +31,63 @@ type AI struct {
 	Cancel  context.CancelFunc
 }
 
-func (e *ECS) NewAI(ctx context.Context, node bt.Node) AI {
+func (ecs *ECS) NewAI(ctx context.Context, node bt.Node) AI {
 	if ctx == nil {
 		log.Panic(ErrAIContextNil)
 	}
 
 	ai := AI{
-		Id:   e.aiAllocator.Allocate(),
+		Id:   ecs.aiAllocator.Allocate(),
 		Node: node,
 	}
 
 	ai.Context, ai.Cancel = context.WithCancel(ctx)
-	e.SetAI(ai)
+	ecs.SetAI(ai)
 
 	return ai
 }
 
-func (e *ECS) BindAI(entity Entity, ai AI) Entity {
+func (ecs *ECS) BindAI(entity Entity, ai AI) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.aiMu.Lock()
+	defer ecs.aiMu.Unlock()
+
 	ai.EntityId = entity.Id
 	entity.AIId = ai.Id
 
-	e.ai = e.ai.Set(ai.Id, ai)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.ai = ecs.ai.Set(ai.Id, ai)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetAIById(id data.GenerationalIndex) (AI, error) {
-	ai := e.ai.Get(id)
-	if !e.aiAllocator.IsLive(ai.Id) {
+func (ecs *ECS) GetAIById(id data.GenerationalIndex) (AI, error) {
+	ecs.aiMu.RLock()
+	defer ecs.aiMu.RUnlock()
+
+	ai := ecs.ai.Get(id)
+	if !ecs.aiAllocator.IsLive(ai.Id) {
 		return ai, ErrAttributeNotFound
 	}
 
 	return ai, nil
 }
 
-func (e *ECS) GetAI(entity Entity) (AI, error) {
-	return e.GetAIById(entity.AIId)
+func (ecs *ECS) GetAI(entity Entity) (AI, error) {
+	return ecs.GetAIById(entity.AIId)
 }
 
-func (e *ECS) GetAllAI() []AI {
-	return e.ai.GetAll(e.aiAllocator)
+func (ecs *ECS) GetAllAI() []AI {
+	ecs.aiMu.RLock()
+	defer ecs.aiMu.RUnlock()
+
+	return ecs.ai.GetAll(ecs.aiAllocator)
 }
 
-func (e *ECS) SetAI(ai AI) {
-	e.ai = e.ai.Set(ai.Id, ai)
+func (ecs *ECS) SetAI(ai AI) {
+	ecs.aiMu.Lock()
+	defer ecs.aiMu.Unlock()
+
+	ecs.ai = ecs.ai.Set(ai.Id, ai)
 }

@@ -14,15 +14,15 @@ type Dimension struct {
 	Polygon data.Polygon
 }
 
-func (e *ECS) NewDimension(position data.Vector, size data.Vector) Dimension {
+func (ecs *ECS) NewDimension(position data.Vector, size data.Vector) Dimension {
 	dimension := Dimension{
-		Id:      e.dimensionAllocator.Allocate(),
+		Id:      ecs.dimensionAllocator.Allocate(),
 		Size:    size,
 		Scale:   1,
 		Offset:  data.Vector{X: 0, Y: 0},
 		Polygon: data.NewRectangle(position, size.X, size.Y).ToPolygon(),
 	}
-	e.dimensions.Set(dimension.Id, dimension)
+	ecs.dimensions.Set(dimension.Id, dimension)
 
 	return dimension
 }
@@ -31,33 +31,47 @@ func (d Dimension) Bounds() data.Rectangle {
 	return d.Polygon.Bounds.Scale(d.Scale)
 }
 
-func (e *ECS) BindDimension(entity Entity, dimension Dimension) Entity {
+func (ecs *ECS) BindDimension(entity Entity, dimension Dimension) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.dimensionMu.Lock()
+	defer ecs.dimensionMu.Unlock()
+
 	dimension.EntityId = entity.Id
 	entity.DimensionId = dimension.Id
 
-	e.dimensions = e.dimensions.Set(dimension.Id, dimension)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.dimensions = ecs.dimensions.Set(dimension.Id, dimension)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetDimension(entity Entity) (Dimension, error) {
-	return e.GetDimensionById(entity.DimensionId)
+func (ecs *ECS) GetDimension(entity Entity) (Dimension, error) {
+	return ecs.GetDimensionById(entity.DimensionId)
 }
 
-func (e *ECS) GetDimensionById(id data.GenerationalIndex) (Dimension, error) {
-	dimension := e.dimensions.Get(id)
-	if !e.dimensionAllocator.IsLive(dimension.Id) {
+func (ecs *ECS) GetDimensionById(id data.GenerationalIndex) (Dimension, error) {
+	ecs.dimensionMu.RLock()
+	defer ecs.dimensionMu.RUnlock()
+
+	dimension := ecs.dimensions.Get(id)
+	if !ecs.dimensionAllocator.IsLive(dimension.Id) {
 		return dimension, ErrAttributeNotFound
 	}
 
 	return dimension, nil
 }
 
-func (e *ECS) GetAllDimensions() []Dimension {
-	return e.dimensions.GetAll(e.dimensionAllocator)
+func (ecs *ECS) GetAllDimensions() []Dimension {
+	ecs.dimensionMu.RLock()
+	defer ecs.dimensionMu.RUnlock()
+
+	return ecs.dimensions.GetAll(ecs.dimensionAllocator)
 }
 
-func (e *ECS) SetDimension(dimension Dimension) {
-	e.dimensions = e.dimensions.Set(dimension.Id, dimension)
+func (ecs *ECS) SetDimension(dimension Dimension) {
+	ecs.dimensionMu.Lock()
+	defer ecs.dimensionMu.Unlock()
+
+	ecs.dimensions = ecs.dimensions.Set(dimension.Id, dimension)
 }

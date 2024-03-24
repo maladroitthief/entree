@@ -19,44 +19,58 @@ type (
 	}
 )
 
-func (e *ECS) NewFaction(a Archetype) Faction {
+func (ecs *ECS) NewFaction(a Archetype) Faction {
 	faction := Faction{
-		Id:        e.factionAllocator.Allocate(),
+		Id:        ecs.factionAllocator.Allocate(),
 		Archetype: a,
 	}
-	e.factions.Set(faction.Id, faction)
+	ecs.factions.Set(faction.Id, faction)
 
 	return faction
 }
 
-func (e *ECS) BindFaction(entity Entity, faction Faction) Entity {
+func (ecs *ECS) BindFaction(entity Entity, faction Faction) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.factionMu.Lock()
+	defer ecs.factionMu.Unlock()
+
 	faction.EntityId = entity.Id
 	entity.FactionId = faction.Id
 
-	e.factions = e.factions.Set(faction.Id, faction)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.factions = ecs.factions.Set(faction.Id, faction)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetFaction(entity Entity) (Faction, error) {
-	return e.GetFactionById(entity.FactionId)
+func (ecs *ECS) GetFaction(entity Entity) (Faction, error) {
+	return ecs.GetFactionById(entity.FactionId)
 }
-func (e *ECS) GetFactionById(id data.GenerationalIndex) (Faction, error) {
-	faction := e.factions.Get(id)
-	if !e.factionAllocator.IsLive(faction.Id) {
+func (ecs *ECS) GetFactionById(id data.GenerationalIndex) (Faction, error) {
+	ecs.factionMu.RLock()
+	defer ecs.factionMu.RUnlock()
+
+	faction := ecs.factions.Get(id)
+	if !ecs.factionAllocator.IsLive(faction.Id) {
 		return faction, ErrAttributeNotFound
 	}
 
 	return faction, nil
 }
 
-func (e *ECS) GetAllFactions() []Faction {
-	return e.factions.GetAll(e.factionAllocator)
+func (ecs *ECS) GetAllFactions() []Faction {
+	ecs.factionMu.RLock()
+	defer ecs.factionMu.RUnlock()
+
+	return ecs.factions.GetAll(ecs.factionAllocator)
 }
 
-func (e *ECS) SetFaction(faction Faction) {
-	e.factions = e.factions.Set(faction.Id, faction)
+func (ecs *ECS) SetFaction(faction Faction) {
+	ecs.factionMu.Lock()
+	defer ecs.factionMu.Unlock()
+
+	ecs.factions = ecs.factions.Set(faction.Id, faction)
 }
 
 func (a Archetype) Set(archetype Archetype) Archetype {
@@ -73,14 +87,20 @@ func (a Archetype) Check(archetype Archetype) bool {
 	return a&archetype != 0
 }
 
-func (e *ECS) SetArchetype(faction Faction, archetype Archetype) {
+func (ecs *ECS) SetArchetype(faction Faction, archetype Archetype) {
+	ecs.factionMu.Lock()
+	defer ecs.factionMu.Unlock()
+
 	faction.Archetype = faction.Archetype.Set(archetype)
-	e.SetFaction(faction)
+	ecs.SetFaction(faction)
 }
 
-func (e *ECS) UnsetArchetype(faction Faction, archetype Archetype) {
+func (ecs *ECS) UnsetArchetype(faction Faction, archetype Archetype) {
+	ecs.factionMu.Lock()
+	defer ecs.factionMu.Unlock()
+
 	faction.Archetype = faction.Archetype.Unset(archetype)
-	e.SetFaction(faction)
+	ecs.SetFaction(faction)
 }
 
 func (faction Faction) IsArchetype(archetype Archetype) bool {

@@ -13,44 +13,58 @@ type Position struct {
 	Z float64
 }
 
-func (e *ECS) NewPosition(x, y, z float64) Position {
+func (ecs *ECS) NewPosition(x, y, z float64) Position {
 	position := Position{
-		Id: e.positionAllocator.Allocate(),
+		Id: ecs.positionAllocator.Allocate(),
 		X:  x,
 		Y:  y,
 		Z:  z,
 	}
-	e.positions.Set(position.Id, position)
+	ecs.positions.Set(position.Id, position)
 
 	return position
 }
 
-func (e *ECS) BindPosition(entity Entity, position Position) Entity {
+func (ecs *ECS) BindPosition(entity Entity, position Position) Entity {
+	ecs.entityMu.Lock()
+	defer ecs.entityMu.Unlock()
+	ecs.positionMu.Lock()
+	defer ecs.positionMu.Unlock()
+
 	position.EntityId = entity.Id
 	entity.PositionId = position.Id
 
-	e.positions = e.positions.Set(position.Id, position)
-	e.entities = e.entities.Set(entity.Id, entity)
+	ecs.positions = ecs.positions.Set(position.Id, position)
+	ecs.entities = ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
 
-func (e *ECS) GetPosition(entity Entity) (Position, error) {
-	return e.GetPositionById(entity.PositionId)
+func (ecs *ECS) GetPosition(entity Entity) (Position, error) {
+	return ecs.GetPositionById(entity.PositionId)
 }
-func (e *ECS) GetPositionById(id data.GenerationalIndex) (Position, error) {
-	position := e.positions.Get(id)
-	if !e.positionAllocator.IsLive(position.Id) {
+func (ecs *ECS) GetPositionById(id data.GenerationalIndex) (Position, error) {
+	ecs.positionMu.RLock()
+	defer ecs.positionMu.RUnlock()
+
+	position := ecs.positions.Get(id)
+	if !ecs.positionAllocator.IsLive(position.Id) {
 		return position, ErrAttributeNotFound
 	}
 
 	return position, nil
 }
 
-func (e *ECS) GetAllPositions() []Position {
-	return e.positions.GetAll(e.positionAllocator)
+func (ecs *ECS) GetAllPositions() []Position {
+	ecs.positionMu.RLock()
+	defer ecs.positionMu.RUnlock()
+
+	return ecs.positions.GetAll(ecs.positionAllocator)
 }
 
-func (e *ECS) SetPosition(position Position) {
-	e.positions = e.positions.Set(position.Id, position)
+func (ecs *ECS) SetPosition(position Position) {
+	ecs.positionMu.Lock()
+	defer ecs.positionMu.Unlock()
+
+	ecs.positions = ecs.positions.Set(position.Id, position)
 }
