@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
 )
 
 const (
@@ -12,8 +12,8 @@ const (
 )
 
 type Animation struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id       caravan.GIDX
+	EntityId caravan.GIDX
 
 	Counter     int
 	Static      bool
@@ -70,7 +70,7 @@ func (ecs *ECS) GetAnimation(entity Entity) (Animation, error) {
 	return ecs.GetAnimationById(entity.AnimationId)
 }
 
-func (ecs *ECS) GetAnimationById(id data.GenerationalIndex) (Animation, error) {
+func (ecs *ECS) GetAnimationById(id caravan.GIDX) (Animation, error) {
 	ecs.animationMu.RLock()
 	defer ecs.animationMu.RUnlock()
 

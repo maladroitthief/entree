@@ -1,8 +1,6 @@
 package core
 
-import (
-	"github.com/maladroitthief/entree/common/data"
-)
+import "github.com/maladroitthief/caravan"
 
 type ColliderType int
 
@@ -16,8 +14,8 @@ const (
 )
 
 type Collider struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id       caravan.GIDX
+	EntityId caravan.GIDX
 
 	ColliderType ColliderType
 	ImpedingRate float64
@@ -49,7 +47,7 @@ func (ecs *ECS) BindCollider(entity Entity, collider Collider) Entity {
 	return entity
 }
 
-func (ecs *ECS) GetColliderById(id data.GenerationalIndex) (Collider, error) {
+func (ecs *ECS) GetColliderById(id caravan.GIDX) (Collider, error) {
 	ecs.colliderMu.RLock()
 	defer ecs.colliderMu.RUnlock()
 

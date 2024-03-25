@@ -20,7 +20,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/hive"
 )
 
 type (
@@ -32,7 +32,7 @@ type (
 	manager struct {
 		mutex   sync.RWMutex
 		once    sync.Once
-		worker  data.Worker
+		worker  hive.Worker
 		done    chan struct{}
 		stop    chan struct{}
 		tickers chan managerTicker

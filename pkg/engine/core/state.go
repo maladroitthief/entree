@@ -1,8 +1,6 @@
 package core
 
-import (
-	"github.com/maladroitthief/entree/common/data"
-)
+import "github.com/maladroitthief/caravan"
 
 const (
 	Neutral OrientationX = iota
@@ -23,8 +21,8 @@ type (
 	OrientationY int
 
 	State struct {
-		Id       data.GenerationalIndex
-		EntityId data.GenerationalIndex
+		Id       caravan.GIDX
+		EntityId caravan.GIDX
 
 		State        string
 		Counter      int
@@ -64,7 +62,7 @@ func (ecs *ECS) BindState(entity Entity, state State) Entity {
 func (ecs *ECS) GetState(entity Entity) (State, error) {
 	return ecs.GetStateById(entity.StateId)
 }
-func (ecs *ECS) GetStateById(id data.GenerationalIndex) (State, error) {
+func (ecs *ECS) GetStateById(id caravan.GIDX) (State, error) {
 	ecs.stateMu.RLock()
 	defer ecs.stateMu.RUnlock()
 

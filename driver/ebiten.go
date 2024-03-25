@@ -11,10 +11,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/ui"
+	"github.com/maladroitthief/mosaic"
 	"github.com/rs/zerolog/log"
 )
 
@@ -81,7 +81,7 @@ func (e *EbitenGame) Update() (err error) {
 		}
 
 		inputState := ui.InputState{
-			Cursor: data.Vector{X: float64(cursorX), Y: float64(cursorY)},
+			Cursor: mosaic.Vector{X: float64(cursorX), Y: float64(cursorY)},
 			Keys:   keys,
 		}
 
@@ -342,7 +342,7 @@ func (e *EbitenGame) DebugEntity(entity core.Entity, x, y int) {
 	ebitenutil.DebugPrintAt(e.canvas, msg, x, y)
 }
 
-func (e *EbitenGame) DebugBounds(bounds data.Rectangle, color color.Color) {
+func (e *EbitenGame) DebugBounds(bounds mosaic.Rectangle, color color.Color) {
 	vector.StrokeRect(
 		e.canvas,
 		float32(bounds.Position.X-bounds.Width/2),

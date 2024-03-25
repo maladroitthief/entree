@@ -1,12 +1,10 @@
 package core
 
-import (
-	"github.com/maladroitthief/entree/common/data"
-)
+import "github.com/maladroitthief/caravan"
 
 type Position struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id       caravan.GIDX
+	EntityId caravan.GIDX
 
 	X float64
 	Y float64
@@ -43,7 +41,7 @@ func (ecs *ECS) BindPosition(entity Entity, position Position) Entity {
 func (ecs *ECS) GetPosition(entity Entity) (Position, error) {
 	return ecs.GetPositionById(entity.PositionId)
 }
-func (ecs *ECS) GetPositionById(id data.GenerationalIndex) (Position, error) {
+func (ecs *ECS) GetPositionById(id caravan.GIDX) (Position, error) {
 	ecs.positionMu.RLock()
 	defer ecs.positionMu.RUnlock()
 

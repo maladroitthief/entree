@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 )
 
@@ -21,9 +21,9 @@ var (
 )
 
 type AI struct {
-	Id             data.GenerationalIndex
-	EntityId       data.GenerationalIndex
-	TargetEntityId data.GenerationalIndex
+	Id             caravan.GIDX
+	EntityId       caravan.GIDX
+	TargetEntityId caravan.GIDX
 	Targets        Archetype
 
 	Node    bt.Node
@@ -62,7 +62,7 @@ func (ecs *ECS) BindAI(entity Entity, ai AI) Entity {
 	return entity
 }
 
-func (ecs *ECS) GetAIById(id data.GenerationalIndex) (AI, error) {
+func (ecs *ECS) GetAIById(id caravan.GIDX) (AI, error) {
 	ecs.aiMu.RLock()
 	defer ecs.aiMu.RUnlock()
 

@@ -3,8 +3,8 @@ package environment
 import (
 	"math/rand"
 
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/mosaic"
 )
 
 var (
@@ -21,8 +21,8 @@ func Grass(e *core.ECS, x, y float64) core.Entity {
 
 	position := e.NewPosition(x, y, 0.25)
 	dimension := e.NewDimension(
-		data.Vector{X: position.X, Y: position.Y},
-		data.Vector{X: 32, Y: 32},
+		mosaic.Vector{X: position.X, Y: position.Y},
+		mosaic.Vector{X: 32, Y: 32},
 	)
 
 	sprite := grassSprites[rand.Intn(len(grassSprites))]

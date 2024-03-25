@@ -1,7 +1,8 @@
 package core
 
 import (
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
+	"github.com/maladroitthief/mosaic"
 )
 
 const (
@@ -10,19 +11,19 @@ const (
 )
 
 type Movement struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id       caravan.GIDX
+	EntityId caravan.GIDX
 
-	Velocity     data.Vector
+	Velocity     mosaic.Vector
 	MaxVelocity  float64
 	Mass         float64
-	Acceleration data.Vector
+	Acceleration mosaic.Vector
 }
 
 func (ecs *ECS) NewMovement() Movement {
 	movement := Movement{
 		Id:          ecs.movementAllocator.Allocate(),
-		Velocity:    data.Vector{X: 0, Y: 0},
+		Velocity:    mosaic.Vector{X: 0, Y: 0},
 		MaxVelocity: BaseMaxVelocity,
 		Mass:        BaseMass,
 	}
@@ -49,7 +50,7 @@ func (ecs *ECS) BindMovement(entity Entity, movement Movement) Entity {
 func (ecs *ECS) GetMovement(entity Entity) (Movement, error) {
 	return ecs.GetMovementById(entity.MovementId)
 }
-func (ecs *ECS) GetMovementById(id data.GenerationalIndex) (Movement, error) {
+func (ecs *ECS) GetMovementById(id caravan.GIDX) (Movement, error) {
 	ecs.movementMu.RLock()
 	defer ecs.movementMu.RUnlock()
 

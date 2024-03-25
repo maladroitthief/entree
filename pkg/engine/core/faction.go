@@ -1,6 +1,6 @@
 package core
 
-import "github.com/maladroitthief/entree/common/data"
+import "github.com/maladroitthief/caravan"
 
 const (
 	Human Archetype = 1 << iota
@@ -12,8 +12,8 @@ type (
 	Archetype byte
 
 	Faction struct {
-		Id       data.GenerationalIndex
-		EntityId data.GenerationalIndex
+		Id       caravan.GIDX
+		EntityId caravan.GIDX
 
 		Archetype Archetype
 	}
@@ -47,7 +47,7 @@ func (ecs *ECS) BindFaction(entity Entity, faction Faction) Entity {
 func (ecs *ECS) GetFaction(entity Entity) (Faction, error) {
 	return ecs.GetFactionById(entity.FactionId)
 }
-func (ecs *ECS) GetFactionById(id data.GenerationalIndex) (Faction, error) {
+func (ecs *ECS) GetFactionById(id caravan.GIDX) (Faction, error) {
 	ecs.factionMu.RLock()
 	defer ecs.factionMu.RUnlock()
 

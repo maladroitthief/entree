@@ -4,13 +4,15 @@ import (
 	"context"
 	"image/color"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/content/player"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/engine/level"
 	"github.com/maladroitthief/entree/pkg/engine/server"
+	"github.com/maladroitthief/lattice"
+	"github.com/maladroitthief/mosaic"
 	"github.com/rs/zerolog/log"
 )
 
@@ -21,7 +23,7 @@ type GameScene struct {
 	cellSize int
 
 	world     *content.World
-	playerId  data.GenerationalIndex
+	playerId  caravan.GIDX
 	ai        *server.AIServer
 	state     *server.StateServer
 	physics   *server.PhysicsServer
@@ -47,7 +49,7 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 		ctx,
 		core.NewECS(),
 		bt.NewManager(),
-		data.NewSpatialGrid[core.Entity](x, y, float64(gs.cellSize)),
+		lattice.NewSpatialGrid[core.Entity](x, y, float64(gs.cellSize)),
 	)
 
 	gs.ai = server.NewAIServer()
@@ -79,7 +81,7 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	gs.camera = NewCamera(
 		0,
 		0,
-		data.Vector{X: 200, Y: 200},
+		mosaic.Vector{X: 200, Y: 200},
 	)
 
 	return gs

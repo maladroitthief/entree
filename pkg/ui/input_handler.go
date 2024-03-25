@@ -3,8 +3,8 @@ package ui
 import (
 	"errors"
 
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/mosaic"
 )
 
 var (
@@ -38,13 +38,13 @@ type InputHandler struct {
 	settings InputSettings
 
 	currentKeys   []string
-	currentCursor data.Vector
+	currentCursor mosaic.Vector
 	currentInputs []core.Input
 	inputStates   map[core.Input]int
 }
 
 type InputState struct {
-	Cursor data.Vector
+	Cursor mosaic.Vector
 	Keys   []string
 }
 
@@ -120,7 +120,7 @@ func (h *InputHandler) IsJustPressed(i core.Input) bool {
 	return h.inputStates[i] == 1
 }
 
-func (h *InputHandler) GetCursor() data.Vector {
+func (h *InputHandler) GetCursor() mosaic.Vector {
 	return h.currentCursor
 }
 

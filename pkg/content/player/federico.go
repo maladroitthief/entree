@@ -1,9 +1,9 @@
 package player
 
 import (
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/mosaic"
 )
 
 func NewFederico(world *content.World) core.Entity {
@@ -13,10 +13,10 @@ func NewFederico(world *content.World) core.Entity {
 	position := world.ECS.NewPosition(0, 0, 1.6)
 	movement := world.ECS.NewMovement()
 	dimension := world.ECS.NewDimension(
-		data.Vector{X: position.X, Y: position.Y},
-		data.Vector{X: 16, Y: 16},
+		mosaic.Vector{X: position.X, Y: position.Y},
+		mosaic.Vector{X: 16, Y: 16},
 	)
-	dimension.Offset = data.Vector{X: 0, Y: -6}
+	dimension.Offset = mosaic.Vector{X: 0, Y: -6}
 	collider := world.ECS.NewCollider(1.0)
 
 	animation := world.ECS.NewAnimation("federico", "idle_front_1")

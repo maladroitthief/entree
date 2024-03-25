@@ -1,33 +1,34 @@
 package core
 
 import (
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
+	"github.com/maladroitthief/mosaic"
 )
 
 type Dimension struct {
-	Id       data.GenerationalIndex
-	EntityId data.GenerationalIndex
+	Id       caravan.GIDX
+	EntityId caravan.GIDX
 
-	Size    data.Vector
+	Size    mosaic.Vector
 	Scale   float64
-	Offset  data.Vector
-	Polygon data.Polygon
+	Offset  mosaic.Vector
+	Polygon mosaic.Polygon
 }
 
-func (ecs *ECS) NewDimension(position data.Vector, size data.Vector) Dimension {
+func (ecs *ECS) NewDimension(position mosaic.Vector, size mosaic.Vector) Dimension {
 	dimension := Dimension{
 		Id:      ecs.dimensionAllocator.Allocate(),
 		Size:    size,
 		Scale:   1,
-		Offset:  data.Vector{X: 0, Y: 0},
-		Polygon: data.NewRectangle(position, size.X, size.Y).ToPolygon(),
+		Offset:  mosaic.Vector{X: 0, Y: 0},
+		Polygon: mosaic.NewRectangle(position, size.X, size.Y).ToPolygon(),
 	}
 	ecs.dimensions.Set(dimension.Id, dimension)
 
 	return dimension
 }
 
-func (d Dimension) Bounds() data.Rectangle {
+func (d Dimension) Bounds() mosaic.Rectangle {
 	return d.Polygon.Bounds.Scale(d.Scale)
 }
 
@@ -50,7 +51,7 @@ func (ecs *ECS) GetDimension(entity Entity) (Dimension, error) {
 	return ecs.GetDimensionById(entity.DimensionId)
 }
 
-func (ecs *ECS) GetDimensionById(id data.GenerationalIndex) (Dimension, error) {
+func (ecs *ECS) GetDimensionById(id caravan.GIDX) (Dimension, error) {
 	ecs.dimensionMu.RLock()
 	defer ecs.dimensionMu.RUnlock()
 

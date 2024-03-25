@@ -3,9 +3,10 @@ package server
 import (
 	"math"
 
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/lattice"
+	"github.com/maladroitthief/mosaic"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,7 +19,7 @@ type (
 		x    float64
 		y    float64
 		size float64
-		grid *data.SpatialGrid[core.Entity]
+		grid *lattice.SpatialGrid[core.Entity]
 	}
 	physicsAttributes struct {
 		entity    core.Entity
@@ -56,20 +57,20 @@ func (s *PhysicsServer) Load(ecs *core.ECS) {
 	}
 }
 
-func DeltaPosition(position core.Position, vector data.Vector) data.Vector {
-	return data.Vector{X: position.X, Y: position.Y}.Add(vector)
+func DeltaPosition(position core.Position, vector mosaic.Vector) mosaic.Vector {
+	return mosaic.Vector{X: position.X, Y: position.Y}.Add(vector)
 }
 
-func DeltaPositionXY(position core.Position, x, y float64) data.Vector {
-	return data.Vector{X: position.X, Y: position.Y}.Add(data.Vector{X: x, Y: y})
+func DeltaPositionXY(position core.Position, x, y float64) mosaic.Vector {
+	return mosaic.Vector{X: position.X, Y: position.Y}.Add(mosaic.Vector{X: x, Y: y})
 }
 
-func DeltaBounds(dimension core.Dimension, vector data.Vector) data.Polygon {
+func DeltaBounds(dimension core.Dimension, vector mosaic.Vector) mosaic.Polygon {
 	return dimension.Polygon.Add(vector)
 }
 
-func DeltaBoundsXY(dimension core.Dimension, x, y float64) data.Polygon {
-	return dimension.Polygon.Add(data.Vector{X: x, Y: y})
+func DeltaBoundsXY(dimension core.Dimension, x, y float64) mosaic.Polygon {
+	return dimension.Polygon.Add(mosaic.Vector{X: x, Y: y})
 }
 
 func (s *PhysicsServer) Update(ecs *core.ECS) {
@@ -94,7 +95,7 @@ func (s *PhysicsServer) UpdateMovement(movement core.Movement) core.Movement {
 	}
 
 	movement.Velocity = movement.Velocity.Add(movement.Acceleration.Scale(movement.Mass))
-	direction := data.Vector{X: 1, Y: 1}
+	direction := mosaic.Vector{X: 1, Y: 1}
 
 	if movement.Velocity.X < 0 {
 		direction.X = -1
@@ -140,7 +141,7 @@ func (s *PhysicsServer) UpdatePosition(
 	if err != nil {
 		return
 	}
-	dimension.Polygon = dimension.Polygon.SetPosition(data.Vector{X: position.X, Y: position.Y})
+	dimension.Polygon = dimension.Polygon.SetPosition(mosaic.Vector{X: position.X, Y: position.Y})
 	attr := physicsAttributes{entity, position, movement, dimension}
 	collider, err := ecs.GetCollider(entity)
 	if err != nil {
@@ -225,7 +226,7 @@ func HandleCollision(ecs *core.ECS, attr physicsAttributes, collider core.Collid
 			translation := DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
 			attr.position.X = translation.X
 			attr.movement.Velocity.X = 0
-			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
+			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
 		}
 
 		yMTV, yCollision := collision.Polygon.Intersects(DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
@@ -233,7 +234,7 @@ func HandleCollision(ecs *core.ECS, attr physicsAttributes, collider core.Collid
 			translation := DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
 			attr.position.Y = translation.Y
 			attr.movement.Velocity.Y = 0
-			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
+			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
 		}
 	case core.Impeding:
 		attr.movement.Velocity = attr.movement.Velocity.Scale(1 - collisionCollider.ImpedingRate)
@@ -246,15 +247,15 @@ func HandleCollision(ecs *core.ECS, attr physicsAttributes, collider core.Collid
 func (s *PhysicsServer) HandleOutOfBounds(ecs *core.ECS, attr physicsAttributes) physicsAttributes {
 	sizeX := s.x * s.size
 	sizeY := s.y * s.size
-	center := data.Vector{X: sizeX / 2, Y: sizeY / 2}
-	oob := data.NewRectangle(center, sizeX, sizeY).ToPolygon()
+	center := mosaic.Vector{X: sizeX / 2, Y: sizeY / 2}
+	oob := mosaic.NewRectangle(center, sizeX, sizeY).ToPolygon()
 
 	xMTV, xContained := oob.ContainsPolygon(DeltaBoundsXY(attr.dimension, attr.movement.Velocity.X, 0))
 	if !xContained && attr.movement.Acceleration.X != 0 {
 		translation := DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
 		attr.position.X = translation.X
 		attr.movement.Velocity.X = 0
-		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
+		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
 	}
 
 	yMTV, yContained := oob.ContainsPolygon(DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
@@ -262,7 +263,7 @@ func (s *PhysicsServer) HandleOutOfBounds(ecs *core.ECS, attr physicsAttributes)
 		translation := DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
 		attr.position.Y = translation.Y
 		attr.movement.Velocity.Y = 0
-		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(data.Vector{X: attr.position.X, Y: attr.position.Y})
+		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
 	}
 
 	return attr

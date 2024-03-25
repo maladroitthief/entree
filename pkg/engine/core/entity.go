@@ -1,19 +1,19 @@
 package core
 
-import "github.com/maladroitthief/entree/common/data"
+import "github.com/maladroitthief/caravan"
 
 type Entity struct {
-	Id          data.GenerationalIndex
-	AIId        data.GenerationalIndex
-	CommandId   data.GenerationalIndex
-	BehaviorId  data.GenerationalIndex
-	StateId     data.GenerationalIndex
-	MovementId  data.GenerationalIndex
-	AnimationId data.GenerationalIndex
-	PositionId  data.GenerationalIndex
-	DimensionId data.GenerationalIndex
-	ColliderId  data.GenerationalIndex
-	FactionId   data.GenerationalIndex
+	Id          caravan.GIDX
+	AIId        caravan.GIDX
+	CommandId   caravan.GIDX
+	BehaviorId  caravan.GIDX
+	StateId     caravan.GIDX
+	MovementId  caravan.GIDX
+	AnimationId caravan.GIDX
+	PositionId  caravan.GIDX
+	DimensionId caravan.GIDX
+	ColliderId  caravan.GIDX
+	FactionId   caravan.GIDX
 }
 
 func (ecs *ECS) NewEntity() Entity {
@@ -26,7 +26,7 @@ func (ecs *ECS) NewEntity() Entity {
 	return entity
 }
 
-func (ecs *ECS) GetEntity(id data.GenerationalIndex) (Entity, error) {
+func (ecs *ECS) GetEntity(id caravan.GIDX) (Entity, error) {
 	ecs.entityMu.RLock()
 	defer ecs.entityMu.RUnlock()
 
@@ -56,5 +56,5 @@ func (ecs *ECS) DestroyEntity(entity Entity) bool {
 	ecs.entityMu.Lock()
 	defer ecs.entityMu.Unlock()
 
-	return ecs.entityAllocator.Deallocate(data.GenerationalIndex(entity.Id))
+	return ecs.entityAllocator.Deallocate(caravan.GIDX(entity.Id))
 }

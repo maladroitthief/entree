@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/maladroitthief/entree/common/data"
+	"github.com/maladroitthief/caravan"
 )
 
 var (
@@ -14,59 +14,59 @@ var (
 
 type ECS struct {
 	entityMu           sync.RWMutex
-	entityAllocator    *data.GenerationalIndexAllocator
-	entities           data.GenerationalIndexArray[Entity]
+	entityAllocator    *caravan.GIDXAllocator
+	entities           caravan.GIDXArray[Entity]
 	aiMu               sync.RWMutex
-	aiAllocator        *data.GenerationalIndexAllocator
-	ai                 data.GenerationalIndexArray[AI]
+	aiAllocator        *caravan.GIDXAllocator
+	ai                 caravan.GIDXArray[AI]
 	commandMu          sync.RWMutex
-	commandAllocator   *data.GenerationalIndexAllocator
-	command            data.GenerationalIndexArray[Command]
+	commandAllocator   *caravan.GIDXAllocator
+	command            caravan.GIDXArray[Command]
 	stateMu            sync.RWMutex
-	stateAllocator     *data.GenerationalIndexAllocator
-	states             data.GenerationalIndexArray[State]
+	stateAllocator     *caravan.GIDXAllocator
+	states             caravan.GIDXArray[State]
 	movementMu         sync.RWMutex
-	movementAllocator  *data.GenerationalIndexAllocator
-	movements          data.GenerationalIndexArray[Movement]
+	movementAllocator  *caravan.GIDXAllocator
+	movements          caravan.GIDXArray[Movement]
 	positionMu         sync.RWMutex
-	positionAllocator  *data.GenerationalIndexAllocator
-	positions          data.GenerationalIndexArray[Position]
+	positionAllocator  *caravan.GIDXAllocator
+	positions          caravan.GIDXArray[Position]
 	dimensionMu        sync.RWMutex
-	dimensionAllocator *data.GenerationalIndexAllocator
-	dimensions         data.GenerationalIndexArray[Dimension]
+	dimensionAllocator *caravan.GIDXAllocator
+	dimensions         caravan.GIDXArray[Dimension]
 	colliderMu         sync.RWMutex
-	colliderAllocator  *data.GenerationalIndexAllocator
-	colliders          data.GenerationalIndexArray[Collider]
+	colliderAllocator  *caravan.GIDXAllocator
+	colliders          caravan.GIDXArray[Collider]
 	animationMu        sync.RWMutex
-	animationAllocator *data.GenerationalIndexAllocator
-	animations         data.GenerationalIndexArray[Animation]
+	animationAllocator *caravan.GIDXAllocator
+	animations         caravan.GIDXArray[Animation]
 	factionMu          sync.RWMutex
-	factionAllocator   *data.GenerationalIndexAllocator
-	factions           data.GenerationalIndexArray[Faction]
+	factionAllocator   *caravan.GIDXAllocator
+	factions           caravan.GIDXArray[Faction]
 }
 
 func NewECS() *ECS {
 	ecs := &ECS{
-		entityAllocator:    data.NewGenerationalIndexAllocator(),
-		entities:           data.NewGenerationalIndexArray[Entity](),
-		aiAllocator:        data.NewGenerationalIndexAllocator(),
-		ai:                 data.NewGenerationalIndexArray[AI](),
-		commandAllocator:   data.NewGenerationalIndexAllocator(),
-		command:            data.NewGenerationalIndexArray[Command](),
-		stateAllocator:     data.NewGenerationalIndexAllocator(),
-		states:             data.NewGenerationalIndexArray[State](),
-		movementAllocator:  data.NewGenerationalIndexAllocator(),
-		movements:          data.NewGenerationalIndexArray[Movement](),
-		positionAllocator:  data.NewGenerationalIndexAllocator(),
-		positions:          data.NewGenerationalIndexArray[Position](),
-		dimensionAllocator: data.NewGenerationalIndexAllocator(),
-		dimensions:         data.NewGenerationalIndexArray[Dimension](),
-		colliderAllocator:  data.NewGenerationalIndexAllocator(),
-		colliders:          data.NewGenerationalIndexArray[Collider](),
-		animationAllocator: data.NewGenerationalIndexAllocator(),
-		animations:         data.NewGenerationalIndexArray[Animation](),
-		factionAllocator:   data.NewGenerationalIndexAllocator(),
-		factions:           data.NewGenerationalIndexArray[Faction](),
+		entityAllocator:    caravan.NewGIDXAllocator(),
+		entities:           caravan.NewGIDXArray[Entity](),
+		aiAllocator:        caravan.NewGIDXAllocator(),
+		ai:                 caravan.NewGIDXArray[AI](),
+		commandAllocator:   caravan.NewGIDXAllocator(),
+		command:            caravan.NewGIDXArray[Command](),
+		stateAllocator:     caravan.NewGIDXAllocator(),
+		states:             caravan.NewGIDXArray[State](),
+		movementAllocator:  caravan.NewGIDXAllocator(),
+		movements:          caravan.NewGIDXArray[Movement](),
+		positionAllocator:  caravan.NewGIDXAllocator(),
+		positions:          caravan.NewGIDXArray[Position](),
+		dimensionAllocator: caravan.NewGIDXAllocator(),
+		dimensions:         caravan.NewGIDXArray[Dimension](),
+		colliderAllocator:  caravan.NewGIDXAllocator(),
+		colliders:          caravan.NewGIDXArray[Collider](),
+		animationAllocator: caravan.NewGIDXAllocator(),
+		animations:         caravan.NewGIDXArray[Animation](),
+		factionAllocator:   caravan.NewGIDXAllocator(),
+		factions:           caravan.NewGIDXArray[Faction](),
 	}
 
 	return ecs

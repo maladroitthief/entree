@@ -4,8 +4,8 @@ import (
 	"context"
 	"image/color"
 
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/mosaic"
 )
 
 type TitleScene struct {
@@ -29,7 +29,7 @@ func NewTitleScene(ctx context.Context, state *SceneState) *TitleScene {
 	ts.camera = NewCamera(
 		0,
 		0,
-		data.Vector{X: float64(ts.width), Y: float64(ts.height)},
+		mosaic.Vector{X: float64(ts.width), Y: float64(ts.height)},
 	)
 
 	return ts

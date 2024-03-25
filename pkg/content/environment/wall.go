@@ -1,8 +1,8 @@
 package environment
 
 import (
-	"github.com/maladroitthief/entree/common/data"
 	"github.com/maladroitthief/entree/pkg/engine/core"
+	"github.com/maladroitthief/mosaic"
 )
 
 func Wall(e *core.ECS, x, y float64) core.Entity {
@@ -10,8 +10,8 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 
 	position := e.NewPosition(x, y, 1.4)
 	dimension := e.NewDimension(
-		data.Vector{X: position.X, Y: position.Y},
-		data.Vector{X: 32, Y: 32},
+		mosaic.Vector{X: position.X, Y: position.Y},
+		mosaic.Vector{X: 32, Y: 32},
 	)
 	collider := e.NewCollider(1.0)
 	collider.ColliderType = core.Immovable

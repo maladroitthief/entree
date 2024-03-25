@@ -1,9 +1,13 @@
 module github.com/maladroitthief/entree
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.6.5
+	github.com/maladroitthief/caravan v1.1.0
+	github.com/maladroitthief/hive v1.0.0
+	github.com/maladroitthief/lattice v1.0.1
+	github.com/maladroitthief/mosaic v1.0.0
 	github.com/pkg/profile v1.7.0
 	github.com/rs/zerolog v1.32.0
 )

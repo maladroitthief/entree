@@ -18,6 +18,14 @@ github.com/hajimehoshi/ebiten/v2 v2.6.5/go.mod h1:TZtorL713an00UW4LyvMeKD8uXWnuI
 github.com/ianlancetaylor/demangle v0.0.0-20210905161508-09a460cdf81d/go.mod h1:aYm2/VgdVmcIU8iMfdMvDMsRAQjcfZSKFby6HOFvi/w=
 github.com/jezek/xgb v1.1.1 h1:bE/r8ZZtSv7l9gk6nU0mYx51aXrvnyb44892TwSaqS4=
 github.com/jezek/xgb v1.1.1/go.mod h1:nrhwO0FX/enq75I7Y7G8iN1ubpSGZEiA3v9e9GyRFlk=
+github.com/maladroitthief/caravan v1.1.0 h1:Fs7pTDB3n442InI0c+EGfgvEeviTviOLkRznHx7HkEE=
+github.com/maladroitthief/caravan v1.1.0/go.mod h1:1hPPX2GmGAYdOH6+La0QLXL27igweQXohOfNrqYwnoU=
+github.com/maladroitthief/hive v1.0.0 h1:ByGb4eu7MT+MSRS99Ir3DrHSMWy8prZcSs8/KetqrJI=
+github.com/maladroitthief/hive v1.0.0/go.mod h1:wDCV8Tt0musg5g+2YMwmScr0TEXLk1E1d4d7W9P9l+4=
+github.com/maladroitthief/lattice v1.0.1 h1:3w7t16wYOOsz5R2pw843KWJoPx8jsmN5oXQQwSTooFg=
+github.com/maladroitthief/lattice v1.0.1/go.mod h1:c/5d0QxkH1mydqLp8p7cZlbBLHMEe9VF+a3imPNrImw=
+github.com/maladroitthief/mosaic v1.0.0 h1:2QF/wW+RIEaIETpjpbfF6ZGKc+Lq7kN5AGVNgtbA23g=
+github.com/maladroitthief/mosaic v1.0.0/go.mod h1:mU6Rxi6/J/UZ7ud4K9pqhKDX1RIKi9J0uhj40Kt5qvw=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
