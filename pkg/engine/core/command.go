@@ -27,17 +27,17 @@ func Idle(ecs *ECS) Command {
 	}
 }
 
-func MoveUp(ecs *ECS) Command {
+func MoveY(ecs *ECS, value float64) Command {
 	return func(entity Entity) {
 		entity, err := ecs.GetEntity(entity.Id)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp entity error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveY entity error")
 			return
 		}
 
 		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveY state error")
 			return
 		}
 
@@ -47,29 +47,33 @@ func MoveUp(ecs *ECS) Command {
 
 		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveUp movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveY movement error")
 			return
 		}
 
 		state.State = Moving
-		state.OrientationY = North
-		movement.Acceleration.Y = -1
+		if value < 0 {
+			state.OrientationY = North
+		} else {
+			state.OrientationY = South
+		}
+		movement.Acceleration.Y = value
 		ecs.SetState(state)
 		ecs.SetMovement(movement)
 	}
 }
 
-func MoveDown(ecs *ECS) Command {
+func MoveX(ecs *ECS, value float64) Command {
 	return func(entity Entity) {
 		entity, err := ecs.GetEntity(entity.Id)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown entity error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveX entity error")
 			return
 		}
 
 		state, err := ecs.GetState(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown state error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveX state error")
 			return
 		}
 		if state.State == Dodging && state.Counter <= DodgeDuration {
@@ -78,78 +82,17 @@ func MoveDown(ecs *ECS) Command {
 
 		movement, err := ecs.GetMovement(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveDown movement error")
+			log.Debug().Err(err).Any("entity", entity).Msg("MoveX movement error")
 			return
 		}
 
 		state.State = Moving
-		state.OrientationY = South
-		movement.Acceleration.Y = 1
-
-		ecs.SetState(state)
-		ecs.SetMovement(movement)
-	}
-}
-
-func MoveLeft(ecs *ECS) Command {
-	return func(entity Entity) {
-		entity, err := ecs.GetEntity(entity.Id)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft entity error")
-			return
+		if value < 0 {
+			state.OrientationX = West
+		} else {
+			state.OrientationX = East
 		}
-
-		state, err := ecs.GetState(entity)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft state error")
-			return
-		}
-		if state.State == Dodging && state.Counter <= DodgeDuration {
-			return
-		}
-
-		movement, err := ecs.GetMovement(entity)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveLeft movement error")
-			return
-		}
-
-		state.State = Moving
-		state.OrientationX = West
-		movement.Acceleration.X = -1
-
-		ecs.SetState(state)
-		ecs.SetMovement(movement)
-	}
-}
-
-func MoveRight(ecs *ECS) Command {
-	return func(entity Entity) {
-		entity, err := ecs.GetEntity(entity.Id)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight entity error")
-			return
-		}
-
-		state, err := ecs.GetState(entity)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight state error")
-			return
-		}
-
-		if state.State == Dodging && state.Counter <= DodgeDuration {
-			return
-		}
-
-		movement, err := ecs.GetMovement(entity)
-		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("MoveRight movement error")
-			return
-		}
-
-		state.State = Moving
-		state.OrientationX = East
-		movement.Acceleration.X = 1
+		movement.Acceleration.X = value
 
 		ecs.SetState(state)
 		ecs.SetMovement(movement)

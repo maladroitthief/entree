@@ -3,25 +3,24 @@ module github.com/maladroitthief/entree
 go 1.22.0
 
 require (
-	github.com/hajimehoshi/ebiten/v2 v2.6.5
-	github.com/maladroitthief/caravan v1.1.0
+	github.com/hajimehoshi/ebiten/v2 v2.7.0
+	github.com/maladroitthief/caravan v1.3.0
 	github.com/maladroitthief/hive v1.0.0
 	github.com/maladroitthief/lattice v1.0.1
-	github.com/maladroitthief/mosaic v1.0.0
+	github.com/maladroitthief/mosaic v1.1.0
 	github.com/pkg/profile v1.7.0
 	github.com/rs/zerolog v1.32.0
 )
 
 require (
-	github.com/ebitengine/purego v0.5.2 // indirect
-	github.com/felixge/fgprof v0.9.3 // indirect
-	github.com/google/pprof v0.0.0-20240207164012-fb44976bdcd5 // indirect
+	github.com/ebitengine/gomobile v0.0.0-20240329170434-1771503ff0a8 // indirect
+	github.com/ebitengine/hideconsole v1.0.0 // indirect
+	github.com/ebitengine/purego v0.7.1 // indirect
+	github.com/felixge/fgprof v0.9.4 // indirect
+	github.com/google/pprof v0.0.0-20240402174815-29b9bb013b0f // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	golang.org/x/exp/shiny v0.0.0-20230817173708-d852ddb80c63 // indirect
-	golang.org/x/image v0.15.0 // indirect
-	golang.org/x/mobile v0.0.0-20240112133503-c713f31d574b // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 )
