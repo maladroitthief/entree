@@ -78,16 +78,21 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	level.Render(gs.world.ECS)
 
 	gs.physics.Load(gs.world.ECS)
+
+	focus, err := gs.world.ECS.GetPosition(gs.cameraFocus)
+	if err != nil {
+		log.Warn().Err(err).Any("focus", focus)
+	}
 	gs.camera = NewCamera(
-		0,
-		0,
+		focus.X,
+		focus.Y,
 		mosaic.Vector{X: 200, Y: 200},
 	)
 
 	return gs
 }
 
-func (s *GameScene) Update(state *SceneState) error {
+func (gs *GameScene) Update(state *SceneState) error {
 	inputs := state.input.CurrentInputs()
 
 	for _, input := range inputs {
@@ -97,50 +102,49 @@ func (s *GameScene) Update(state *SceneState) error {
 		}
 	}
 
-	s.state.Update(s.world.ECS)
-	player, err := s.world.ECS.GetEntity(s.playerId)
+	gs.state.Update(gs.world.ECS)
+	player, err := gs.world.ECS.GetEntity(gs.playerId)
 	if err != nil {
 		panic("")
 	}
-	ProcessPlayerGameInputs(s.world.ECS, player, inputs)
+	ProcessPlayerGameInputs(gs.world.ECS, player, inputs)
 	// s.ai.Update(s.world, inputs)
-	s.physics.Update(s.world.ECS)
-	s.animation.Update(s.world.ECS)
+	gs.physics.Update(gs.world.ECS)
+	gs.animation.Update(gs.world.ECS)
 
 	return nil
 }
 
-func (s *GameScene) Size() (width, height int) {
-	width = s.gridX * level.RoomWidth * s.cellSize
-	height = s.gridY * level.RoomHeight * s.cellSize
+func (gs *GameScene) Size() (width, height int) {
+	width = gs.gridX * level.RoomWidth * gs.cellSize
+	height = gs.gridY * level.RoomHeight * gs.cellSize
 
 	return width, height
 }
 
-func (s *GameScene) GetCanvasGrid() (rows, columns int) {
-	return s.gridY, s.gridX
+func (gs *GameScene) GetCanvasGrid() (rows, columns int) {
+	return gs.gridY, gs.gridX
 }
 
-func (s *GameScene) CellSize() int {
-	return s.cellSize
+func (gs *GameScene) CellSize() int {
+	return gs.cellSize
 }
 
-func (s *GameScene) GetState() *core.ECS {
-	return s.world.ECS
+func (gs *GameScene) GetState() *core.ECS {
+	return gs.world.ECS
 }
 
-func (s *GameScene) BackgroundColor() color.Color {
-	return s.backgroundColor
+func (gs *GameScene) BackgroundColor() color.Color {
+	return gs.backgroundColor
 }
 
-func (s *GameScene) GetCamera() *Camera {
-	cameraPosition, err := s.world.ECS.GetPosition(s.cameraFocus)
+func (gs *GameScene) GetCamera() *Camera {
+	focus, err := gs.world.ECS.GetPosition(gs.cameraFocus)
 	if err != nil {
-		log.Warn().Err(err).Any("cameraPosition", cameraPosition)
+		log.Warn().Err(err).Any("focus", focus)
 	}
 
-	s.camera.X = cameraPosition.X
-	s.camera.Y = cameraPosition.Y
+	gs.camera.Update(focus.X, focus.Y)
 
-	return s.camera
+	return gs.camera
 }

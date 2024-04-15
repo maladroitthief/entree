@@ -16,7 +16,7 @@ func NewCamera(x, y float64, viewPort mosaic.Vector) *Camera {
 		X:        x,
 		Y:        y,
 		ViewPort: viewPort,
-		Zoom:     5,
+		Zoom:     1,
 	}
 }
 
@@ -25,4 +25,14 @@ func (c *Camera) ViewPortCenter() mosaic.Vector {
 		X: c.ViewPort.X / 2,
 		Y: c.ViewPort.Y / 2,
 	}
+}
+
+func (c *Camera) Update(x, y float64) {
+	// lerp := 0.1
+
+	// c.X += (x - c.X) * lerp
+	// c.Y += (y - c.Y) * lerp
+
+	c.X = x
+	c.Y = y
 }

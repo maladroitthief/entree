@@ -168,10 +168,6 @@ func (m *SceneManager) WindowTitle() string {
 	return m.window.Title()
 }
 
-func (m *SceneManager) Scale() float64 {
-	return m.window.Scale()
-}
-
 func (m *SceneManager) SpriteSheet(sheet string) (*content.SpriteSheet, error) {
 	return m.graphics.SpriteSheet(sheet)
 }

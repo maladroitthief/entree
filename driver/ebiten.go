@@ -44,7 +44,7 @@ func NewEbitenDriver(
 		height:        0,
 		title:         "",
 		theme:         &theme.Endesga32{},
-		scale:         1,
+		scale:         4,
 		spriteOptions: &ebiten.DrawImageOptions{},
 		spriteSheets:  make(map[string]*ebiten.Image),
 		sprites:       make(map[string]*ebiten.Image),
@@ -55,6 +55,7 @@ func NewEbitenDriver(
 	err := e.WindowHandler()
 
 	ebiten.SetVsyncEnabled(false)
+	ebiten.SetTPS(60)
 	// ebiten.SetTPS(ebiten.SyncWithFPS)
 
 	return e, err
@@ -173,10 +174,11 @@ func (e *EbitenGame) DrawAnimation(
 		e.spriteOptions.GeoM.Scale(-1, 1)
 	}
 
+	e.spriteOptions.GeoM.Scale(e.scale, e.scale)
 	// Position the sprite and draw it
 	e.spriteOptions.GeoM.Translate(
-		position.X+dimension.Offset.X,
-		position.Y+dimension.Offset.Y,
+		math.Ceil((position.X+dimension.Offset.X)*e.scale),
+		math.Ceil((position.Y+dimension.Offset.Y)*e.scale),
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
@@ -199,11 +201,16 @@ func (e *EbitenGame) DrawAnimation(
 	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
 
 	// msg := fmt.Sprintf(
-	// 	"[%0.2f, %0.2f]",
-	// 	position.X,
-	// 	position.Y,
+	// 	"[%+v, %+v]",
+	// 	position.X*e.scale,
+	// 	position.Y*e.scale,
 	// )
-	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
+	// ebitenutil.DebugPrintAt(
+	// 	e.canvas,
+	// 	msg,
+	// 	int(position.X*e.scale)+int(dimension.Size.X),
+	// 	int(position.Y*e.scale)+int(dimension.Size.Y),
+	// )
 
 	return nil
 }
@@ -211,7 +218,10 @@ func (e *EbitenGame) DrawAnimation(
 func (e *EbitenGame) Render(screen *ebiten.Image) {
 	m := ebiten.GeoM{}
 	c := e.scene.GetCamera()
-	m.Translate(-c.X, -c.Y)
+	m.Translate(
+		math.Ceil(-c.X*e.scale),
+		math.Ceil(-c.Y*e.scale),
+	)
 
 	// Scale around the center
 	zoom := c.Zoom
@@ -279,15 +289,13 @@ func (e *EbitenGame) WindowHandler() error {
 		ebiten.SetWindowTitle(e.title)
 	}
 
-	if e.scale != e.scene.Scale() {
-		e.scale = e.scene.Scale()
-	}
-
 	return nil
 }
 
 func (e *EbitenGame) CanvasHandler() {
 	canvasWidth, canvasHeight := e.scene.Size()
+	canvasHeight *= int(e.scale)
+	canvasWidth *= int(e.scale)
 	x, y := e.canvas.Bounds().Dx(), e.canvas.Bounds().Dy()
 	if canvasWidth != x || canvasHeight != y {
 		e.canvas = ebiten.NewImage(canvasWidth, canvasHeight)

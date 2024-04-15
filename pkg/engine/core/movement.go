@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	BaseMaxVelocity = 3
+	BaseMaxVelocity = 30
 	BaseMass        = 10
 )
 
