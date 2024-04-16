@@ -13,13 +13,13 @@ func ProcessPlayerGameInputs(ecs *core.ECS, player core.Entity, inputs []core.In
 	for _, input := range inputs {
 		switch input {
 		case core.InputMoveUp:
-			core.MoveY(ecs, -1)(player)
+			core.MoveY(ecs, -1.0)(player)
 		case core.InputMoveDown:
-			core.MoveY(ecs, 1)(player)
+			core.MoveY(ecs, 1.0)(player)
 		case core.InputMoveLeft:
-			core.MoveX(ecs, -1)(player)
+			core.MoveX(ecs, -1.0)(player)
 		case core.InputMoveRight:
-			core.MoveX(ecs, 1)(player)
+			core.MoveX(ecs, 1.0)(player)
 		case core.InputDodge:
 			core.Dodge(ecs)(player)
 		}

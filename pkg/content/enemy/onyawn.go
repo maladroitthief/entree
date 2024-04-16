@@ -2,6 +2,7 @@ package enemy
 
 import (
 	"errors"
+	"math/rand"
 	"time"
 
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
@@ -16,14 +17,16 @@ func NewOnyawn(world *content.World) core.Entity {
 	state := world.ECS.NewState()
 	faction := world.ECS.NewFaction(core.Vegetable)
 
-	duration := time.Millisecond * 200
-	frequency := time.Millisecond * 10
+	duration := time.Millisecond * 500
+	frequency := time.Millisecond * 20
 	rootNode := onyawnBehaviorTree(world, entity, duration, frequency)
 	ai := world.ECS.NewAI(world.Context, rootNode)
 	ai.Targets = ai.Targets.Set(core.Human)
 
 	position := world.ECS.NewPosition(0, 0, 1.6)
 	movement := world.ECS.NewMovement()
+	movement.MaxVelocity = 40
+
 	dimension := world.ECS.NewDimension(
 		mosaic.Vector{X: position.X, Y: position.Y},
 		mosaic.Vector{X: 16, Y: 16},
@@ -128,34 +131,25 @@ func onyawnBehaviorTree(
 		return search(), nil
 	}
 
-	// moveUp := func() (bt.Tick, []bt.Node) {
-	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-	// 		core.MoveUp(world.ECS)(entity)
-	// 		return bt.Success, nil
-	// 	}), nil
-	// }
-	// moveDown := func() (bt.Tick, []bt.Node) {
-	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-	// 		core.MoveDown(world.ECS)(entity)
-	// 		return bt.Success, nil
-	// 	}), nil
-	// }
-	// moveLeft := func() (bt.Tick, []bt.Node) {
-	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-	// 		core.MoveLeft(world.ECS)(entity)
-	// 		return bt.Success, nil
-	// 	}), nil
-	// }
-	// moveRight := func() (bt.Tick, []bt.Node) {
-	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-	// 		core.MoveRight(world.ECS)(entity)
-	// 		return bt.Success, nil
-	// 	}), nil
-	// }
+	idleMovement := func() (bt.Tick, []bt.Node) {
+		x := rand.Float64()
+		if x < 0.5 {
+			x -= 1.0
+		}
+		y := rand.Float64()
+		if y < 0.5 {
+			y -= 1.0
+		}
+		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+			core.MoveX(world.ECS, x)(entity)
+			core.MoveY(world.ECS, y)(entity)
+			return bt.Success, nil
+		}), nil
+	}
 
 	return bt.New(
 		bt.Shuffle(bt.Sequence, nil),
-		// moveUp, moveRight, moveDown, moveLeft, searching,
+		idleMovement,
 		searching,
 	)
 }
