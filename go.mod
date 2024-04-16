@@ -3,7 +3,7 @@ module github.com/maladroitthief/entree
 go 1.22.0
 
 require (
-	github.com/hajimehoshi/ebiten/v2 v2.7.0
+	github.com/hajimehoshi/ebiten/v2 v2.7.1
 	github.com/maladroitthief/caravan v1.3.0
 	github.com/maladroitthief/hive v1.0.0
 	github.com/maladroitthief/lattice v1.0.1
@@ -17,7 +17,7 @@ require (
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
 	github.com/ebitengine/purego v0.7.1 // indirect
 	github.com/felixge/fgprof v0.9.4 // indirect
-	github.com/google/pprof v0.0.0-20240402174815-29b9bb013b0f // indirect
+	github.com/google/pprof v0.0.0-20240409012703-83162a5b38cd // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
