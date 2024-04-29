@@ -1,6 +1,9 @@
 package core
 
-import "github.com/maladroitthief/caravan"
+import (
+	"github.com/maladroitthief/caravan"
+	"github.com/maladroitthief/mosaic"
+)
 
 type Position struct {
 	Id       caravan.GIDX
@@ -21,6 +24,10 @@ func (ecs *ECS) NewPosition(x, y, z float64) Position {
 	ecs.positions.Set(position.Id, position)
 
 	return position
+}
+
+func (p Position) Vector() mosaic.Vector {
+	return mosaic.NewVector(p.X, p.Y)
 }
 
 func (ecs *ECS) BindPosition(entity Entity, position Position) Entity {

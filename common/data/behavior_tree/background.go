@@ -16,22 +16,34 @@
 
 package behaviortree
 
-// A Selector node requires just one child to be successful
-func Selector(children []Node) (Status, error) {
-	for _, c := range children {
-		status, err := c.Tick()
-		if err != nil {
-			return Failure, err
-		}
-
-		if status == Running {
-			return Running, nil
-		}
-
-		if status == Success {
-			return Success, nil
-		}
+func Background(tick func() Tick) Tick {
+	if tick == nil {
+		return nil
 	}
 
-	return Failure, nil
+	var nodes []Node
+	return func(children []Node) (Status, error) {
+		for i, node := range nodes {
+			status, err := node.Tick()
+			if err == nil && status == Running {
+				continue
+			}
+
+			// TODO replace with linked list
+			copy(nodes[i:], nodes[i+1:])
+			nodes[len(nodes)-1] = nil
+			nodes = nodes[:len(nodes)-1]
+
+			return status, err
+		}
+
+		node := New(tick(), children...)
+		status, err := node.Tick()
+		if err != nil || status != Running {
+			return status, err
+		}
+
+		nodes = append(nodes, node)
+		return Running, nil
+	}
 }

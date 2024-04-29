@@ -1,15 +1,12 @@
 package enemy
 
 import (
-	"errors"
-	"math/rand"
 	"time"
 
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/mosaic"
-	"github.com/rs/zerolog/log"
 )
 
 func NewOnyawn(world *content.World) core.Entity {
@@ -68,88 +65,70 @@ func onyawnBehaviorTree(
 	duration time.Duration,
 	frequency time.Duration,
 ) bt.Node {
-	search := func() bt.Tick {
-		return func(children []bt.Node) (bt.Status, error) {
-			entity, err := world.ECS.GetEntity(entity.Id)
-			if err != nil {
-				log.Debug().Err(err).Any("entity", entity).Msg("search error")
-				return bt.Failure, nil
-			}
+	// idleMovement := func() (bt.Tick, []bt.Node) {
+	// 	log.Info().Msg("idling")
+	// 	x := rand.Float64()
+	// 	if x < 0.5 {
+	// 		x -= 1.0
+	// 	}
+	// 	y := rand.Float64()
+	// 	if y < 0.5 {
+	// 		y -= 1.0
+	// 	}
+	// 	return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
+	// 		core.MoveX(world.ECS, x)(entity)
+	// 		core.MoveY(world.ECS, y)(entity)
+	// 		return bt.Success, nil
+	// 	}), nil
+	// }
 
-			ai, err := world.ECS.GetAI(entity)
-			if err != nil {
-				log.Debug().Err(err).Any("ai", ai).Msg("search error")
-				return bt.Failure, nil
-			}
-
-			position, err := world.ECS.GetPosition(entity)
-			if err != nil {
-				log.Debug().Err(err).Any("position", position).Msg("search error")
-				return bt.Failure, nil
-			}
-
-			errSuccess := errors.New("target found")
-			findTarget := func(entities []core.Entity) error {
-				for _, e := range entities {
-					faction, err := world.ECS.GetFaction(e)
-					if err != nil {
-						continue
-					}
-
-					if ai.Targets.Check(faction.Archetype) {
-						ai.TargetEntityId = e.Id
-						world.ECS.SetAI(ai)
-
-						log.Debug().Msg("Target acquired")
-						return errSuccess
-					}
-				}
-
-				return nil
-			}
-
-			err = world.Grid.Search(
-				position.X,
-				position.Y,
-				3,
-				findTarget,
-			)
-
-			if errors.Is(err, errSuccess) {
-				return bt.Success, nil
-			}
-
-			// if err != nil {
-			// 	return bt.Failure, err
-			// }
-
-			return bt.Failure, nil
-		}
-	}
-
-	searching := func() (bt.Tick, []bt.Node) {
-		return search(), nil
-	}
-
-	idleMovement := func() (bt.Tick, []bt.Node) {
-		x := rand.Float64()
-		if x < 0.5 {
-			x -= 1.0
-		}
-		y := rand.Float64()
-		if y < 0.5 {
-			y -= 1.0
-		}
-		return bt.Repeater(duration, frequency, func(children []bt.Node) (bt.Status, error) {
-			core.MoveX(world.ECS, x)(entity)
-			core.MoveY(world.ECS, y)(entity)
-			return bt.Success, nil
-		}), nil
-	}
+	// 	following := func() bt.Tick {
+	// 		return follow(world, entity)
+	// 	}
+	// moving := func() bt.Tick {
+	// 	return bt.Retryer(
+	// 		time.Millisecond*2000,
+	// 		time.Millisecond*10,
+	// 		move(world, entity),
+	// 	)
+	// }
 
 	return bt.New(
-		bt.Shuffle(bt.Sequence, nil),
-		idleMovement,
-		searching,
+		bt.Selector,
+		bt.New(
+			bt.Retryer(
+				time.Millisecond*1000,
+				time.Millisecond*20,
+				move(world, entity),
+			),
+		),
+		bt.New(follow(world, entity)),
+		bt.New(search(world, entity, 5)),
 	)
+
+	// return bt.New(
+	// 	bt.Selector,
+	// 	bt.New(
+	// 		bt.Switch,
+	// 		bt.New(
+	// 			bt.Async(
+	// 				search(world, entity, 3),
+	// 			),
+	// 		),
+	// 		bt.New(
+	// 			bt.Sequence,
+	// 			bt.New(
+	// 				follow(world, entity),
+	// 			),
+	// 			bt.New(
+	// 				bt.Retryer(
+	// 					time.Millisecond*5000,
+	// 					time.Millisecond*20,
+	// 					move(world, entity),
+	// 				),
+	// 			),
+	// 		),
+	// 	),
+	// 	// idleMovement,
+	// )
 }

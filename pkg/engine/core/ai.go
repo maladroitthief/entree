@@ -7,6 +7,7 @@ import (
 
 	"github.com/maladroitthief/caravan"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
+	"github.com/maladroitthief/mosaic"
 )
 
 type BehaviorType int
@@ -24,6 +25,8 @@ type AI struct {
 	Id             caravan.GIDX
 	EntityId       caravan.GIDX
 	TargetEntityId caravan.GIDX
+	TargetLocation mosaic.Vector
+	PathToTarget   []mosaic.Vector
 	Targets        Archetype
 
 	Node    bt.Node

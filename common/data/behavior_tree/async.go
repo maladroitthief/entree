@@ -16,22 +16,44 @@
 
 package behaviortree
 
-// A Selector node requires just one child to be successful
-func Selector(children []Node) (Status, error) {
-	for _, c := range children {
-		status, err := c.Tick()
-		if err != nil {
-			return Failure, err
-		}
+func Async(tick Tick) Tick {
+	if tick == nil {
+		return nil
+	}
 
-		if status == Running {
+	var done chan struct {
+		Status Status
+		Error  error
+	}
+
+	return func(children []Node) (Status, error) {
+		if done == nil {
+			done = make(chan struct {
+				Status Status
+				Error  error
+			}, 1)
+
+			go func() {
+				var status struct {
+					Status Status
+					Error  error
+				}
+
+				defer func() {
+					done <- status
+				}()
+				status.Status, status.Error = tick(children)
+			}()
+
 			return Running, nil
 		}
 
-		if status == Success {
-			return Success, nil
+		select {
+		case status := <-done:
+			done = nil
+			return status.Status, status.Error
+		default:
+			return Running, nil
 		}
 	}
-
-	return Failure, nil
 }

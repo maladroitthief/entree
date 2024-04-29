@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/maladroitthief/entree/assets/sheets"
@@ -32,12 +32,12 @@ func main() {
 		// do nothing
 	}
 
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.TimeFieldFormat = time.RFC3339Nano
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	// log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: zerolog.TimeFormatUnixMs})
 
 	ctx := context.Background()
 	settingsRepo := driver.NewSettingsRepository("settings.json")
