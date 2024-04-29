@@ -16,10 +16,14 @@
 
 package behaviortree
 
-// A Selector node requires just one child to be successful
-func Selector(children []Node) (Status, error) {
-	for _, c := range children {
-		status, err := c.Tick()
+func Switch(children []Node) (Status, error) {
+	for i := 0; i < len(children); i += 2 {
+		if i == len(children)-1 {
+			// default case
+			return children[i].Tick()
+		}
+
+		status, err := children[i].Tick()
 		if err != nil {
 			return Failure, err
 		}
@@ -29,9 +33,10 @@ func Selector(children []Node) (Status, error) {
 		}
 
 		if status == Success {
-			return Success, nil
+			return children[i+1].Tick()
 		}
+
 	}
 
-	return Failure, nil
+	return Success, nil
 }

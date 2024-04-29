@@ -5,7 +5,6 @@ import (
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/lattice"
 	"github.com/maladroitthief/mosaic"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -110,7 +109,6 @@ func (s *PhysicsServer) updateAttributes(ecs *core.ECS, attr physicsAttributes) 
 }
 
 func (s *PhysicsServer) Update(ecs *core.ECS) {
-	log.Debug().Msg("PhysicsServer.Update()")
 	s.Load(ecs)
 	movements := ecs.GetAllMovements()
 

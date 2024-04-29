@@ -16,6 +16,7 @@
 
 package behaviortree
 
+// A Sequence node requires all children to be successful
 func Sequence(children []Node) (Status, error) {
 	for _, c := range children {
 		status, err := c.Tick()
