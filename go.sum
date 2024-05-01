@@ -11,8 +11,8 @@ github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSV
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/ebitengine/gomobile v0.0.0-20240329170434-1771503ff0a8 h1:5e8X7WEdOWrjrKvgaWF6PRnDvJicfrkEnwAkWtMN74g=
-github.com/ebitengine/gomobile v0.0.0-20240329170434-1771503ff0a8/go.mod h1:tWboRRNagZwwwis4QIgEFG1ZNFwBJ3LAhSLAXAAxobQ=
+github.com/ebitengine/gomobile v0.0.0-20240429094902-cf88669c3591 h1:iCauZ8Q3KW2EHpj+Re4qRU4/Y7ustOTpNV6m8hx5BqE=
+github.com/ebitengine/gomobile v0.0.0-20240429094902-cf88669c3591/go.mod h1:7zsHIJi2c+Jo+wIL9wD+ADWzMbtG8jhUQpplXIrZ7EI=
 github.com/ebitengine/hideconsole v1.0.0 h1:5J4U0kXF+pv/DhiXt5/lTz0eO5ogJ1iXb8Yj1yReDqE=
 github.com/ebitengine/hideconsole v1.0.0/go.mod h1:hTTBTvVYWKBuxPr7peweneWdkUwEuHuB3C1R/ielR1A=
 github.com/ebitengine/purego v0.7.1 h1:6/55d26lG3o9VCZX8lping+bZcmShseiqlh2bnUDiPA=
@@ -26,10 +26,10 @@ github.com/gobwas/ws v1.2.1/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/K
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/google/pprof v0.0.0-20211214055906-6f57359322fd/go.mod h1:KgnwoLYCZ8IQu3XUZ8Nc/bM9CCZFOyjUNOSygVozoDg=
 github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7/go.mod h1:czg5+yv1E0ZGTi6S6vVK1mke0fV+FaUhNGcd6VRS9Ik=
-github.com/google/pprof v0.0.0-20240416155748-26353dc0451f h1:WpZiq8iqvGjJ3m3wzAVKL6+0vz7VkE79iSy9GII00II=
-github.com/google/pprof v0.0.0-20240416155748-26353dc0451f/go.mod h1:kf6iHlnVGwgKolg33glAes7Yg/8iWP8ukqeldJSO7jw=
-github.com/hajimehoshi/ebiten/v2 v2.7.1 h1:v/t/IeQxd2eTtZ0QjJsUKL/fiGNeF64tYXjXbyJehzQ=
-github.com/hajimehoshi/ebiten/v2 v2.7.1/go.mod h1:1vjyPw+h3n30rfTOpIsbWRXSxZ0Oz1cYc6Tq/2DKoQg=
+github.com/google/pprof v0.0.0-20240430035430-e4905b036c4e h1:RsXNnXE59RTt8o3DcA+w7ICdRfR2l+Bb5aE0YMpNTO8=
+github.com/google/pprof v0.0.0-20240430035430-e4905b036c4e/go.mod h1:kf6iHlnVGwgKolg33glAes7Yg/8iWP8ukqeldJSO7jw=
+github.com/hajimehoshi/ebiten/v2 v2.7.2 h1:5HcWAjxhGMBocJh0jH/61Kx4QJ91HkzYtSeSucvVg7o=
+github.com/hajimehoshi/ebiten/v2 v2.7.2/go.mod h1:1vjyPw+h3n30rfTOpIsbWRXSxZ0Oz1cYc6Tq/2DKoQg=
 github.com/ianlancetaylor/demangle v0.0.0-20210905161508-09a460cdf81d/go.mod h1:aYm2/VgdVmcIU8iMfdMvDMsRAQjcfZSKFby6HOFvi/w=
 github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab/go.mod h1:gx7rwoVhcfuVKG5uya9Hs3Sxj7EIvldVofAWIUtGouw=
 github.com/jezek/xgb v1.1.1 h1:bE/r8ZZtSv7l9gk6nU0mYx51aXrvnyb44892TwSaqS4=
@@ -41,8 +41,8 @@ github.com/maladroitthief/caravan v1.3.0 h1:cQzVK2WdrWxSmhYbVTdrOqmnApm3QyDzMQM4
 github.com/maladroitthief/caravan v1.3.0/go.mod h1:1hPPX2GmGAYdOH6+La0QLXL27igweQXohOfNrqYwnoU=
 github.com/maladroitthief/hive v1.0.0 h1:ByGb4eu7MT+MSRS99Ir3DrHSMWy8prZcSs8/KetqrJI=
 github.com/maladroitthief/hive v1.0.0/go.mod h1:wDCV8Tt0musg5g+2YMwmScr0TEXLk1E1d4d7W9P9l+4=
-github.com/maladroitthief/lattice v1.1.0 h1:bFvKyckEkufuuLHQ4pvXDeN85gttomylNDZWw4pQ/YM=
-github.com/maladroitthief/lattice v1.1.0/go.mod h1:EZkn33Yj/vF+q7kat50xGOvg3Bdvqk03QcwHuudfcEc=
+github.com/maladroitthief/lattice v1.2.1 h1:Y329eqQNjnNAh65L+vGsIbDsXXM72wwe9lrOiCc2Vjs=
+github.com/maladroitthief/lattice v1.2.1/go.mod h1:63OFnS2gDjX2JsQfmTHOPARyVlAf6rrlT/Wjjra9JrA=
 github.com/maladroitthief/mosaic v1.2.0 h1:NQuHZ5dTfAX6URI5c/A/BKNNwaBzJGqJPu2jl+uIoqs=
 github.com/maladroitthief/mosaic v1.2.0/go.mod h1:mU6Rxi6/J/UZ7ud4K9pqhKDX1RIKi9J0uhj40Kt5qvw=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=

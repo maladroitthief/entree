@@ -39,11 +39,21 @@ func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 	return s
 }
 
+func (s *PhysicsServer) Update(ecs *core.ECS) {
+	s.Load(ecs)
+	movements := ecs.GetAllMovements()
+
+	for _, m := range movements {
+		m = s.UpdateMovement(m)
+		s.UpdatePosition(ecs, m)
+	}
+}
+
 func (s *PhysicsServer) Load(ecs *core.ECS) {
 	s.grid.Drop()
 	entities := ecs.GetAllEntities()
 	for _, entity := range entities {
-		_, err := ecs.GetCollider(entity)
+		collider, err := ecs.GetCollider(entity)
 		if err != nil {
 			continue
 		}
@@ -52,7 +62,7 @@ func (s *PhysicsServer) Load(ecs *core.ECS) {
 		if err != nil {
 			continue
 		}
-		s.grid.Insert(entity, dimension.Bounds())
+		s.grid.Insert(entity, dimension.Bounds(), 1/collider.ImpedingRate)
 	}
 }
 
@@ -91,7 +101,12 @@ func (s *PhysicsServer) updateAttributes(ecs *core.ECS, attr physicsAttributes) 
 	attr.position.Y = deltaPosition.Y
 	attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(deltaPosition)
 
-	s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds())
+	collider, err := ecs.GetCollider(attr.entity)
+	if err != nil {
+		s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds(), 1.0)
+	} else {
+		s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds(), 1/collider.ImpedingRate)
+	}
 
 	if attr.movement.Acceleration.X == 0 && attr.movement.Acceleration.Y != 0 {
 		state, err := ecs.GetState(attr.entity)
@@ -106,16 +121,6 @@ func (s *PhysicsServer) updateAttributes(ecs *core.ECS, attr physicsAttributes) 
 	ecs.SetPosition(attr.position)
 	ecs.SetMovement(attr.movement)
 	ecs.SetDimension(attr.dimension)
-}
-
-func (s *PhysicsServer) Update(ecs *core.ECS) {
-	s.Load(ecs)
-	movements := ecs.GetAllMovements()
-
-	for _, m := range movements {
-		m = s.UpdateMovement(m)
-		s.UpdatePosition(ecs, m)
-	}
 }
 
 func (s *PhysicsServer) UpdateMovement(movement core.Movement) core.Movement {

@@ -3,18 +3,15 @@ package enemy
 import (
 	"errors"
 	"math"
-	"time"
 
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
-	"github.com/maladroitthief/mosaic"
 	"github.com/rs/zerolog/log"
 )
 
 func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 	return func(children []bt.Node) (bt.Status, error) {
-		log.Info().Msg("searching")
 		entity, err := world.ECS.GetEntity(entity.Id)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("search error")
@@ -70,40 +67,33 @@ func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 			return bt.Success, nil
 		}
 
-		log.Debug().Msg("search end, target not found")
 		return bt.Failure, nil
 	}
 }
 
 func follow(world *content.World, entity core.Entity) bt.Tick {
 	return func(children []bt.Node) (bt.Status, error) {
-		start := time.Now()
-		log.Info().Msg("following")
 		entity, err := world.ECS.GetEntity(entity.Id)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		ai, err := world.ECS.GetAI(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("ai", ai).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		position, err := world.ECS.GetPosition(entity)
 		if err != nil {
 			log.Debug().Err(err).Any("position", position).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		target, err := world.ECS.GetEntity(ai.TargetEntityId)
 		if err != nil {
 			log.Debug().Err(err).Any("target", target).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
@@ -113,40 +103,34 @@ func follow(world *content.World, entity core.Entity) bt.Tick {
 
 		if err != nil {
 			log.Debug().Err(err).Any("target position", targetPosition).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		path, err := world.Grid.WeightedSearch(
-			mosaic.NewVector(position.X, position.Y),
-			mosaic.NewVector(targetPosition.X, targetPosition.Y),
+			position.Vector(),
+			targetPosition.Vector(),
 		)
 
 		if err != nil {
 			log.Debug().Err(err).Msg("follow error")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		if len(path) == 0 {
 			log.Debug().Msg("follow error: path length zero")
-			log.Info().Any("time", time.Since(start)).Msg("done following")
 			return bt.Failure, nil
 		}
 
 		ai.TargetLocation = targetPosition.Vector()
 		ai.PathToTarget = path[1:]
-
 		world.ECS.SetAI(ai)
 
-		log.Info().Any("time", time.Since(start)).Msg("done following")
 		return bt.Success, nil
 	}
 }
 
 func move(world *content.World, entity core.Entity) bt.Tick {
 	return func(children []bt.Node) (bt.Status, error) {
-		log.Info().Msg("moving")
 		entity, err := world.ECS.GetEntity(entity.Id)
 		if err != nil {
 			log.Debug().Err(err).Any("entity", entity).Msg("move error")
@@ -192,7 +176,6 @@ func move(world *content.World, entity core.Entity) bt.Tick {
 		}
 
 		direction := to.Subtract(position.Vector()).Normalize()
-		log.Info().Any("direction", direction).Msg("moving")
 		core.MoveX(world.ECS, direction.X)(entity)
 		core.MoveY(world.ECS, direction.Y)(entity)
 
