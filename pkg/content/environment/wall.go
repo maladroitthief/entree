@@ -13,7 +13,7 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 		mosaic.Vector{X: position.X, Y: position.Y},
 		mosaic.Vector{X: 32, Y: 32},
 	)
-	collider := e.NewCollider(1.0)
+	collider := e.NewCollider(0.001)
 	collider.ColliderType = core.Immovable
 
 	animation := e.NewAnimation("tiles", "rock_1")
