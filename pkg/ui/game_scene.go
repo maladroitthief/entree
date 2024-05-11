@@ -77,7 +77,7 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	level.GenerateRooms()
 	level.Render(gs.world.ECS)
 
-	gs.physics.Load(gs.world.ECS)
+	gs.physics.ResetGrid()
 
 	focus, err := gs.world.ECS.GetPosition(gs.cameraFocus)
 	if err != nil {

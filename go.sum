@@ -43,8 +43,8 @@ github.com/maladroitthief/hive v1.0.0 h1:ByGb4eu7MT+MSRS99Ir3DrHSMWy8prZcSs8/Ket
 github.com/maladroitthief/hive v1.0.0/go.mod h1:wDCV8Tt0musg5g+2YMwmScr0TEXLk1E1d4d7W9P9l+4=
 github.com/maladroitthief/lattice v1.2.1 h1:Y329eqQNjnNAh65L+vGsIbDsXXM72wwe9lrOiCc2Vjs=
 github.com/maladroitthief/lattice v1.2.1/go.mod h1:63OFnS2gDjX2JsQfmTHOPARyVlAf6rrlT/Wjjra9JrA=
-github.com/maladroitthief/mosaic v1.2.0 h1:NQuHZ5dTfAX6URI5c/A/BKNNwaBzJGqJPu2jl+uIoqs=
-github.com/maladroitthief/mosaic v1.2.0/go.mod h1:mU6Rxi6/J/UZ7ud4K9pqhKDX1RIKi9J0uhj40Kt5qvw=
+github.com/maladroitthief/mosaic v1.4.0 h1:kZBOvUqZkvwBnPKn7fJb5sCA1FlGEqPknLUzrlrdzyQ=
+github.com/maladroitthief/mosaic v1.4.0/go.mod h1:UPQ4At2B+ovTPwLLiY6PrJX+aBfCt4jbOA02bLk0rxk=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=

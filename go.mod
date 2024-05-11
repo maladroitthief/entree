@@ -7,7 +7,7 @@ require (
 	github.com/maladroitthief/caravan v1.3.0
 	github.com/maladroitthief/hive v1.0.0
 	github.com/maladroitthief/lattice v1.2.1
-	github.com/maladroitthief/mosaic v1.2.0
+	github.com/maladroitthief/mosaic v1.4.0
 	github.com/pkg/profile v1.7.0
 	github.com/rs/zerolog v1.32.0
 )

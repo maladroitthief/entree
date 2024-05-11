@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	CollisionBuffer = 0.5
+	// CollisionBuffer is used to avoid sticking to the hidden edge of grouped polygons
+	CollisionBuffer = 0.001
 )
 
 type (
@@ -16,14 +17,17 @@ type (
 		x         float64
 		y         float64
 		size      float64
+		ecs       *core.ECS
 		grid      *lattice.SpatialGrid[core.Entity]
 		gameSpeed float64
 	}
-	physicsAttributes struct {
-		entity    core.Entity
-		position  core.Position
-		movement  core.Movement
-		dimension core.Dimension
+	body struct {
+		entity         core.Entity
+		position       core.Position
+		movement       core.Movement
+		dimension      core.Dimension
+		collider       core.Collider
+		startingBounds mosaic.Rectangle
 	}
 )
 
@@ -33,6 +37,7 @@ func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 		y:         y,
 		size:      size,
 		grid:      world.Grid,
+		ecs:       world.ECS,
 		gameSpeed: 0.05,
 	}
 
@@ -40,25 +45,47 @@ func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 }
 
 func (s *PhysicsServer) Update(ecs *core.ECS) {
-	s.Load(ecs)
+	s.ResetGrid()
 	movements := ecs.GetAllMovements()
 
 	for _, m := range movements {
-		m = s.UpdateMovement(m)
-		s.UpdatePosition(ecs, m)
-	}
-}
+		var err error
+		body := body{movement: m}
 
-func (s *PhysicsServer) Load(ecs *core.ECS) {
-	s.grid.Drop()
-	entities := ecs.GetAllEntities()
-	for _, entity := range entities {
-		collider, err := ecs.GetCollider(entity)
+		body.entity, err = ecs.GetEntity(m.EntityId)
 		if err != nil {
 			continue
 		}
 
-		dimension, err := ecs.GetDimension(entity)
+		body.position, err = ecs.GetPosition(body.entity)
+		if err != nil {
+			continue
+		}
+
+		body.dimension, err = ecs.GetDimension(body.entity)
+		if err != nil {
+			continue
+		}
+		body.dimension.Polygon = body.dimension.Polygon.SetPosition(
+			mosaic.Vector{X: body.position.X, Y: body.position.Y},
+		)
+		body.startingBounds = body.dimension.Polygon.Bounds
+
+		body = s.movementUpdate(body)
+		s.collisionUpdate(body)
+	}
+}
+
+func (s *PhysicsServer) ResetGrid() {
+	s.grid.Drop()
+	entities := s.ecs.GetAllEntities()
+	for _, entity := range entities {
+		collider, err := s.ecs.GetCollider(entity)
+		if err != nil {
+			continue
+		}
+
+		dimension, err := s.ecs.GetDimension(entity)
 		if err != nil {
 			continue
 		}
@@ -66,232 +93,132 @@ func (s *PhysicsServer) Load(ecs *core.ECS) {
 	}
 }
 
+func (s *PhysicsServer) movementUpdate(body body) body {
+	force := body.movement.Force.Scale(body.movement.Mass)
+	delta := s.deltaPosition(body.position, force)
+	body = s.changePosition(body, delta)
+
+	return body
+}
+
+func (s *PhysicsServer) collisionUpdate(body body) {
+	var err error
+	body.collider, err = s.ecs.GetCollider(body.entity)
+	if err != nil {
+		s.setBody(body)
+		return
+	}
+
+	body = s.resolveOutOfBounds(body)
+	collisions := s.checkCollisions(body)
+	if len(collisions) == 0 {
+		s.setBody(body)
+		return
+	}
+
+	for _, collision := range collisions {
+		body = s.resolveCollision(body, collision)
+	}
+	s.setBody(body)
+
+	return
+}
+
+func (s *PhysicsServer) changePosition(body body, newPosition mosaic.Vector) body {
+	body.position.X, body.position.Y = newPosition.X, newPosition.Y
+	body.dimension.Polygon = body.dimension.Polygon.SetPosition(newPosition)
+
+	return body
+}
+
 func (s *PhysicsServer) speedMaskVector(x, y float64) mosaic.Vector {
 	speedMask := 1.0 - (1.0 - s.gameSpeed)
 	return mosaic.NewVector(x, y).Scale(speedMask)
 }
 
-func (s *PhysicsServer) DeltaPosition(position core.Position, deltaVector mosaic.Vector) mosaic.Vector {
-	return s.DeltaPositionXY(position, deltaVector.X, deltaVector.Y)
-}
-
-func (s *PhysicsServer) DeltaPositionXY(position core.Position, x, y float64) mosaic.Vector {
-	delta := s.speedMaskVector(x, y)
+func (s *PhysicsServer) deltaPosition(position core.Position, deltaVector mosaic.Vector) mosaic.Vector {
+	delta := s.speedMaskVector(deltaVector.X, deltaVector.Y)
 	deltaPosition := mosaic.NewVector(position.X, position.Y).Add(delta)
 
 	return deltaPosition
 }
 
-func (s *PhysicsServer) DeltaBounds(dimension core.Dimension, vector mosaic.Vector) mosaic.Polygon {
-	return s.DeltaBoundsXY(dimension, vector.X, vector.Y)
-}
+func (s *PhysicsServer) setBody(body body) {
+	multiplier := 1.0
+	calculatedBounds := body.dimension.Bounds()
 
-func (s *PhysicsServer) DeltaBoundsXY(dimension core.Dimension, x, y float64) mosaic.Polygon {
-	delta := s.speedMaskVector(x, y)
-	deltaBounds := dimension.Polygon.Add(delta)
-
-	return deltaBounds
-}
-
-func (s *PhysicsServer) updateAttributes(ecs *core.ECS, attr physicsAttributes) {
-	deltaPosition := s.DeltaPosition(attr.position, attr.movement.Velocity)
-	oldBounds := attr.dimension.Polygon.Bounds
-
-	attr.position.X = deltaPosition.X
-	attr.position.Y = deltaPosition.Y
-	attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(deltaPosition)
-
-	collider, err := ecs.GetCollider(attr.entity)
-	if err != nil {
-		s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds(), 1.0)
-	} else {
-		s.grid.Update(attr.entity, oldBounds, attr.dimension.Bounds(), 1/collider.ImpedingRate)
+	collider, err := s.ecs.GetCollider(body.entity)
+	if err == nil {
+		multiplier = 1 / collider.ImpedingRate
 	}
+	s.grid.Update(body.entity, body.startingBounds, calculatedBounds, multiplier)
 
-	if attr.movement.Acceleration.X == 0 && attr.movement.Acceleration.Y != 0 {
-		state, err := ecs.GetState(attr.entity)
+	if body.movement.Force.X == 0 && body.movement.Force.Y != 0 {
+		state, err := s.ecs.GetState(body.entity)
 		if err == nil {
 			state.OrientationX = core.Neutral
-			ecs.SetState(state)
+			s.ecs.SetState(state)
 		}
 	}
-	attr.movement.Acceleration.X = 0
-	attr.movement.Acceleration.Y = 0
 
-	ecs.SetPosition(attr.position)
-	ecs.SetMovement(attr.movement)
-	ecs.SetDimension(attr.dimension)
+	body.movement.Force.X, body.movement.Force.Y = 0, 0
+	s.ecs.SetPosition(body.position)
+	s.ecs.SetMovement(body.movement)
+	s.ecs.SetDimension(body.dimension)
 }
 
-func (s *PhysicsServer) UpdateMovement(movement core.Movement) core.Movement {
-	force := movement.Acceleration.Scale(movement.Mass)
-	switch f := mosaic.NewVector(force.X, 0); {
-	case f.X < 0:
-		if movement.Velocity.X > 0 {
-			movement.Velocity.X = -1
-		}
-		movement.Velocity = movement.Velocity.Add(f)
-		if movement.Velocity.X <= -movement.MaxVelocity {
-			movement.Velocity.X = -movement.MaxVelocity
-		}
-	case f.X > 0:
-		if movement.Velocity.X < 0 {
-			movement.Velocity.X = 1
-		}
-		movement.Velocity = movement.Velocity.Add(f)
-		if movement.Velocity.X >= movement.MaxVelocity {
-			movement.Velocity.X = movement.MaxVelocity
-		}
-	case f.X == 0:
-		movement.Velocity.X = 0
-	}
+func (s *PhysicsServer) checkCollisions(body body) []core.Dimension {
+	collisions := []core.Dimension{}
+	entities := s.grid.FindNear(body.dimension.Bounds())
 
-	switch f := mosaic.NewVector(0, force.Y); {
-	case f.Y < 0:
-		if movement.Velocity.Y > 0 {
-			movement.Velocity.Y = -1
-		}
-		movement.Velocity = movement.Velocity.Add(f)
-		if movement.Velocity.Y <= -movement.MaxVelocity {
-			movement.Velocity.Y = -movement.MaxVelocity
-		}
-	case f.Y > 0:
-		if movement.Velocity.Y < 0 {
-			movement.Velocity.Y = 1
-		}
-		movement.Velocity = movement.Velocity.Add(f)
-		if movement.Velocity.Y >= movement.MaxVelocity {
-			movement.Velocity.Y = movement.MaxVelocity
-		}
-	case f.Y == 0:
-		movement.Velocity.Y = 0
-	}
-
-	magnitude := movement.Velocity.Magnitude()
-	if magnitude > movement.MaxVelocity {
-		movement.Velocity = movement.Velocity.Scale(movement.MaxVelocity / magnitude)
-	}
-
-	return movement
-}
-
-func (s *PhysicsServer) UpdatePosition(
-	ecs *core.ECS,
-	movement core.Movement,
-) {
-	entity, err := ecs.GetEntity(movement.EntityId)
-	if err != nil {
-		return
-	}
-
-	position, err := ecs.GetPosition(entity)
-	if err != nil {
-		return
-	}
-
-	dimension, err := ecs.GetDimension(entity)
-	if err != nil {
-		return
-	}
-	dimension.Polygon = dimension.Polygon.SetPosition(mosaic.Vector{X: position.X, Y: position.Y})
-	attr := physicsAttributes{entity, position, movement, dimension}
-	collider, err := ecs.GetCollider(entity)
-	if err != nil {
-		s.updateAttributes(ecs, attr)
-		return
-	}
-
-	attr = s.HandleOutOfBounds(ecs, attr)
-
-	collisions := s.Collisions(ecs, attr)
-	if len(collisions) == 0 {
-		s.updateAttributes(ecs, attr)
-		return
-	}
-
-	for _, collision := range collisions {
-		attr = s.HandleCollision(ecs, attr, collider, collision)
-	}
-
-	s.updateAttributes(ecs, attr)
-	return
-}
-
-func (s *PhysicsServer) Collisions(ecs *core.ECS, attr physicsAttributes) []core.Dimension {
-	results := []core.Dimension{}
-	entities := s.grid.FindNear(attr.dimension.Bounds())
 	for i := 0; i < len(entities); i++ {
-		_d, err := ecs.GetDimension(entities[i])
+		entityDimension, err := s.ecs.GetDimension(entities[i])
 		if err != nil {
 			continue
 		}
 
-		_, intersects := s.DeltaBounds(attr.dimension, attr.movement.Velocity).Intersects(_d.Polygon)
-		if intersects {
-			results = append(results, _d)
+		_, depth := body.dimension.Polygon.Intersects(entityDimension.Polygon)
+		if depth != 0.0 {
+			collisions = append(collisions, entityDimension)
 		}
 	}
 
-	return results
+	return collisions
 }
 
-func (s *PhysicsServer) HandleCollision(ecs *core.ECS, attr physicsAttributes, collider core.Collider, collision core.Dimension) physicsAttributes {
-	collisionEntity, err := ecs.GetEntity(collision.EntityId)
+func (s *PhysicsServer) resolveCollision(body body, collision core.Dimension) body {
+	object, err := s.ecs.GetEntity(collision.EntityId)
 	if err != nil {
-		return attr
+		return body
 	}
 
-	collisionCollider, err := ecs.GetCollider(collisionEntity)
+	objectCollider, err := s.ecs.GetCollider(object)
 	if err != nil {
-		return attr
+		return body
 	}
 
-	switch collisionCollider.ColliderType {
+	switch objectCollider.ColliderType {
 	case core.Immovable:
-		xMTV, xCollision := collision.Polygon.Intersects(s.DeltaBoundsXY(attr.dimension, attr.movement.Velocity.X, 0))
-		if xCollision && attr.movement.Acceleration.X != 0 {
-			translation := s.DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
-			attr.position.X = translation.X
-			attr.movement.Velocity.X = 0
-			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
-		}
-
-		yMTV, yCollision := collision.Polygon.Intersects(s.DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
-		if yCollision && attr.movement.Acceleration.Y != 0 {
-			translation := s.DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
-			attr.position.Y = translation.Y
-			attr.movement.Velocity.Y = 0
-			attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
-		}
+		normal, depth := collision.Polygon.Intersects(body.dimension.Polygon)
+		newPosition := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth + CollisionBuffer))
+		body = s.changePosition(body, newPosition)
 	case core.Impeding:
-		attr.movement.Velocity = attr.movement.Velocity.Scale(1 - collisionCollider.ImpedingRate)
+		body.movement.Velocity = body.movement.Velocity.Scale(1 - objectCollider.ImpedingRate)
 	case core.Moveable:
 	}
 
-	return attr
+	return body
 }
 
-func (s *PhysicsServer) HandleOutOfBounds(ecs *core.ECS, attr physicsAttributes) physicsAttributes {
-	sizeX := s.x * s.size
-	sizeY := s.y * s.size
+func (s *PhysicsServer) resolveOutOfBounds(body body) body {
+	sizeX, sizeY := s.x*s.size, s.y*s.size
+
 	center := mosaic.Vector{X: sizeX / 2, Y: sizeY / 2}
 	oob := mosaic.NewRectangle(center, sizeX, sizeY).ToPolygon()
 
-	xMTV, xContained := oob.ContainsPolygon(s.DeltaBoundsXY(attr.dimension, attr.movement.Velocity.X, 0))
-	if !xContained && attr.movement.Acceleration.X != 0 {
-		translation := s.DeltaPositionXY(attr.position, attr.movement.Velocity.X, 0).Add(xMTV)
-		attr.position.X = translation.X
-		attr.movement.Velocity.X = 0
-		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
-	}
+	normal, depth := oob.ContainsPolygon(body.dimension.Polygon)
+	newPosition := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth))
+	body = s.changePosition(body, newPosition)
 
-	yMTV, yContained := oob.ContainsPolygon(s.DeltaBoundsXY(attr.dimension, 0, attr.movement.Velocity.Y))
-	if !yContained && attr.movement.Acceleration.Y != 0 {
-		translation := s.DeltaPositionXY(attr.position, 0, attr.movement.Velocity.Y).Add(yMTV)
-		attr.position.Y = translation.Y
-		attr.movement.Velocity.Y = 0
-		attr.dimension.Polygon = attr.dimension.Polygon.SetPosition(mosaic.Vector{X: attr.position.X, Y: attr.position.Y})
-	}
-
-	return attr
+	return body
 }
