@@ -6,6 +6,8 @@ const (
 	Human Archetype = 1 << iota
 	Vegetable
 	Fruit
+	Stone
+	Plant
 )
 
 type (

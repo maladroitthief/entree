@@ -8,6 +8,8 @@ import (
 func Wall(e *core.ECS, x, y float64) core.Entity {
 	state := e.NewState()
 
+	faction := e.NewFaction(core.Stone)
+
 	position := e.NewPosition(x, y, 1.4)
 	dimension := e.NewDimension(
 		mosaic.Vector{X: position.X, Y: position.Y},
@@ -19,7 +21,8 @@ func Wall(e *core.ECS, x, y float64) core.Entity {
 	animation := e.NewAnimation("tiles", "rock_1")
 	animation.Static = true
 
-	entity := e.NewEntity()
+	entity := e.NewEntity("wall")
+	entity = e.BindFaction(entity, faction)
 	entity = e.BindState(entity, state)
 	entity = e.BindPosition(entity, position)
 	entity = e.BindDimension(entity, dimension)

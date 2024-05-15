@@ -10,9 +10,11 @@ import (
 )
 
 func NewOnyawn(world *content.World) core.Entity {
-	entity := world.ECS.NewEntity()
+	entity := world.ECS.NewEntity("onyawn")
+
 	state := world.ECS.NewState()
 	faction := world.ECS.NewFaction(core.Vegetable)
+	faction.Archetype.Set(core.Plant)
 
 	duration := time.Millisecond * 500
 	frequency := time.Millisecond * 20
@@ -30,6 +32,7 @@ func NewOnyawn(world *content.World) core.Entity {
 	)
 	dimension.Offset = mosaic.Vector{X: 0, Y: -6}
 	collider := world.ECS.NewCollider(1.0)
+	collider.ColliderType = core.Moveable
 
 	animation := world.ECS.NewAnimation("onyawn", "idle_front_1")
 	animation.VariantMax = 6

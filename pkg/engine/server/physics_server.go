@@ -96,7 +96,8 @@ func (s *PhysicsServer) ResetGrid() {
 func (s *PhysicsServer) movementUpdate(body body) body {
 	force := body.movement.Force.Scale(body.movement.Mass)
 	delta := s.deltaPosition(body.position, force)
-	body = s.changePosition(body, delta)
+	body.position.X, body.position.Y = delta.X, delta.Y
+	body.dimension.Polygon = body.dimension.Polygon.SetPosition(delta)
 
 	return body
 }
@@ -122,13 +123,6 @@ func (s *PhysicsServer) collisionUpdate(body body) {
 	s.setBody(body)
 
 	return
-}
-
-func (s *PhysicsServer) changePosition(body body, newPosition mosaic.Vector) body {
-	body.position.X, body.position.Y = newPosition.X, newPosition.Y
-	body.dimension.Polygon = body.dimension.Polygon.SetPosition(newPosition)
-
-	return body
 }
 
 func (s *PhysicsServer) speedMaskVector(x, y float64) mosaic.Vector {
@@ -186,9 +180,9 @@ func (s *PhysicsServer) checkCollisions(body body) []core.Dimension {
 	return collisions
 }
 
-func (s *PhysicsServer) resolveCollision(body body, collision core.Dimension) body {
-	object, err := s.ecs.GetEntity(collision.EntityId)
-	if err != nil {
+func (s *PhysicsServer) resolveCollision(body body, objectDimension core.Dimension) body {
+	object, err := s.ecs.GetEntity(objectDimension.EntityId)
+	if err != nil || object.Id == body.entity.Id {
 		return body
 	}
 
@@ -199,12 +193,31 @@ func (s *PhysicsServer) resolveCollision(body body, collision core.Dimension) bo
 
 	switch objectCollider.ColliderType {
 	case core.Immovable:
-		normal, depth := collision.Polygon.Intersects(body.dimension.Polygon)
-		newPosition := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth + CollisionBuffer))
-		body = s.changePosition(body, newPosition)
+		normal, depth := objectDimension.Polygon.Intersects(body.dimension.Polygon)
+
+		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth + CollisionBuffer))
+		body.position.X, body.position.Y = deltaP.X, deltaP.Y
+		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
 	case core.Impeding:
 		body.movement.Velocity = body.movement.Velocity.Scale(1 - objectCollider.ImpedingRate)
 	case core.Moveable:
+		normal, depth := body.dimension.Polygon.Intersects(objectDimension.Polygon)
+
+		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(-(depth + CollisionBuffer)))
+		body.position.X, body.position.Y = deltaP.X, deltaP.Y
+		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
+
+		objectPosition, err := s.ecs.GetPosition(object)
+		if err != nil {
+			return body
+		}
+
+		deltaP = mosaic.NewVector(objectPosition.X, objectPosition.Y).Add(normal.Scale(depth + CollisionBuffer))
+		objectPosition.X, objectPosition.Y = deltaP.X, deltaP.Y
+		objectDimension.Polygon = objectDimension.Polygon.SetPosition(deltaP)
+
+		s.ecs.SetPosition(objectPosition)
+		s.ecs.SetDimension(objectDimension)
 	}
 
 	return body
@@ -218,7 +231,8 @@ func (s *PhysicsServer) resolveOutOfBounds(body body) body {
 
 	normal, depth := oob.ContainsPolygon(body.dimension.Polygon)
 	newPosition := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth))
-	body = s.changePosition(body, newPosition)
+	body.position.X, body.position.Y = newPosition.X, newPosition.Y
+	body.dimension.Polygon = body.dimension.Polygon.SetPosition(newPosition)
 
 	return body
 }

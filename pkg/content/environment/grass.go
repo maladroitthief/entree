@@ -18,6 +18,7 @@ var (
 
 func Grass(e *core.ECS, x, y float64) core.Entity {
 	state := e.NewState()
+	faction := e.NewFaction(core.Plant)
 
 	position := e.NewPosition(x, y, 0.25)
 	dimension := e.NewDimension(
@@ -29,7 +30,8 @@ func Grass(e *core.ECS, x, y float64) core.Entity {
 	animation := e.NewAnimation("tiles", sprite)
 	animation.Static = true
 
-	entity := e.NewEntity()
+	entity := e.NewEntity("grass")
+	entity = e.BindFaction(entity, faction)
 	entity = e.BindState(entity, state)
 	entity = e.BindPosition(entity, position)
 	entity = e.BindDimension(entity, dimension)

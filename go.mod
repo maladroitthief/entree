@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.2
-	github.com/maladroitthief/caravan v1.3.0
+	github.com/maladroitthief/caravan v1.4.0
 	github.com/maladroitthief/hive v1.0.0
 	github.com/maladroitthief/lattice v1.2.1
 	github.com/maladroitthief/mosaic v1.4.0

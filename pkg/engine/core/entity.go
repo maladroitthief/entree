@@ -1,8 +1,13 @@
 package core
 
-import "github.com/maladroitthief/caravan"
+import (
+	"fmt"
+
+	"github.com/maladroitthief/caravan"
+)
 
 type Entity struct {
+	Name        string
 	Id          caravan.GIDX
 	AIId        caravan.GIDX
 	CommandId   caravan.GIDX
@@ -16,10 +21,11 @@ type Entity struct {
 	FactionId   caravan.GIDX
 }
 
-func (ecs *ECS) NewEntity() Entity {
+func (ecs *ECS) NewEntity(name string) Entity {
 	entity := Entity{
 		Id: ecs.entityAllocator.Allocate(),
 	}
+	entity.Name = fmt.Sprintf("%v_%v", name, entity.Id.Info())
 
 	ecs.SetEntity(entity)
 
