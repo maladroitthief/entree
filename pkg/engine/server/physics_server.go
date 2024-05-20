@@ -194,25 +194,31 @@ func (s *PhysicsServer) resolveCollision(body body, objectDimension core.Dimensi
 	switch objectCollider.ColliderType {
 	case core.Immovable:
 		normal, depth := objectDimension.Polygon.Intersects(body.dimension.Polygon)
-
-		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth + CollisionBuffer))
+		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(
+			normal.Scale(depth + CollisionBuffer),
+		)
 		body.position.X, body.position.Y = deltaP.X, deltaP.Y
 		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
+
 	case core.Impeding:
 		body.movement.Velocity = body.movement.Velocity.Scale(1 - objectCollider.ImpedingRate)
+
 	case core.Moveable:
 		normal, depth := body.dimension.Polygon.Intersects(objectDimension.Polygon)
-
-		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(-(depth + CollisionBuffer)))
-		body.position.X, body.position.Y = deltaP.X, deltaP.Y
-		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
-
 		objectPosition, err := s.ecs.GetPosition(object)
 		if err != nil {
 			return body
 		}
 
-		deltaP = mosaic.NewVector(objectPosition.X, objectPosition.Y).Add(normal.Scale(depth + CollisionBuffer))
+		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(
+			normal.Scale(-(depth + CollisionBuffer)),
+		)
+		body.position.X, body.position.Y = deltaP.X, deltaP.Y
+		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
+
+		deltaP = mosaic.NewVector(objectPosition.X, objectPosition.Y).Add(
+			normal.Scale(depth + CollisionBuffer),
+		)
 		objectPosition.X, objectPosition.Y = deltaP.X, deltaP.Y
 		objectDimension.Polygon = objectDimension.Polygon.SetPosition(deltaP)
 

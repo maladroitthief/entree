@@ -10,7 +10,6 @@ const (
 	Impeding
 
 	BaseImpedingRate = 1.0
-	MaxImpedingRate  = 1.0
 )
 
 type Collider struct {

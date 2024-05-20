@@ -181,35 +181,11 @@ func (e *EbitenGame) DrawAnimation(
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
-	// bounds := dimension.Bounds()
-	// vector.StrokeRect(
-	// 	e.canvas,
-	// 	float32(bounds.Position.X-bounds.Width/2),
-	// 	float32(bounds.Position.Y-bounds.Height/2),
-	// 	float32(bounds.Width),
-	// 	float32(bounds.Height),
-	// 	1,
-	// 	e.theme.Red(),
-	// 	false,
-	// )
-
-	// msg := fmt.Sprintf(
-	// 	"[%v]",
-	// 	entity.Id,
-	// )
-	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
-
-	// msg := fmt.Sprintf(
-	// 	"[%+v, %+v]",
-	// 	position.X*e.scale,
-	// 	position.Y*e.scale,
-	// )
-	// ebitenutil.DebugPrintAt(
-	// 	e.canvas,
-	// 	msg,
-	// 	int(position.X*e.scale)+int(dimension.Size.X),
-	// 	int(position.Y*e.scale)+int(dimension.Size.Y),
-	// )
+	ai, err := world.GetAI(entity)
+	if err != nil {
+		return nil
+	}
+	e.DebugPathfinding(ai.PathToTarget, e.theme.Cyan())
 
 	return nil
 }
@@ -360,6 +336,24 @@ func (e *EbitenGame) DebugBounds(bounds mosaic.Rectangle, color color.Color) {
 		color,
 		false,
 	)
+}
+
+func (e *EbitenGame) DebugPathfinding(paths []mosaic.Vector, color color.Color) {
+	for i := 0; i < len(paths)-1; i++ {
+		current := paths[i]
+		next := paths[i+1]
+
+		vector.StrokeLine(
+			e.canvas,
+			float32(current.X*e.scale),
+			float32(current.Y*e.scale),
+			float32(next.X*e.scale),
+			float32(next.Y*e.scale),
+			5,
+			color,
+			false,
+		)
+	}
 }
 
 func SpriteKey(sheet, sprite string) string {

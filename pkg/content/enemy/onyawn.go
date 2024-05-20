@@ -31,7 +31,7 @@ func NewOnyawn(world *content.World) core.Entity {
 		mosaic.Vector{X: 16, Y: 16},
 	)
 	dimension.Offset = mosaic.Vector{X: 0, Y: -6}
-	collider := world.ECS.NewCollider(1.0)
+	collider := world.ECS.NewCollider(5.0)
 	collider.ColliderType = core.Moveable
 
 	animation := world.ECS.NewAnimation("onyawn", "idle_front_1")
