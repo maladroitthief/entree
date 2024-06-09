@@ -12,8 +12,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/maladroitthief/entree/common/theme"
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/entree/pkg/ui"
+	"github.com/maladroitthief/lattice"
 	"github.com/maladroitthief/mosaic"
 	"github.com/rs/zerolog/log"
 )
@@ -100,12 +102,12 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	screen.Fill(e.theme.Black())
 	e.canvas.Fill(e.scene.BackgroundColor())
 
-	state := e.scene.GetState()
-	if state == nil {
+	world := e.scene.GetWorld()
+	if world == nil {
 		return
 	}
 
-	positions := state.GetAllPositions()
+	positions := world.ECS.GetAllPositions()
 	sort.Slice(
 		positions,
 		func(i, j int) bool {
@@ -117,7 +119,7 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 	)
 
 	for _, position := range positions {
-		err := e.DrawAnimation(screen, state, position)
+		err := e.DrawAnimation(screen, world, position)
 		if err != nil {
 			log.Warn().Err(err).Any("position", position)
 		}
@@ -129,13 +131,13 @@ func (e *EbitenGame) Draw(screen *ebiten.Image) {
 
 func (e *EbitenGame) DrawAnimation(
 	screen *ebiten.Image,
-	world *core.ECS,
+	world *content.World,
 	position core.Position,
 ) (err error) {
-	entity, entityErr := world.GetEntity(position.EntityId)
-	state, stateErr := world.GetState(entity)
-	animation, animationErr := world.GetAnimation(entity)
-	dimension, dimensionErr := world.GetDimension(entity)
+	entity, entityErr := world.ECS.GetEntity(position.EntityId)
+	state, stateErr := world.ECS.GetState(entity)
+	animation, animationErr := world.ECS.GetAnimation(entity)
+	dimension, dimensionErr := world.ECS.GetDimension(entity)
 
 	if entityErr != nil {
 		return nil
@@ -181,35 +183,14 @@ func (e *EbitenGame) DrawAnimation(
 	)
 	e.canvas.DrawImage(sprite, e.spriteOptions)
 
-	// bounds := dimension.Bounds()
-	// vector.StrokeRect(
-	// 	e.canvas,
-	// 	float32(bounds.Position.X-bounds.Width/2),
-	// 	float32(bounds.Position.Y-bounds.Height/2),
-	// 	float32(bounds.Width),
-	// 	float32(bounds.Height),
-	// 	1,
-	// 	e.theme.Red(),
-	// 	false,
-	// )
+	// ai, err := world.ECS.GetAI(entity)
+	// if err != nil {
+	// 	return nil
+	// }
 
-	// msg := fmt.Sprintf(
-	// 	"[%v]",
-	// 	entity.Id,
-	// )
-	// ebitenutil.DebugPrintAt(e.canvas, msg, int(position.X), int(position.Y))
-
-	// msg := fmt.Sprintf(
-	// 	"[%+v, %+v]",
-	// 	position.X*e.scale,
-	// 	position.Y*e.scale,
-	// )
-	// ebitenutil.DebugPrintAt(
-	// 	e.canvas,
-	// 	msg,
-	// 	int(position.X*e.scale)+int(dimension.Size.X),
-	// 	int(position.Y*e.scale)+int(dimension.Size.Y),
-	// )
+	// e.DebugWeights(world.Grid, e.theme.White())
+	// e.DebugPathfinding(world, ai, e.theme.Cyan())
+	// e.DebugNode(world.Grid, e.theme.White())
 
 	return nil
 }
@@ -360,6 +341,92 @@ func (e *EbitenGame) DebugBounds(bounds mosaic.Rectangle, color color.Color) {
 		color,
 		false,
 	)
+}
+
+func (e *EbitenGame) DebugPathfinding(world *content.World, ai core.AI, color color.Color) {
+	entity, err := world.ECS.GetEntity(ai.EntityId)
+	if err != nil {
+		return
+	}
+
+	from, err := world.ECS.GetPosition(entity)
+	if err != nil {
+		return
+	}
+
+	x := len(world.Grid.Nodes)
+	y := len(world.Grid.Nodes[0])
+	for i := 0; i < x; i++ {
+		for j := 0; j < y; j++ {
+			to := mosaic.Vector{
+				X: ((float64(i) * world.Grid.ChunkSize) + world.Grid.ChunkSize/2) * e.scale,
+				Y: ((float64(j) * world.Grid.ChunkSize) + world.Grid.ChunkSize/2) * e.scale,
+			}
+			weight := world.Grid.GetLocationWeight(i, j)
+			heuristic := math.Abs(from.X-to.X) + math.Abs(from.Y-to.Y) + weight
+			msg := fmt.Sprintf("%v", heuristic)
+			ebitenutil.DebugPrintAt(
+				e.canvas,
+				msg,
+				int(((float64(i)*world.Grid.ChunkSize)+world.Grid.ChunkSize/2)*e.scale),
+				int(((float64(j)*world.Grid.ChunkSize)+world.Grid.ChunkSize/2)*e.scale)+32,
+			)
+		}
+	}
+
+	paths := ai.PathToTarget
+	for i := 0; i < len(paths)-1; i++ {
+		current := paths[i]
+		next := paths[i+1]
+
+		vector.StrokeLine(
+			e.canvas,
+			float32(current.X*e.scale),
+			float32(current.Y*e.scale),
+			float32(next.X*e.scale),
+			float32(next.Y*e.scale),
+			5,
+			color,
+			false,
+		)
+	}
+}
+
+func (e *EbitenGame) DebugWeights(grid *lattice.SpatialGrid[core.Entity], color color.Color) {
+	x := len(grid.Nodes)
+	y := len(grid.Nodes[0])
+
+	for i := 0; i < x; i++ {
+		for j := 0; j < y; j++ {
+			weight := grid.GetLocationWeight(i, j)
+			msg := fmt.Sprintf("%v", weight)
+			ebitenutil.DebugPrintAt(
+				e.canvas,
+				msg,
+				int(((float64(i)*grid.ChunkSize)+grid.ChunkSize/2)*e.scale),
+				int(((float64(j)*grid.ChunkSize)+grid.ChunkSize/2)*e.scale),
+			)
+		}
+	}
+}
+
+func (e *EbitenGame) DebugNode(grid *lattice.SpatialGrid[core.Entity], color color.Color) {
+	x := len(grid.Nodes)
+	y := len(grid.Nodes[0])
+
+	for i := 0; i < x; i++ {
+		for j := 0; j < y; j++ {
+
+			count := len(grid.GetItemsAtLocation(i, j))
+			msg := fmt.Sprintf("%v", count)
+			ebitenutil.DebugPrintAt(
+				e.canvas,
+				msg,
+				int(((float64(i)*grid.ChunkSize)+grid.ChunkSize/2)*e.scale),
+				int(((float64(j)*grid.ChunkSize)+grid.ChunkSize/2)*e.scale),
+			)
+		}
+	}
 }
 
 func SpriteKey(sheet, sprite string) string {

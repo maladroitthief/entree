@@ -57,7 +57,8 @@ func MoveY(ecs *ECS, value float64) Command {
 		} else {
 			state.OrientationY = South
 		}
-		movement.Acceleration.Y = value
+		movement.Force.Y = value
+
 		ecs.SetState(state)
 		ecs.SetMovement(movement)
 	}
@@ -92,7 +93,7 @@ func MoveX(ecs *ECS, value float64) Command {
 		} else {
 			state.OrientationX = East
 		}
-		movement.Acceleration.X = value
+		movement.Force.X = value
 
 		ecs.SetState(state)
 		ecs.SetMovement(movement)

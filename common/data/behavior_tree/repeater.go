@@ -24,11 +24,12 @@ func Repeater(duration, frequency time.Duration, tick Tick) Tick {
 		var err error
 		var status Status
 	RepeaterLoop:
-		for err == nil {
+		for err == nil && status != Failure {
 			select {
 			case <-ticker.C:
 				status, err = tick(children)
 			case <-stopwatch.C:
+				status = Failure
 				break RepeaterLoop
 			}
 		}

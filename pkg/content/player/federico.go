@@ -18,6 +18,7 @@ func NewFederico(world *content.World) core.Entity {
 	)
 	dimension.Offset = mosaic.Vector{X: 0, Y: -6}
 	collider := world.ECS.NewCollider(1.0)
+	collider.ColliderType = core.Moveable
 
 	animation := world.ECS.NewAnimation("federico", "idle_front_1")
 	animation.VariantMax = 6
@@ -33,7 +34,7 @@ func NewFederico(world *content.World) core.Entity {
 		"move_back_side":  core.SpriteArray("move_back_side", 6),
 	}
 
-	entity := world.ECS.NewEntity()
+	entity := world.ECS.NewEntity("federico")
 	entity = world.ECS.BindState(entity, state)
 	entity = world.ECS.BindFaction(entity, faction)
 	entity = world.ECS.BindPosition(entity, position)

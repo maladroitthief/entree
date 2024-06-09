@@ -14,10 +14,11 @@ type Movement struct {
 	Id       caravan.GIDX
 	EntityId caravan.GIDX
 
-	Velocity     mosaic.Vector
-	MaxVelocity  float64
-	Mass         float64
-	Acceleration mosaic.Vector
+	MaxVelocity float64
+	Mass        float64
+
+	Velocity mosaic.Vector
+	Force    mosaic.Vector
 }
 
 func (ecs *ECS) NewMovement() Movement {

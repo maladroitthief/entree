@@ -8,7 +8,6 @@ import (
 
 	"github.com/maladroitthief/entree/common/theme"
 	"github.com/maladroitthief/entree/pkg/content"
-	"github.com/maladroitthief/entree/pkg/engine/core"
 )
 
 const (
@@ -28,7 +27,7 @@ type Scene interface {
 	Update(*SceneState) error
 	Size() (width, height int)
 	CellSize() int
-	GetState() *core.ECS
+	GetWorld() *content.World
 	GetCamera() *Camera
 	BackgroundColor() color.Color
 }
@@ -137,8 +136,8 @@ func (m *SceneManager) CellSize() int {
 	return m.currentScene.CellSize()
 }
 
-func (m *SceneManager) GetState() *core.ECS {
-	return m.currentScene.GetState()
+func (m *SceneManager) GetWorld() *content.World {
+	return m.currentScene.GetWorld()
 }
 
 func (m *SceneManager) BackgroundColor() color.Color {

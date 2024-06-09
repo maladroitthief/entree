@@ -42,13 +42,21 @@ func (bf *fieldBlocks) AddSolidBlock(x, y float64) {
 }
 
 func (bf *fieldBlocks) AddSolid(x, y float64) {
-	environment.Wall(bf.world.ECS, x, y)
+	entity := environment.Wall(bf.world, x, y)
+	position, _ := bf.world.ECS.GetPosition(entity)
+	position.X = x
+	position.Y = y
+	bf.world.ECS.SetPosition(position)
 }
 
 func (bf *fieldBlocks) AddSolid50(x, y float64) {
 	roll := rand.Intn(100)
 	if roll < 50 {
-		environment.Wall(bf.world.ECS, x, y)
+		entity := environment.Wall(bf.world, x, y)
+		position, _ := bf.world.ECS.GetPosition(entity)
+		position.X = x
+		position.Y = y
+		bf.world.ECS.SetPosition(position)
 	}
 }
 
