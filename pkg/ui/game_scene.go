@@ -130,8 +130,8 @@ func (gs *GameScene) CellSize() int {
 	return gs.cellSize
 }
 
-func (gs *GameScene) GetState() *core.ECS {
-	return gs.world.ECS
+func (gs *GameScene) GetWorld() *content.World {
+	return gs.world
 }
 
 func (gs *GameScene) BackgroundColor() color.Color {

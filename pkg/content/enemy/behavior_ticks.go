@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 
+	"github.com/maladroitthief/caravan"
 	bt "github.com/maladroitthief/entree/common/data/behavior_tree"
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
@@ -26,7 +27,6 @@ func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 
 		_, err = world.ECS.GetEntity(ai.TargetEntityId)
 		if err == nil {
-			log.Debug().Msg("search end, target found")
 			return bt.Success, nil
 		}
 
@@ -39,6 +39,10 @@ func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 		errSuccess := errors.New("target found")
 		findTarget := func(entities []core.Entity) error {
 			for _, e := range entities {
+				if e.Id == entity.Id {
+					continue
+				}
+
 				faction, err := world.ECS.GetFaction(e)
 				if err != nil {
 					continue
@@ -63,7 +67,6 @@ func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 		)
 
 		if errors.Is(err, errSuccess) {
-			log.Debug().Msg("search end, target found")
 			return bt.Success, nil
 		}
 
@@ -71,29 +74,28 @@ func search(world *content.World, entity core.Entity, depth int) bt.Tick {
 	}
 }
 
-func follow(world *content.World, entity core.Entity) bt.Tick {
+func follow(world *content.World, entity core.Entity, depth int) bt.Tick {
 	return func(children []bt.Node) (bt.Status, error) {
 		entity, err := world.ECS.GetEntity(entity.Id)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("follow error")
+			log.Debug().Err(err).Any("entity", entity.Name).Msg("follow error - no entity")
 			return bt.Failure, nil
 		}
 
 		ai, err := world.ECS.GetAI(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("ai", ai).Msg("follow error")
+			log.Debug().Err(err).Any("ai", ai).Msg("follow error - no AI")
 			return bt.Failure, nil
 		}
 
 		position, err := world.ECS.GetPosition(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("position", position).Msg("follow error")
+			log.Debug().Err(err).Any("position", position).Msg("follow error - No position")
 			return bt.Failure, nil
 		}
 
 		target, err := world.ECS.GetEntity(ai.TargetEntityId)
 		if err != nil {
-			log.Debug().Err(err).Any("target", target).Msg("follow error")
 			return bt.Failure, nil
 		}
 
@@ -102,22 +104,25 @@ func follow(world *content.World, entity core.Entity) bt.Tick {
 		world.ECS.SetAI(ai)
 
 		if err != nil {
-			log.Debug().Err(err).Any("target position", targetPosition).Msg("follow error")
+			log.Debug().Err(err).Any("target position", targetPosition).Msg("follow error - target position")
 			return bt.Failure, nil
 		}
 
 		path, err := world.Grid.WeightedSearch(
 			position.Vector(),
 			targetPosition.Vector(),
+			depth,
 		)
 
 		if err != nil {
-			log.Debug().Err(err).Msg("follow error")
+			log.Debug().Err(err).Str("entity", entity.Name).Msg("follow error, weighted search")
+
+			ai.TargetEntityId = caravan.GIDX{}
+			world.ECS.SetAI(ai)
 			return bt.Failure, nil
 		}
 
 		if len(path) == 0 {
-			log.Debug().Msg("follow error: path length zero")
 			return bt.Failure, nil
 		}
 
@@ -133,24 +138,23 @@ func move(world *content.World, entity core.Entity) bt.Tick {
 	return func(children []bt.Node) (bt.Status, error) {
 		entity, err := world.ECS.GetEntity(entity.Id)
 		if err != nil {
-			log.Debug().Err(err).Any("entity", entity).Msg("move error")
+			log.Debug().Err(err).Any("entity", entity.Name).Msg("move error")
 			return bt.Failure, err
 		}
 
 		ai, err := world.ECS.GetAI(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("ai", ai).Msg("move error")
+			log.Debug().Err(err).Any("ai", ai).Msg("move error - ai")
 			return bt.Failure, err
 		}
 
 		position, err := world.ECS.GetPosition(entity)
 		if err != nil {
-			log.Debug().Err(err).Any("position", position).Msg("move error")
+			log.Debug().Err(err).Any("position", position).Msg("move error - position")
 			return bt.Failure, err
 		}
 
 		if len(ai.PathToTarget) <= 0 {
-			log.Debug().Any("path to target", ai.PathToTarget).Msg("path empty")
 			return bt.Failure, nil
 		}
 
@@ -158,7 +162,6 @@ func move(world *content.World, entity core.Entity) bt.Tick {
 		for math.Abs(position.Vector().Distance(to)) <= 1 {
 			ai.PathToTarget = ai.PathToTarget[1:]
 			if len(ai.PathToTarget) <= 0 {
-				log.Debug().Any("path to target", ai.PathToTarget).Msg("path empty")
 				return bt.Failure, nil
 			}
 
@@ -167,8 +170,6 @@ func move(world *content.World, entity core.Entity) bt.Tick {
 		world.ECS.SetAI(ai)
 
 		if math.Abs(position.Vector().Distance(to)) <= 1 && len(ai.PathToTarget) > 1 {
-			log.Debug().Any("path to target", ai.PathToTarget).Msg("already there")
-
 			ai.PathToTarget = ai.PathToTarget[1:]
 			world.ECS.SetAI(ai)
 

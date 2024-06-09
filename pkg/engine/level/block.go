@@ -48,13 +48,21 @@ func (bf *blockFactory) AddPlayer(entity core.Entity, x, y float64) {
 }
 
 func (bf *blockFactory) AddSolid(x, y float64) {
-	environment.Wall(bf.world.ECS, x, y)
+	entity := environment.Wall(bf.world, x, y)
+	position, _ := bf.world.ECS.GetPosition(entity)
+	position.X = x
+	position.Y = y
+	bf.world.ECS.SetPosition(position)
 }
 
 func (bf *blockFactory) AddSolid50(x, y float64) {
 	roll := rand.Intn(100)
 	if roll < 50 {
-		environment.Wall(bf.world.ECS, x, y)
+		entity := environment.Wall(bf.world, x, y)
+		position, _ := bf.world.ECS.GetPosition(entity)
+		position.X = x
+		position.Y = y
+		bf.world.ECS.SetPosition(position)
 	}
 }
 

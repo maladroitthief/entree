@@ -58,6 +58,7 @@ func MoveY(ecs *ECS, value float64) Command {
 			state.OrientationY = South
 		}
 		movement.Force.Y = value
+
 		ecs.SetState(state)
 		ecs.SetMovement(movement)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"image/color"
 
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/mosaic"
 )
@@ -50,7 +51,7 @@ func (s *TitleScene) Update(state *SceneState) error {
 	return nil
 }
 
-func (s *TitleScene) GetState() *core.ECS {
+func (s *TitleScene) GetWorld() *content.World {
 	return nil
 }
 

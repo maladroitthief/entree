@@ -1,6 +1,8 @@
 package server
 
 import (
+	"math"
+
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/lattice"
@@ -8,7 +10,6 @@ import (
 )
 
 const (
-	// CollisionBuffer is used to avoid sticking to the hidden edge of grouped polygons
 	CollisionBuffer = 0.001
 )
 
@@ -77,8 +78,8 @@ func (s *PhysicsServer) Update(ecs *core.ECS) {
 }
 
 func (s *PhysicsServer) ResetGrid() {
-	s.grid.Drop()
 	entities := s.ecs.GetAllEntities()
+	items := make([]lattice.Item[core.Entity], len(entities))
 	for _, entity := range entities {
 		collider, err := s.ecs.GetCollider(entity)
 		if err != nil {
@@ -89,13 +90,31 @@ func (s *PhysicsServer) ResetGrid() {
 		if err != nil {
 			continue
 		}
-		s.grid.Insert(entity, dimension.Bounds(), 1/collider.ImpedingRate)
+
+		items = append(items, lattice.Item[core.Entity]{
+			Value:      entity,
+			Bounds:     dimension.Bounds(),
+			Multiplier: 1 / collider.ImpedingRate,
+		})
 	}
+
+	s.grid.Reset(items)
 }
 
 func (s *PhysicsServer) movementUpdate(body body) body {
 	force := body.movement.Force.Scale(body.movement.Mass)
-	delta := s.deltaPosition(body.position, force)
+	if force.X == 0 {
+		body.movement.Velocity.X = 0
+	}
+
+	if force.Y == 0 {
+		body.movement.Velocity.Y = 0
+	}
+
+	body.movement.Velocity = body.movement.Velocity.Add(force)
+	body.movement = s.capVelocity(body.movement)
+	delta := s.deltaPosition(body.position, body.movement.Velocity)
+
 	body.position.X, body.position.Y = delta.X, delta.Y
 	body.dimension.Polygon = body.dimension.Polygon.SetPosition(delta)
 
@@ -125,16 +144,29 @@ func (s *PhysicsServer) collisionUpdate(body body) {
 	return
 }
 
-func (s *PhysicsServer) speedMaskVector(x, y float64) mosaic.Vector {
-	speedMask := 1.0 - (1.0 - s.gameSpeed)
-	return mosaic.NewVector(x, y).Scale(speedMask)
+func (s *PhysicsServer) speedMask(v mosaic.Vector) mosaic.Vector {
+	return v.Scale(1.0 - (1.0 - s.gameSpeed))
 }
 
-func (s *PhysicsServer) deltaPosition(position core.Position, deltaVector mosaic.Vector) mosaic.Vector {
-	delta := s.speedMaskVector(deltaVector.X, deltaVector.Y)
-	deltaPosition := mosaic.NewVector(position.X, position.Y).Add(delta)
+func (s *PhysicsServer) deltaPosition(position core.Position, delta mosaic.Vector) mosaic.Vector {
+	return position.Vector().Add(s.speedMask(delta))
+}
 
-	return deltaPosition
+func (s *PhysicsServer) capVelocity(movement core.Movement) core.Movement {
+	if movement.Velocity.X >= movement.MaxVelocity {
+		movement.Velocity.X = movement.MaxVelocity
+	}
+	if movement.Velocity.X <= -movement.MaxVelocity {
+		movement.Velocity.X = -movement.MaxVelocity
+	}
+	if movement.Velocity.Y >= movement.MaxVelocity {
+		movement.Velocity.Y = movement.MaxVelocity
+	}
+	if movement.Velocity.Y <= -movement.MaxVelocity {
+		movement.Velocity.Y = -movement.MaxVelocity
+	}
+
+	return movement
 }
 
 func (s *PhysicsServer) setBody(body body) {
@@ -145,7 +177,14 @@ func (s *PhysicsServer) setBody(body body) {
 	if err == nil {
 		multiplier = 1 / collider.ImpedingRate
 	}
-	s.grid.Update(body.entity, body.startingBounds, calculatedBounds, multiplier)
+	s.grid.Update(
+		lattice.Item[core.Entity]{
+			Value:      body.entity,
+			Bounds:     calculatedBounds,
+			Multiplier: multiplier,
+		},
+		body.startingBounds,
+	)
 
 	if body.movement.Force.X == 0 && body.movement.Force.Y != 0 {
 		state, err := s.ecs.GetState(body.entity)
@@ -197,6 +236,8 @@ func (s *PhysicsServer) resolveCollision(body body, objectDimension core.Dimensi
 		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(
 			normal.Scale(depth + CollisionBuffer),
 		)
+
+		body.movement.Velocity.X, body.movement.Velocity.Y = 0, 0
 		body.position.X, body.position.Y = deltaP.X, deltaP.Y
 		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
 
@@ -204,11 +245,24 @@ func (s *PhysicsServer) resolveCollision(body body, objectDimension core.Dimensi
 		body.movement.Velocity = body.movement.Velocity.Scale(1 - objectCollider.ImpedingRate)
 
 	case core.Moveable:
-		normal, depth := body.dimension.Polygon.Intersects(objectDimension.Polygon)
-		objectPosition, err := s.ecs.GetPosition(object)
+		objectP, err := s.ecs.GetPosition(object)
 		if err != nil {
 			return body
 		}
+		objectM, err := s.ecs.GetMovement(object)
+		if err != nil {
+			return body
+		}
+
+		normal, depth := body.dimension.Polygon.Intersects(objectDimension.Polygon)
+
+		e := math.Min(body.collider.Restitution, objectCollider.Restitution)
+		relativeV := objectM.Velocity.Subtract(body.movement.Velocity)
+		magnitude := -(1 + e) * relativeV.DotProduct(normal)
+		magnitude /= (1 / body.movement.Mass) + (1 / objectM.Mass)
+
+		body.movement.Velocity = body.movement.Velocity.Add(normal.Scale(-magnitude / body.movement.Mass))
+		objectM.Velocity = objectM.Velocity.Add(normal.Scale(magnitude / objectM.Mass))
 
 		deltaP := mosaic.NewVector(body.position.X, body.position.Y).Add(
 			normal.Scale(-(depth + CollisionBuffer)),
@@ -216,13 +270,13 @@ func (s *PhysicsServer) resolveCollision(body body, objectDimension core.Dimensi
 		body.position.X, body.position.Y = deltaP.X, deltaP.Y
 		body.dimension.Polygon = body.dimension.Polygon.SetPosition(deltaP)
 
-		deltaP = mosaic.NewVector(objectPosition.X, objectPosition.Y).Add(
+		deltaP = mosaic.NewVector(objectP.X, objectP.Y).Add(
 			normal.Scale(depth + CollisionBuffer),
 		)
-		objectPosition.X, objectPosition.Y = deltaP.X, deltaP.Y
+		objectP.X, objectP.Y = deltaP.X, deltaP.Y
 		objectDimension.Polygon = objectDimension.Polygon.SetPosition(deltaP)
 
-		s.ecs.SetPosition(objectPosition)
+		s.ecs.SetPosition(objectP)
 		s.ecs.SetDimension(objectDimension)
 	}
 
@@ -237,6 +291,10 @@ func (s *PhysicsServer) resolveOutOfBounds(body body) body {
 
 	normal, depth := oob.ContainsPolygon(body.dimension.Polygon)
 	newPosition := mosaic.NewVector(body.position.X, body.position.Y).Add(normal.Scale(depth))
+
+	if depth != 0 {
+		body.movement.Velocity.X, body.movement.Velocity.Y = 0, 0
+	}
 	body.position.X, body.position.Y = newPosition.X, newPosition.Y
 	body.dimension.Polygon = body.dimension.Polygon.SetPosition(newPosition)
 

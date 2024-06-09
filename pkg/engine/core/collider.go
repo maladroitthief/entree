@@ -10,6 +10,7 @@ const (
 	Impeding
 
 	BaseImpedingRate = 1.0
+	BaseResitution   = 0.5
 )
 
 type Collider struct {
@@ -18,6 +19,7 @@ type Collider struct {
 
 	ColliderType ColliderType
 	ImpedingRate float64
+	Restitution  float64
 }
 
 func (ecs *ECS) NewCollider(impedingRate float64) Collider {
@@ -25,6 +27,7 @@ func (ecs *ECS) NewCollider(impedingRate float64) Collider {
 		Id:           ecs.colliderAllocator.Allocate(),
 		ColliderType: Moveable,
 		ImpedingRate: impedingRate,
+		Restitution:  BaseResitution,
 	}
 	ecs.colliders.Set(collider.Id, collider)
 
