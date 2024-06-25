@@ -16,7 +16,7 @@ type Position struct {
 
 func (ecs *ECS) NewPosition(x, y, z float64) Position {
 	position := Position{
-		Id: ecs.positionAllocator.Allocate(),
+		Id: ecs.positions.Allocate(),
 		X:  x,
 		Y:  y,
 		Z:  z,
@@ -39,8 +39,8 @@ func (ecs *ECS) BindPosition(entity Entity, position Position) Entity {
 	position.EntityId = entity.Id
 	entity.PositionId = position.Id
 
-	ecs.positions = ecs.positions.Set(position.Id, position)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.positions.Set(position.Id, position)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -53,7 +53,7 @@ func (ecs *ECS) GetPositionById(id caravan.GIDX) (Position, error) {
 	defer ecs.positionMu.RUnlock()
 
 	position := ecs.positions.Get(id)
-	if !ecs.positionAllocator.IsLive(position.Id) {
+	if !ecs.positions.IsLive(position.Id) {
 		return position, ErrAttributeNotFound
 	}
 
@@ -64,12 +64,16 @@ func (ecs *ECS) GetAllPositions() []Position {
 	ecs.positionMu.RLock()
 	defer ecs.positionMu.RUnlock()
 
-	return ecs.positions.GetAll(ecs.positionAllocator)
+	return ecs.positions.GetAll()
 }
 
 func (ecs *ECS) SetPosition(position Position) {
 	ecs.positionMu.Lock()
 	defer ecs.positionMu.Unlock()
 
-	ecs.positions = ecs.positions.Set(position.Id, position)
+	ecs.positions.Set(position.Id, position)
+}
+
+func (ecs *ECS) PositionActive(position Position) bool {
+	return ecs.positions.IsLive(position.Id)
 }

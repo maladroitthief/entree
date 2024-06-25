@@ -33,29 +33,31 @@ var (
 	}
 )
 
-type InputHandler struct {
-	repo     InputRepository
-	settings InputSettings
+type (
+	InputHandler struct {
+		repo     InputRepository
+		settings InputSettings
 
-	currentKeys   []string
-	currentCursor mosaic.Vector
-	currentInputs []core.Input
-	inputStates   map[core.Input]int
-}
+		currentKeys   []string
+		currentCursor mosaic.Vector
+		currentInputs []core.Input
+		inputStates   map[core.Input]int
+	}
 
-type InputState struct {
-	Cursor mosaic.Vector
-	Keys   []string
-}
+	InputState struct {
+		Cursor mosaic.Vector
+		Keys   []string
+	}
 
-type InputSettings struct {
-	Keyboard map[core.Input]string
-}
+	InputSettings struct {
+		Keyboard map[core.Input]string
+	}
 
-type InputRepository interface {
-	GetInputSettings() (InputSettings, error)
-	SetInputSettings(InputSettings) error
-}
+	InputRepository interface {
+		GetInputSettings() (InputSettings, error)
+		SetInputSettings(InputSettings) error
+	}
+)
 
 func NewInputHandler(r InputRepository) (*InputHandler, error) {
 	if r == nil {

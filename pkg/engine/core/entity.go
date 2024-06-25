@@ -23,7 +23,7 @@ type Entity struct {
 
 func (ecs *ECS) NewEntity(name string) Entity {
 	entity := Entity{
-		Id: ecs.entityAllocator.Allocate(),
+		Id: ecs.entities.Allocate(),
 	}
 	entity.Name = fmt.Sprintf("%v_%v", name, entity.Id.Info())
 
@@ -37,7 +37,7 @@ func (ecs *ECS) GetEntity(id caravan.GIDX) (Entity, error) {
 	defer ecs.entityMu.RUnlock()
 
 	entity := ecs.entities.Get(id)
-	if !ecs.entityAllocator.IsLive(entity.Id) {
+	if !ecs.entities.IsLive(entity.Id) {
 		return entity, ErrEnityNotFound
 	}
 
@@ -48,19 +48,23 @@ func (ecs *ECS) GetAllEntities() []Entity {
 	ecs.entityMu.RLock()
 	defer ecs.entityMu.RUnlock()
 
-	return ecs.entities.GetAll(ecs.entityAllocator)
+	return ecs.entities.GetAll()
 }
 
 func (ecs *ECS) SetEntity(entity Entity) {
 	ecs.entityMu.Lock()
 	defer ecs.entityMu.Unlock()
 
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.entities.Set(entity.Id, entity)
 }
 
-func (ecs *ECS) DestroyEntity(entity Entity) bool {
+func (ecs *ECS) DestroyEntity(entity Entity) {
 	ecs.entityMu.Lock()
 	defer ecs.entityMu.Unlock()
 
-	return ecs.entityAllocator.Deallocate(caravan.GIDX(entity.Id))
+	ecs.entities.Remove(entity.Id)
+}
+
+func (ecs *ECS) EntityActive(entity Entity) bool {
+	return ecs.entities.IsLive(entity.Id)
 }

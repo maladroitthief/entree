@@ -70,18 +70,18 @@ func (bf *blockFactory) AddObstacle(x, y float64) {
 	roll := rand.Intn(100)
 
 	if roll < 10 {
-		environment.Weeds(bf.world.ECS, x, y)
+		environment.Weeds(bf.world, x, y)
 	} else {
-		environment.Grass(bf.world.ECS, x, y)
+		environment.Grass(bf.world, x, y)
 	}
 }
 
 func (bf *blockFactory) AddEnemy(x, y float64) {
-	entity := enemy.NewOnyawn(bf.world)
+	enemy.NewOnyawn(bf.world, x, y)
 
-	position, _ := bf.world.ECS.GetPosition(entity)
-	position.X = x
-	position.Y = y
+	// 	position, _ := bf.world.ECS.GetPosition(entity)
+	// 	position.X = x
+	// 	position.Y = y
 
-	bf.world.ECS.SetPosition(position)
+	// bf.world.ECS.SetPosition(position)
 }

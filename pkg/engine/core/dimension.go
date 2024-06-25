@@ -17,7 +17,7 @@ type Dimension struct {
 
 func (ecs *ECS) NewDimension(position mosaic.Vector, size mosaic.Vector) Dimension {
 	dimension := Dimension{
-		Id:      ecs.dimensionAllocator.Allocate(),
+		Id:      ecs.dimensions.Allocate(),
 		Size:    size,
 		Scale:   1,
 		Offset:  mosaic.Vector{X: 0, Y: 0},
@@ -41,8 +41,8 @@ func (ecs *ECS) BindDimension(entity Entity, dimension Dimension) Entity {
 	dimension.EntityId = entity.Id
 	entity.DimensionId = dimension.Id
 
-	ecs.dimensions = ecs.dimensions.Set(dimension.Id, dimension)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.dimensions.Set(dimension.Id, dimension)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -56,7 +56,7 @@ func (ecs *ECS) GetDimensionById(id caravan.GIDX) (Dimension, error) {
 	defer ecs.dimensionMu.RUnlock()
 
 	dimension := ecs.dimensions.Get(id)
-	if !ecs.dimensionAllocator.IsLive(dimension.Id) {
+	if !ecs.dimensions.IsLive(dimension.Id) {
 		return dimension, ErrAttributeNotFound
 	}
 
@@ -67,12 +67,16 @@ func (ecs *ECS) GetAllDimensions() []Dimension {
 	ecs.dimensionMu.RLock()
 	defer ecs.dimensionMu.RUnlock()
 
-	return ecs.dimensions.GetAll(ecs.dimensionAllocator)
+	return ecs.dimensions.GetAll()
 }
 
 func (ecs *ECS) SetDimension(dimension Dimension) {
 	ecs.dimensionMu.Lock()
 	defer ecs.dimensionMu.Unlock()
 
-	ecs.dimensions = ecs.dimensions.Set(dimension.Id, dimension)
+	ecs.dimensions.Set(dimension.Id, dimension)
+}
+
+func (ecs *ECS) DimensionActive(dimension Dimension) bool {
+	return ecs.dimensions.IsLive(dimension.Id)
 }

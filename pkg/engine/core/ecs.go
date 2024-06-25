@@ -13,60 +13,40 @@ var (
 )
 
 type ECS struct {
-	entityMu           sync.RWMutex
-	entityAllocator    *caravan.GIDXAllocator
-	entities           caravan.GIDXArray[Entity]
-	aiMu               sync.RWMutex
-	aiAllocator        *caravan.GIDXAllocator
-	ai                 caravan.GIDXArray[AI]
-	commandMu          sync.RWMutex
-	commandAllocator   *caravan.GIDXAllocator
-	command            caravan.GIDXArray[Command]
-	stateMu            sync.RWMutex
-	stateAllocator     *caravan.GIDXAllocator
-	states             caravan.GIDXArray[State]
-	movementMu         sync.RWMutex
-	movementAllocator  *caravan.GIDXAllocator
-	movements          caravan.GIDXArray[Movement]
-	positionMu         sync.RWMutex
-	positionAllocator  *caravan.GIDXAllocator
-	positions          caravan.GIDXArray[Position]
-	dimensionMu        sync.RWMutex
-	dimensionAllocator *caravan.GIDXAllocator
-	dimensions         caravan.GIDXArray[Dimension]
-	colliderMu         sync.RWMutex
-	colliderAllocator  *caravan.GIDXAllocator
-	colliders          caravan.GIDXArray[Collider]
-	animationMu        sync.RWMutex
-	animationAllocator *caravan.GIDXAllocator
-	animations         caravan.GIDXArray[Animation]
-	factionMu          sync.RWMutex
-	factionAllocator   *caravan.GIDXAllocator
-	factions           caravan.GIDXArray[Faction]
+	entityMu    sync.RWMutex
+	entities    *caravan.GIDXPool[Entity]
+	aiMu        sync.RWMutex
+	ai          *caravan.GIDXPool[AI]
+	commandMu   sync.RWMutex
+	commands    *caravan.GIDXPool[Command]
+	stateMu     sync.RWMutex
+	states      *caravan.GIDXPool[State]
+	movementMu  sync.RWMutex
+	movements   *caravan.GIDXPool[Movement]
+	positionMu  sync.RWMutex
+	positions   *caravan.GIDXPool[Position]
+	dimensionMu sync.RWMutex
+	dimensions  *caravan.GIDXPool[Dimension]
+	colliderMu  sync.RWMutex
+	colliders   *caravan.GIDXPool[Collider]
+	animationMu sync.RWMutex
+	animations  *caravan.GIDXPool[Animation]
+	factionMu   sync.RWMutex
+	factions    *caravan.GIDXPool[Faction]
 }
 
 func NewECS() *ECS {
 	ecs := &ECS{
-		entityAllocator:    caravan.NewGIDXAllocator(),
-		entities:           caravan.NewGIDXArray[Entity](),
-		aiAllocator:        caravan.NewGIDXAllocator(),
-		ai:                 caravan.NewGIDXArray[AI](),
-		commandAllocator:   caravan.NewGIDXAllocator(),
-		command:            caravan.NewGIDXArray[Command](),
-		stateAllocator:     caravan.NewGIDXAllocator(),
-		states:             caravan.NewGIDXArray[State](),
-		movementAllocator:  caravan.NewGIDXAllocator(),
-		movements:          caravan.NewGIDXArray[Movement](),
-		positionAllocator:  caravan.NewGIDXAllocator(),
-		positions:          caravan.NewGIDXArray[Position](),
-		dimensionAllocator: caravan.NewGIDXAllocator(),
-		dimensions:         caravan.NewGIDXArray[Dimension](),
-		colliderAllocator:  caravan.NewGIDXAllocator(),
-		colliders:          caravan.NewGIDXArray[Collider](),
-		animationAllocator: caravan.NewGIDXAllocator(),
-		animations:         caravan.NewGIDXArray[Animation](),
-		factionAllocator:   caravan.NewGIDXAllocator(),
-		factions:           caravan.NewGIDXArray[Faction](),
+		entities:   caravan.NewGIDXPool[Entity](),
+		ai:         caravan.NewGIDXPool[AI](),
+		commands:   caravan.NewGIDXPool[Command](),
+		states:     caravan.NewGIDXPool[State](),
+		movements:  caravan.NewGIDXPool[Movement](),
+		positions:  caravan.NewGIDXPool[Position](),
+		dimensions: caravan.NewGIDXPool[Dimension](),
+		colliders:  caravan.NewGIDXPool[Collider](),
+		animations: caravan.NewGIDXPool[Animation](),
+		factions:   caravan.NewGIDXPool[Faction](),
 	}
 
 	return ecs

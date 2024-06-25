@@ -23,7 +23,7 @@ type (
 
 func (ecs *ECS) NewFaction(a Archetype) Faction {
 	faction := Faction{
-		Id:        ecs.factionAllocator.Allocate(),
+		Id:        ecs.factions.Allocate(),
 		Archetype: a,
 	}
 	ecs.factions.Set(faction.Id, faction)
@@ -40,8 +40,8 @@ func (ecs *ECS) BindFaction(entity Entity, faction Faction) Entity {
 	faction.EntityId = entity.Id
 	entity.FactionId = faction.Id
 
-	ecs.factions = ecs.factions.Set(faction.Id, faction)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.factions.Set(faction.Id, faction)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -54,7 +54,7 @@ func (ecs *ECS) GetFactionById(id caravan.GIDX) (Faction, error) {
 	defer ecs.factionMu.RUnlock()
 
 	faction := ecs.factions.Get(id)
-	if !ecs.factionAllocator.IsLive(faction.Id) {
+	if !ecs.factions.IsLive(faction.Id) {
 		return faction, ErrAttributeNotFound
 	}
 
@@ -65,14 +65,14 @@ func (ecs *ECS) GetAllFactions() []Faction {
 	ecs.factionMu.RLock()
 	defer ecs.factionMu.RUnlock()
 
-	return ecs.factions.GetAll(ecs.factionAllocator)
+	return ecs.factions.GetAll()
 }
 
 func (ecs *ECS) SetFaction(faction Faction) {
 	ecs.factionMu.Lock()
 	defer ecs.factionMu.Unlock()
 
-	ecs.factions = ecs.factions.Set(faction.Id, faction)
+	ecs.factions.Set(faction.Id, faction)
 }
 
 func (a Archetype) Set(archetype Archetype) Archetype {
@@ -107,4 +107,8 @@ func (ecs *ECS) UnsetArchetype(faction Faction, archetype Archetype) {
 
 func (faction Faction) IsArchetype(archetype Archetype) bool {
 	return faction.Archetype.Check(archetype)
+}
+
+func (ecs *ECS) FactionActive(faction Faction) bool {
+	return ecs.factions.IsLive(faction.Id)
 }

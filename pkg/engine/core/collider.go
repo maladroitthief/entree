@@ -24,7 +24,7 @@ type Collider struct {
 
 func (ecs *ECS) NewCollider(impedingRate float64) Collider {
 	collider := Collider{
-		Id:           ecs.colliderAllocator.Allocate(),
+		Id:           ecs.colliders.Allocate(),
 		ColliderType: Moveable,
 		ImpedingRate: impedingRate,
 		Restitution:  BaseResitution,
@@ -43,8 +43,8 @@ func (ecs *ECS) BindCollider(entity Entity, collider Collider) Entity {
 	collider.EntityId = entity.Id
 	entity.ColliderId = collider.Id
 
-	ecs.colliders = ecs.colliders.Set(collider.Id, collider)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.colliders.Set(collider.Id, collider)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -54,7 +54,7 @@ func (ecs *ECS) GetColliderById(id caravan.GIDX) (Collider, error) {
 	defer ecs.colliderMu.RUnlock()
 
 	collider := ecs.colliders.Get(id)
-	if !ecs.colliderAllocator.IsLive(collider.Id) {
+	if !ecs.colliders.IsLive(collider.Id) {
 		return collider, ErrAttributeNotFound
 	}
 
@@ -69,12 +69,16 @@ func (ecs *ECS) GetAllColliders() []Collider {
 	ecs.colliderMu.RLock()
 	defer ecs.colliderMu.RUnlock()
 
-	return ecs.colliders.GetAll(ecs.colliderAllocator)
+	return ecs.colliders.GetAll()
 }
 
 func (ecs *ECS) SetCollider(collider Collider) {
 	ecs.colliderMu.Lock()
 	defer ecs.colliderMu.Unlock()
 
-	ecs.colliders = ecs.colliders.Set(collider.Id, collider)
+	ecs.colliders.Set(collider.Id, collider)
+}
+
+func (ecs *ECS) ColliderActive(collider Collider) bool {
+	return ecs.colliders.IsLive(collider.Id)
 }

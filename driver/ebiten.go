@@ -333,10 +333,10 @@ func (e *EbitenGame) DebugEntity(entity core.Entity, x, y int) {
 func (e *EbitenGame) DebugBounds(bounds mosaic.Rectangle, color color.Color) {
 	vector.StrokeRect(
 		e.canvas,
-		float32(bounds.Position.X-bounds.Width/2),
-		float32(bounds.Position.Y-bounds.Height/2),
-		float32(bounds.Width),
-		float32(bounds.Height),
+		float32(bounds.Position.X-bounds.Width()/2),
+		float32(bounds.Position.Y-bounds.Height()/2),
+		float32(bounds.Width()),
+		float32(bounds.Height()),
 		1,
 		color,
 		false,

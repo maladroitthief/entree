@@ -33,7 +33,7 @@ type (
 
 func (ecs *ECS) NewState() State {
 	state := State{
-		Id:           ecs.stateAllocator.Allocate(),
+		Id:           ecs.states.Allocate(),
 		State:        Idling,
 		Counter:      0,
 		OrientationX: Neutral,
@@ -53,8 +53,8 @@ func (ecs *ECS) BindState(entity Entity, state State) Entity {
 	state.EntityId = entity.Id
 	entity.StateId = state.Id
 
-	ecs.states = ecs.states.Set(state.Id, state)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.states.Set(state.Id, state)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -67,7 +67,7 @@ func (ecs *ECS) GetStateById(id caravan.GIDX) (State, error) {
 	defer ecs.stateMu.RUnlock()
 
 	state := ecs.states.Get(id)
-	if !ecs.stateAllocator.IsLive(state.Id) {
+	if !ecs.states.IsLive(state.Id) {
 		return state, ErrAttributeNotFound
 	}
 
@@ -78,12 +78,16 @@ func (ecs *ECS) GetAllStates() []State {
 	ecs.stateMu.RLock()
 	defer ecs.stateMu.RUnlock()
 
-	return ecs.states.GetAll(ecs.stateAllocator)
+	return ecs.states.GetAll()
 }
 
 func (ecs *ECS) SetState(state State) {
 	ecs.stateMu.Lock()
 	defer ecs.stateMu.Unlock()
 
-	ecs.states = ecs.states.Set(state.Id, state)
+	ecs.states.Set(state.Id, state)
+}
+
+func (ecs *ECS) StateActive(state State) bool {
+	return ecs.states.IsLive(state.Id)
 }

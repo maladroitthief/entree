@@ -46,7 +46,6 @@ func NewPhysicsServer(world *content.World, x, y, size float64) *PhysicsServer {
 }
 
 func (s *PhysicsServer) Update(ecs *core.ECS) {
-	s.ResetGrid()
 	movements := ecs.GetAllMovements()
 
 	for _, m := range movements {

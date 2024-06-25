@@ -3,8 +3,10 @@ package environment
 import (
 	"math/rand"
 
+	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/mosaic"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -16,26 +18,25 @@ var (
 	}
 )
 
-func Grass(e *core.ECS, x, y float64) core.Entity {
-	state := e.NewState()
-	faction := e.NewFaction(core.Plant)
-
-	position := e.NewPosition(x, y, 0.25)
-	dimension := e.NewDimension(
-		mosaic.Vector{X: position.X, Y: position.Y},
-		mosaic.Vector{X: 32, Y: 32},
-	)
-
+func Grass(world *content.World, x, y float64) core.Entity {
 	sprite := grassSprites[rand.Intn(len(grassSprites))]
-	animation := e.NewAnimation("tiles", sprite)
-	animation.Static = true
+	item := content.WorldItem{
+		Entity:   world.ECS.NewEntity("grass"),
+		State:    world.ECS.NewState(),
+		Faction:  world.ECS.NewFaction(core.Plant),
+		Position: world.ECS.NewPosition(x, y, 0.25),
+		Dimension: world.ECS.NewDimension(
+			mosaic.Vector{X: x, Y: y},
+			mosaic.Vector{X: 32, Y: 32},
+		),
+		Animation: world.ECS.NewAnimation("tiles", sprite),
+	}
+	item.Animation.Static = true
 
-	entity := e.NewEntity("grass")
-	entity = e.BindFaction(entity, faction)
-	entity = e.BindState(entity, state)
-	entity = e.BindPosition(entity, position)
-	entity = e.BindDimension(entity, dimension)
-	entity = e.BindAnimation(entity, animation)
+	item, err := world.NewItem(item)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create grass")
+	}
 
-	return entity
+	return item.Entity
 }

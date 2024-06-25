@@ -27,7 +27,7 @@ type Animation struct {
 
 func (ecs *ECS) NewAnimation(sheet, defaultSprite string) Animation {
 	animation := Animation{
-		Id:          ecs.animationAllocator.Allocate(),
+		Id:          ecs.animations.Allocate(),
 		Speed:       DefaultSpeed,
 		Counter:     0,
 		Variant:     1,
@@ -60,8 +60,8 @@ func (ecs *ECS) BindAnimation(entity Entity, animation Animation) Entity {
 	animation.EntityId = entity.Id
 	entity.AnimationId = animation.Id
 
-	ecs.animations = ecs.animations.Set(animation.Id, animation)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.animations.Set(animation.Id, animation)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -75,7 +75,7 @@ func (ecs *ECS) GetAnimationById(id caravan.GIDX) (Animation, error) {
 	defer ecs.animationMu.RUnlock()
 
 	animation := ecs.animations.Get(id)
-	if !ecs.animationAllocator.IsLive(animation.Id) {
+	if !ecs.animations.IsLive(animation.Id) {
 		return animation, ErrAttributeNotFound
 	}
 
@@ -86,12 +86,16 @@ func (ecs *ECS) GetAllAnimations() []Animation {
 	ecs.animationMu.RLock()
 	defer ecs.animationMu.RUnlock()
 
-	return ecs.animations.GetAll(ecs.animationAllocator)
+	return ecs.animations.GetAll()
 }
 
 func (ecs *ECS) SetAnimation(animation Animation) {
 	ecs.animationMu.Lock()
 	defer ecs.animationMu.Unlock()
 
-	ecs.animations = ecs.animations.Set(animation.Id, animation)
+	ecs.animations.Set(animation.Id, animation)
+}
+
+func (ecs *ECS) AnimationActive(animation Animation) bool {
+	return ecs.animations.IsLive(animation.Id)
 }

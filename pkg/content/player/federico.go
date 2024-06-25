@@ -4,26 +4,29 @@ import (
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/mosaic"
+	"github.com/rs/zerolog/log"
 )
 
-func NewFederico(world *content.World) core.Entity {
-	state := world.ECS.NewState()
-	faction := world.ECS.NewFaction(core.Human)
+func NewFederico(world *content.World, x, y float64) core.Entity {
+	item := content.WorldItem{
+		Entity:   world.ECS.NewEntity("federico"),
+		State:    world.ECS.NewState(),
+		Faction:  world.ECS.NewFaction(core.Human),
+		Position: world.ECS.NewPosition(0, 0, 1.6),
+		Movement: world.ECS.NewMovement(),
+		Dimension: world.ECS.NewDimension(
+			mosaic.Vector{X: 0, Y: 0},
+			mosaic.Vector{X: 16, Y: 16},
+		),
+		Collider:  world.ECS.NewCollider(1.0),
+		Animation: world.ECS.NewAnimation("federico", "idle_front_1"),
+	}
 
-	position := world.ECS.NewPosition(0, 0, 1.6)
-	movement := world.ECS.NewMovement()
-	dimension := world.ECS.NewDimension(
-		mosaic.Vector{X: position.X, Y: position.Y},
-		mosaic.Vector{X: 16, Y: 16},
-	)
-	dimension.Offset = mosaic.Vector{X: 0, Y: -6}
-	collider := world.ECS.NewCollider(1.0)
-	collider.ColliderType = core.Moveable
-
-	animation := world.ECS.NewAnimation("federico", "idle_front_1")
-	animation.VariantMax = 6
-	animation.Speed = 50
-	animation.Sprites = map[string][]string{
+	item.Dimension.Offset = mosaic.Vector{X: 0, Y: -6}
+	item.Collider.ColliderType = core.Moveable
+	item.Animation.VariantMax = 6
+	item.Animation.Speed = 50
+	item.Animation.Sprites = map[string][]string{
 		"idle_front":      core.SpriteArray("idle_front", 6),
 		"idle_front_side": core.SpriteArray("idle_front_side", 6),
 		"idle_back":       core.SpriteArray("idle_back", 6),
@@ -34,14 +37,10 @@ func NewFederico(world *content.World) core.Entity {
 		"move_back_side":  core.SpriteArray("move_back_side", 6),
 	}
 
-	entity := world.ECS.NewEntity("federico")
-	entity = world.ECS.BindState(entity, state)
-	entity = world.ECS.BindFaction(entity, faction)
-	entity = world.ECS.BindPosition(entity, position)
-	entity = world.ECS.BindMovement(entity, movement)
-	entity = world.ECS.BindDimension(entity, dimension)
-	entity = world.ECS.BindCollider(entity, collider)
-	entity = world.ECS.BindAnimation(entity, animation)
+	item, err := world.NewItem(item)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create federico")
+	}
 
-	return entity
+	return item.Entity
 }

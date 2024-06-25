@@ -23,7 +23,7 @@ type Movement struct {
 
 func (ecs *ECS) NewMovement() Movement {
 	movement := Movement{
-		Id:          ecs.movementAllocator.Allocate(),
+		Id:          ecs.movements.Allocate(),
 		Velocity:    mosaic.Vector{X: 0, Y: 0},
 		MaxVelocity: BaseMaxVelocity,
 		Mass:        BaseMass,
@@ -42,8 +42,8 @@ func (ecs *ECS) BindMovement(entity Entity, movement Movement) Entity {
 	movement.EntityId = entity.Id
 	entity.MovementId = movement.Id
 
-	ecs.movements = ecs.movements.Set(movement.Id, movement)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.movements.Set(movement.Id, movement)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -56,7 +56,7 @@ func (ecs *ECS) GetMovementById(id caravan.GIDX) (Movement, error) {
 	defer ecs.movementMu.RUnlock()
 
 	movement := ecs.movements.Get(id)
-	if !ecs.movementAllocator.IsLive(movement.Id) {
+	if !ecs.movements.IsLive(movement.Id) {
 		return movement, ErrAttributeNotFound
 	}
 
@@ -67,12 +67,16 @@ func (ecs *ECS) GetAllMovements() []Movement {
 	ecs.movementMu.RLock()
 	defer ecs.movementMu.RUnlock()
 
-	return ecs.movements.GetAll(ecs.movementAllocator)
+	return ecs.movements.GetAll()
 }
 
 func (ecs *ECS) SetMovement(movement Movement) {
 	ecs.movementMu.Lock()
 	defer ecs.movementMu.Unlock()
 
-	ecs.movements = ecs.movements.Set(movement.Id, movement)
+	ecs.movements.Set(movement.Id, movement)
+}
+
+func (ecs *ECS) MovementActive(movement Movement) bool {
+	return ecs.movements.IsLive(movement.Id)
 }

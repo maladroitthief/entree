@@ -40,7 +40,7 @@ func (ecs *ECS) NewAI(ctx context.Context, node bt.Node) AI {
 	}
 
 	ai := AI{
-		Id:   ecs.aiAllocator.Allocate(),
+		Id:   ecs.ai.Allocate(),
 		Node: node,
 	}
 
@@ -59,8 +59,8 @@ func (ecs *ECS) BindAI(entity Entity, ai AI) Entity {
 	ai.EntityId = entity.Id
 	entity.AIId = ai.Id
 
-	ecs.ai = ecs.ai.Set(ai.Id, ai)
-	ecs.entities = ecs.entities.Set(entity.Id, entity)
+	ecs.ai.Set(ai.Id, ai)
+	ecs.entities.Set(entity.Id, entity)
 
 	return entity
 }
@@ -70,7 +70,7 @@ func (ecs *ECS) GetAIById(id caravan.GIDX) (AI, error) {
 	defer ecs.aiMu.RUnlock()
 
 	ai := ecs.ai.Get(id)
-	if !ecs.aiAllocator.IsLive(ai.Id) {
+	if !ecs.ai.IsLive(ai.Id) {
 		return ai, ErrAttributeNotFound
 	}
 
@@ -85,12 +85,16 @@ func (ecs *ECS) GetAllAI() []AI {
 	ecs.aiMu.RLock()
 	defer ecs.aiMu.RUnlock()
 
-	return ecs.ai.GetAll(ecs.aiAllocator)
+	return ecs.ai.GetAll()
 }
 
 func (ecs *ECS) SetAI(ai AI) {
 	ecs.aiMu.Lock()
 	defer ecs.aiMu.Unlock()
 
-	ecs.ai = ecs.ai.Set(ai.Id, ai)
+	ecs.ai.Set(ai.Id, ai)
+}
+
+func (ecs *ECS) AIActive(ai AI) bool {
+	return ecs.ai.IsLive(ai.Id)
 }

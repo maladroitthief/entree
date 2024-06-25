@@ -4,31 +4,29 @@ import (
 	"github.com/maladroitthief/entree/pkg/content"
 	"github.com/maladroitthief/entree/pkg/engine/core"
 	"github.com/maladroitthief/mosaic"
+	"github.com/rs/zerolog/log"
 )
 
 func Wall(world *content.World, x, y float64) core.Entity {
-	state := world.ECS.NewState()
+	item := content.WorldItem{
+		Entity:   world.ECS.NewEntity("wall"),
+		State:    world.ECS.NewState(),
+		Faction:  world.ECS.NewFaction(core.Stone),
+		Position: world.ECS.NewPosition(x, y, 1.4),
+		Dimension: world.ECS.NewDimension(
+			mosaic.Vector{X: x, Y: y},
+			mosaic.Vector{X: 32, Y: 32},
+		),
+		Collider:  world.ECS.NewCollider(0.0001),
+		Animation: world.ECS.NewAnimation("tiles", "rock_1"),
+	}
+	item.Collider.ColliderType = core.Immovable
+	item.Animation.Static = true
 
-	faction := world.ECS.NewFaction(core.Stone)
+	item, err := world.NewItem(item)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create wall")
+	}
 
-	position := world.ECS.NewPosition(x, y, 1.4)
-	dimension := world.ECS.NewDimension(
-		mosaic.Vector{X: position.X, Y: position.Y},
-		mosaic.Vector{X: 32, Y: 32},
-	)
-	collider := world.ECS.NewCollider(0.0001)
-	collider.ColliderType = core.Immovable
-
-	animation := world.ECS.NewAnimation("tiles", "rock_1")
-	animation.Static = true
-
-	entity := world.ECS.NewEntity("wall")
-	entity = world.ECS.BindFaction(entity, faction)
-	entity = world.ECS.BindState(entity, state)
-	entity = world.ECS.BindPosition(entity, position)
-	entity = world.ECS.BindDimension(entity, dimension)
-	entity = world.ECS.BindCollider(entity, collider)
-	entity = world.ECS.BindAnimation(entity, animation)
-
-	return entity
+	return item.Entity
 }

@@ -62,7 +62,7 @@ func NewGameScene(ctx context.Context, state *SceneState) *GameScene {
 	)
 	gs.animation = server.NewAnimationServer()
 
-	player := player.NewFederico(gs.world)
+	player := player.NewFederico(gs.world, 0, 0)
 	gs.playerId = player.Id
 	gs.cameraFocus = player
 
