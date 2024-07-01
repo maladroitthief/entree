@@ -25,14 +25,13 @@ func NewOnyawn(world *content.World, x, y float64) core.Entity {
 			mosaic.Vector{X: x, Y: y},
 			mosaic.Vector{X: 16, Y: 16},
 		),
-		Collider:  world.ECS.NewCollider(5.0),
+		Collider:  world.ECS.NewCollider(core.Moveable, 5.0),
 		Animation: world.ECS.NewAnimation("onyawn", "idle_front_1"),
 	}
 
 	item.AI.Targets = item.AI.Targets.Set(core.Human)
 	item.Faction.Archetype = item.Faction.Archetype.Set(core.Plant)
 	item.Dimension.Offset = mosaic.Vector{X: 0, Y: -6}
-	item.Collider.ColliderType = core.Moveable
 	item.Animation.VariantMax = 6
 	item.Animation.Speed = 50
 	item.Animation.Sprites = map[string][]string{

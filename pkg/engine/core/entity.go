@@ -19,6 +19,8 @@ type Entity struct {
 	DimensionId caravan.GIDX
 	ColliderId  caravan.GIDX
 	FactionId   caravan.GIDX
+	InventoryId caravan.GIDX
+	SkillSetId  caravan.GIDX
 }
 
 func (ecs *ECS) NewEntity(name string) Entity {

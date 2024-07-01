@@ -17,10 +17,9 @@ func Wall(world *content.World, x, y float64) core.Entity {
 			mosaic.Vector{X: x, Y: y},
 			mosaic.Vector{X: 32, Y: 32},
 		),
-		Collider:  world.ECS.NewCollider(0.0001),
+		Collider:  world.ECS.NewCollider(core.Immovable, 0.0001),
 		Animation: world.ECS.NewAnimation("tiles", "rock_1"),
 	}
-	item.Collider.ColliderType = core.Immovable
 	item.Animation.Static = true
 
 	item, err := world.NewItem(item)

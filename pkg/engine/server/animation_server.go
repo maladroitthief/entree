@@ -31,7 +31,14 @@ func (s *AnimationServer) Update(e *core.ECS) {
 			continue
 		}
 
-		spriteName := state.State
+		spriteName := "idle"
+		switch {
+		case state.Check(core.Moving):
+			spriteName = "move"
+		case state.Check(core.Dodging):
+			spriteName = "dodge"
+		}
+
 		if state.OrientationY == core.South {
 			spriteName = spriteName + "_front"
 		} else {

@@ -8,6 +8,7 @@ const (
 	Fruit
 	Stone
 	Plant
+	Metal
 )
 
 type (
@@ -89,6 +90,10 @@ func (a Archetype) Check(archetype Archetype) bool {
 	return a&archetype != 0
 }
 
+func (faction Faction) IsArchetype(archetype Archetype) bool {
+	return faction.Archetype.Check(archetype)
+}
+
 func (ecs *ECS) SetArchetype(faction Faction, archetype Archetype) {
 	ecs.factionMu.Lock()
 	defer ecs.factionMu.Unlock()
@@ -103,10 +108,6 @@ func (ecs *ECS) UnsetArchetype(faction Faction, archetype Archetype) {
 
 	faction.Archetype = faction.Archetype.Unset(archetype)
 	ecs.SetFaction(faction)
-}
-
-func (faction Faction) IsArchetype(archetype Archetype) bool {
-	return faction.Archetype.Check(archetype)
 }
 
 func (ecs *ECS) FactionActive(faction Faction) bool {

@@ -6,12 +6,15 @@ const (
 	Neutral OrientationX = iota
 	West
 	East
+
 	South OrientationY = iota
 	North
 
-	Idling  = "idle"
-	Moving  = "move"
-	Dodging = "dodge"
+	Moving state = 1 << iota
+	Dodging
+	Windup
+	Attacking
+	Cooldown
 
 	DodgeDuration = 40
 )
@@ -20,22 +23,34 @@ type (
 	OrientationX int
 	OrientationY int
 
+	Condition struct {
+		strength int
+		duration int
+		decay    int
+	}
+
+	state uint
 	State struct {
 		Id       caravan.GIDX
 		EntityId caravan.GIDX
 
-		State        string
-		Counter      int
+		state state
+
 		OrientationX OrientationX
 		OrientationY OrientationY
+
+		DodgeCounter int
+
+		SkillWindUpCounter   int
+		SkillActiveCounter   int
+		SkillCoolDownCounter int
 	}
 )
 
 func (ecs *ECS) NewState() State {
 	state := State{
 		Id:           ecs.states.Allocate(),
-		State:        Idling,
-		Counter:      0,
+		DodgeCounter: 0,
 		OrientationX: Neutral,
 		OrientationY: South,
 	}
@@ -90,4 +105,26 @@ func (ecs *ECS) SetState(state State) {
 
 func (ecs *ECS) StateActive(state State) bool {
 	return ecs.states.IsLive(state.Id)
+}
+
+func (s State) SetIdle() State {
+	return s.Unset(Moving | Dodging)
+}
+
+func (s State) Idling() bool {
+	return !s.Check(Moving | Dodging)
+}
+
+func (s State) Set(state state) State {
+	s.state |= state
+	return s
+}
+
+func (s State) Unset(state state) State {
+	s.state &= ^state
+	return s
+}
+
+func (s State) Check(state state) bool {
+	return s.state&state != 0
 }

@@ -22,7 +22,7 @@ func Idle(ecs *ECS) Command {
 			return
 		}
 
-		state.State = Idling
+		state = state.SetIdle()
 		ecs.SetState(state)
 	}
 }
@@ -41,7 +41,7 @@ func MoveY(ecs *ECS, value float64) Command {
 			return
 		}
 
-		if state.State == Dodging && state.Counter <= DodgeDuration {
+		if state.Check(Dodging) && state.DodgeCounter <= DodgeDuration {
 			return
 		}
 
@@ -51,7 +51,7 @@ func MoveY(ecs *ECS, value float64) Command {
 			return
 		}
 
-		state.State = Moving
+		state = state.Set(Moving)
 		if value < 0 {
 			state.OrientationY = North
 		} else {
@@ -77,7 +77,7 @@ func MoveX(ecs *ECS, value float64) Command {
 			log.Debug().Err(err).Any("entity", entity).Msg("MoveX state error")
 			return
 		}
-		if state.State == Dodging && state.Counter <= DodgeDuration {
+		if state.Check(Dodging) && state.DodgeCounter <= DodgeDuration {
 			return
 		}
 
@@ -87,7 +87,7 @@ func MoveX(ecs *ECS, value float64) Command {
 			return
 		}
 
-		state.State = Moving
+		state = state.Set(Moving)
 		if value < 0 {
 			state.OrientationX = West
 		} else {
@@ -114,11 +114,11 @@ func Dodge(ecs *ECS) Command {
 			return
 		}
 
-		if state.State == Dodging && state.Counter <= DodgeDuration {
+		if state.Check(Dodging) && state.DodgeCounter <= DodgeDuration {
 			return
 		}
 
-		state.State = Dodging
+		state = state.Set(Dodging)
 		ecs.SetState(state)
 	}
 }

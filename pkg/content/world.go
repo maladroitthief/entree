@@ -30,6 +30,7 @@ type (
 		Collider  core.Collider
 		Animation core.Animation
 		Faction   core.Faction
+		Inventory core.Inventory
 	}
 )
 
@@ -94,6 +95,10 @@ func (w *World) NewItem(item WorldItem) (WorldItem, error) {
 
 	if w.ECS.FactionActive(item.Faction) {
 		item.Entity = w.ECS.BindFaction(item.Entity, item.Faction)
+	}
+
+	if w.ECS.InventoryActive(item.Inventory) {
+		item.Entity = w.ECS.BindInventory(item.Entity, item.Inventory)
 	}
 
 	if w.ECS.ColliderActive(item.Collider) && w.ECS.DimensionActive(item.Dimension) {

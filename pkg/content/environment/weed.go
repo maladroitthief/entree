@@ -17,11 +17,10 @@ func Weeds(world *content.World, x, y float64) core.Entity {
 			mosaic.Vector{X: x, Y: y},
 			mosaic.Vector{X: 32, Y: 32},
 		),
-		Collider:  world.ECS.NewCollider(0.6),
+		Collider:  world.ECS.NewCollider(core.Impeding, 0.6),
 		Animation: world.ECS.NewAnimation("tiles", "weeds_1"),
 	}
 	item.Animation.Static = true
-	item.Collider.ColliderType = core.Impeding
 
 	item, err := world.NewItem(item)
 	if err != nil {

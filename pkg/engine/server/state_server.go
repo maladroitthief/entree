@@ -17,10 +17,10 @@ func (s *StateServer) Update(e *core.ECS) {
 	states := e.GetAllStates()
 
 	for _, state := range states {
-		if state.State == core.Idling {
-			state.Counter = 0
+		if state.Idling() {
+			state.DodgeCounter = 0
 		} else {
-			state.Counter++
+			state.DodgeCounter++
 		}
 		e.SetState(state)
 	}

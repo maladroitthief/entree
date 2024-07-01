@@ -12,18 +12,17 @@ func NewFederico(world *content.World, x, y float64) core.Entity {
 		Entity:   world.ECS.NewEntity("federico"),
 		State:    world.ECS.NewState(),
 		Faction:  world.ECS.NewFaction(core.Human),
-		Position: world.ECS.NewPosition(0, 0, 1.6),
+		Position: world.ECS.NewPosition(x, y, 1.6),
 		Movement: world.ECS.NewMovement(),
 		Dimension: world.ECS.NewDimension(
-			mosaic.Vector{X: 0, Y: 0},
+			mosaic.Vector{X: x, Y: y},
 			mosaic.Vector{X: 16, Y: 16},
 		),
-		Collider:  world.ECS.NewCollider(1.0),
+		Collider:  world.ECS.NewCollider(core.Moveable, 1.0),
 		Animation: world.ECS.NewAnimation("federico", "idle_front_1"),
 	}
 
 	item.Dimension.Offset = mosaic.Vector{X: 0, Y: -6}
-	item.Collider.ColliderType = core.Moveable
 	item.Animation.VariantMax = 6
 	item.Animation.Speed = 50
 	item.Animation.Sprites = map[string][]string{

@@ -33,20 +33,26 @@ type ECS struct {
 	animations  *caravan.GIDXPool[Animation]
 	factionMu   sync.RWMutex
 	factions    *caravan.GIDXPool[Faction]
+	inventoryMu sync.RWMutex
+	inventories *caravan.GIDXPool[Inventory]
+	skillsetMu  sync.RWMutex
+	skillsets   *caravan.GIDXPool[SkillSet]
 }
 
 func NewECS() *ECS {
 	ecs := &ECS{
-		entities:   caravan.NewGIDXPool[Entity](),
-		ai:         caravan.NewGIDXPool[AI](),
-		commands:   caravan.NewGIDXPool[Command](),
-		states:     caravan.NewGIDXPool[State](),
-		movements:  caravan.NewGIDXPool[Movement](),
-		positions:  caravan.NewGIDXPool[Position](),
-		dimensions: caravan.NewGIDXPool[Dimension](),
-		colliders:  caravan.NewGIDXPool[Collider](),
-		animations: caravan.NewGIDXPool[Animation](),
-		factions:   caravan.NewGIDXPool[Faction](),
+		entities:    caravan.NewGIDXPool[Entity](),
+		ai:          caravan.NewGIDXPool[AI](),
+		commands:    caravan.NewGIDXPool[Command](),
+		states:      caravan.NewGIDXPool[State](),
+		movements:   caravan.NewGIDXPool[Movement](),
+		positions:   caravan.NewGIDXPool[Position](),
+		dimensions:  caravan.NewGIDXPool[Dimension](),
+		colliders:   caravan.NewGIDXPool[Collider](),
+		animations:  caravan.NewGIDXPool[Animation](),
+		factions:    caravan.NewGIDXPool[Faction](),
+		inventories: caravan.NewGIDXPool[Inventory](),
+		skillsets:   caravan.NewGIDXPool[SkillSet](),
 	}
 
 	return ecs
